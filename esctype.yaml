@@ -1,0 +1,390 @@
+node_types:  
+
+# specific workflow service
+  workflow_service:
+    derived_from: cloudify.nodes.ApplicationModule
+    properties:
+      block_description:
+        description: Description of the block function
+        type: string
+      block_name:
+        type: string
+      block_category:
+        type: string
+      service_type:
+        type: string
+
+# e-Sc custom blocks
+  column-join:
+    derived from: workflow_service
+    properties:
+      ignor-if-empty:
+        description: If ticked, the output will NOT include an empty column if either of the inputs contains empty columns
+        type: boolean
+        default: false
+      equilize-columns:
+        type: string
+        default: NO
+        constraints:
+          - valid_values: [NO,PAD_LAST,PAD_CYCLIC,TRIM,TRIM_ALL]
+      # service inputs
+      left-hand-data:
+        descrition:
+        type: string
+        default: data-wrapper 
+      right-hand-data:
+        description:
+        type: string
+        default: data-wrapper 
+      # service output
+      joined-data:
+        description: 
+        type: string
+        default: data-wrapper 
+
+
+  column-select:
+    derived from: workflow_service
+    properties:
+      column-list:
+        type:
+        default:' '
+      DebugMode:
+        type: boolean
+        default: false
+      DebugSuspended:
+        type: boolean
+        default: true
+      DebugPort:
+        type: integer
+        default: 5005
+      input-1:
+        description: 
+        type: string
+        default: data-wrapper
+      # service outputs
+      output-1:
+        description: 
+        type: string
+        default: data-wrapper
+      output-2:
+        description: 
+        type: string
+        default: data-wrapper
+
+  csvimport:
+    derived_from: workflow_service
+    properties:
+      source:
+        type: string
+        default: ' '
+      start_row:
+        type: integer
+        default: 1
+      label_row:
+        type: integer
+        default: 1
+      ContainsLabels:
+        description: Data contains a row with column names
+        type: boolean
+        default: true
+      Delimiter:
+        description: Column delimiter character
+        type: string
+        default: ' '
+      EndRow:
+        description: Last row of data to be imported
+        type: integer
+        default: 2
+      LimitRows:
+        description: Stop importing after the specified number of rows
+        type: boolean
+        default: false
+      Subsample:
+        description: description="Subsample the imported data
+        type: boolean
+        default: false
+      SampleInterval:
+        description: Subsampling row interval
+        type: integer
+        default: 1
+      TextOnly:
+        description: Treat all data as String values
+        type: boolean
+        default: false
+      ImportChunkSize:
+        description: Number of rows in each data chunk
+        type: integer
+        default: 5000
+      DebugMode:
+        type: boolean
+        default: false
+      DebugSuspended:
+        type: boolean
+        default: true
+      DebugPort:
+        type: integer
+        default: 5005
+      output-1:
+        type :string
+        default: data-wrapper
+
+  importfile:
+    derived from: workflow_service
+    properties:
+      Source:
+        type: string
+        default:' '
+      DebugMode:
+        type: boolean
+        default: false
+      output-1:
+        type: string
+        default: file-wrapper
+
+  exportfile:
+    derived_from: workflow_service
+    properties:
+      targetfolder:
+        type: string
+        default: ' '
+      automaticfolder:
+        description: save this data set to the automatic workflow directory
+        type: boolean
+        default: true
+      savetolastimportfolder:
+        description: Use the last folder that had data imported from it by this workflow. This property overrides the AutomaticFolder property
+        type: boolean
+        default: false
+      Comments:
+        description: Comments to attach to data files
+        type: string
+        default: Saved data
+      makepublic:
+        description: make uploaded files public
+        type: boolean
+        default: false
+      savetosubdirectory:
+        description: Save the results to a subdirectory of the target folder
+        type: boolean
+        default: false
+      Subdirectory:
+        description: Subdirectory to save results to
+        type: string
+        default: processed
+      uploadmetadata:
+        description: Should this block attach the metadata that has been propagated into it to the uploaded files
+        type: boolean
+        default: false
+      #input:
+      file-list:
+        description:
+        type: string
+        default: file-wrapper
+      # service outputs
+      file-ids:
+        description:
+        type: string
+        default: data-wrapper
+      file-references:
+        description:
+        type: string
+        default: link-wrapper
+
+  filejoin:
+    derived_from: workflow_service
+    properties:
+      OutputFileName:
+        description: The name of the joined file to output
+        type: string
+        default: joinedFile.txt
+      DebugMode:
+        type: boolean
+        default: false
+      DebugSuspended:
+        type: boolean
+        default: true
+      DebugPort:
+        type: integer
+        default: 5005
+      # inputs
+      file-1:
+        description:
+        type: string
+        default: file-wrapper
+      file-2:
+        description:
+        type: string
+        default: file-wrapper
+      # service output
+      file-3:
+        description:
+        type: string
+        default: file-wrapper
+
+  filterduplicates:
+    derived_from: workflow_service
+    properties:
+      normalizesequencenames:
+        description: If set, sequence names will be changed to SEQnnnn and dictionary with mapping from the original name to the normalized name will be produced via sequence-map output
+        type: boolean
+        default: false
+      #inputs
+      fasta-files:
+        description:
+        type: string
+        default: file-wrapper
+      # service output
+      filtered-fasta-files:
+        description:
+        type: string
+        default: file-wrapper
+      removed-sequences:
+        description:
+        type: string
+        default: file-wrapper
+      sequence-map:
+        description:
+        type: string
+        default: data-wrapper
+
+  clustralw:
+    derived_from: workflow_service
+    properties:
+      align:
+        description: Do full multiple alignment
+        type: boolean
+        default: true
+      output-type:
+        description: Choose output format
+        type: string
+        default: CLUSTAL
+        constraints:
+          - valid_values: [CLUSTAL,GCG,GDE,PHYLIP,PIR,NEXUS,FASTA]
+      #inputs
+      input-sequences:
+        description:
+        type: string
+        default: file-wrapper
+      # service output
+      aligned-sequences:
+        description:
+        type: string
+        default: file-wrapper
+
+  mega-nj:
+    derived_from: workflow_service
+    properties:
+      testofphylogeny:
+        description: If set, sequence names will be changed to SEQnnnn and dictionary with mapping from the original name to the normalized name will be produced via sequence-map output
+        type: string
+        default: Bootstrap method
+        constraints:
+          - valid_values: [None,Bootstrap method,Interior-branch test]
+      no-ofbootstrapreplications:
+        type: integer
+        default: 1000
+      model/method:
+        type: string
+        default: Kimura 2-parameter model
+        constraints:
+          - valid_values: [No. of differences,p-distance,Jukes-Cantor model,Kimura 2-parameter model,Tajima-Nei model,Tamura 3-parameter model,Tamura-Nei model,Maximum Composite Likelihood]
+      substitutionstoinclude:
+        type: string
+        default: d: Transitions + Transversions
+        constraints:
+          - valid_values: [d: Transitions + Transversions,s: Transitions only,v: Transversions only]
+      ratesamongsites:
+        type: string
+        default: Uniform rates
+        constraints:
+          - valid_values: [Uniform rates,Gamma Distributed (G)]
+      gammaparameter:
+        type: integer
+        default: 1
+      gaps/missingdatatreatment:
+        type: string
+        default: Complete deletion
+        constraints:
+          - valid_values: [Complete deletion,Pairwise deletion,Partial deletion]
+      sitecoveragecutoff(%):
+        type: integer
+        default: 95
+      #inputs
+      input-data:
+        description:
+        type: string
+        default: file-wrapper
+      # service output
+      analysis-output:
+        description:
+        type: string
+        default: file-wrapper
+      consensus-output:
+        description:
+        type: string
+        default: file-wrapper
+      summary-info:
+        description:
+        type: string
+        default: file-wrapper
+
+# specific node type for the libraries
+  spec_library:
+    derived from: cloudify.nodes.ApplicationModule
+    properties:
+      version:
+        type: string
+        default: ''
+      OS-type:
+        type: string
+        default: Linux
+
+# custom node types for libraries
+  javaruntime:
+    derived from: spec_library
+
+  corelibrary:
+    derived from: spec_library
+    properties:
+      version:
+        type: string
+        default: 3.0
+
+  ClustalW_lib:
+    derived from: spec_library
+    properties:
+      version:
+        type: string
+        default: 2.1
+
+  eSC.CommonTools:
+    derived from: spec_library
+    properties:
+      version:
+        type: string
+        default: 1.0
+
+  MegaCC:
+    derived from: spec_library
+    properties:
+      version:
+        type: string
+        default: 6.0
+
+# e-Sc custom relationship types
+relationship_types:
+
+  DataWrapperLink:
+    derived_from: cloudify.relationships.depends_on
+    source_interfaces:
+      cloudify.interfaces.relationship_lifecycle:
+          preconfigure:
+              implementation: scripts/data-preconfigure.py
+
+  FileWrapperLink:
+    derived_from: cloudify.relationships.depends_on
+    source_interfaces:
+      cloudify.interfaces.relationship_lifecycle:
+          preconfigure:
+              implementation: scripts/file-preconfigure.py
