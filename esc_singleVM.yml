@@ -29,7 +29,7 @@ node_templates:
         create: scripts/java-install.sh
     relationships:
       - type: cloudify.relationships.contained_in
-        target: host1
+        target: host
 
   core-lib:
     type: corelibrary
@@ -38,7 +38,7 @@ node_templates:
         create: scripts/core_deploy.sh
     relationships:
       - type: cloudify.relationships.contained_in
-        target: host1
+        target: host
 
   importFile:
     type: importfile
@@ -53,7 +53,7 @@ node_templates:
         create: scripts/fileimport_deploy.sh
     relationships:
       - type: cloudify.relationships.contained_in
-        target: host1
+        target: host
 
   mega:
     type: MegaCC
@@ -92,6 +92,6 @@ node_templates:
         create: scripts/exportfile-deploy.sh
     relationships:
       - type: cloudify.relationships.contained_in
-        target: host3
+        target: host
       - type: FileWrapperLink
         target: Mega-NJ
