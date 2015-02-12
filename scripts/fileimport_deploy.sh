@@ -3,39 +3,35 @@
 set -e
 # download  esc-block to specific dir 
 function info(){ builtin echo [INFO] [$(basename $0)] $@; }
-function error(){ builtin echo [ERROR] [$(basename $0)] $@; }
 
-
-#. ${CLOUDIFY_LOGGING}
-#. ${CLOUDIFY_FILE_SERVER}
-
-My_DIR="/home/rawa"
-BASE_DIR=${My_DIR}/${CLOUDIFY_EXECUTION_ID}
+My_DIR='/home/rawa/rpq'
+BASE_DIR=${My_DIR}
 git_url="https://github.com/rawaqasha/java_block.git"
 
 
-info "Changing directory to ${BASE_DIR}"
-cd ${My_DIR} || exit $?
+info "Making directory ${BASE_DIR}"
+ 
+#|| exit $?
+if [ ! -d ${MY_DIR} ]; then
+	mkdir -p ${BASE_DIR}
+else
+	info "Dir already exists"
+fi
+#info "Changing directory ${BASE_DIR}"
+cd ${My_DIR}
 
-YUM_CMD=$(which yum)
-APT_GET_CMD=$(which apt-get)
+git_CMD=$(git --version)
 
-info "Downloading application sources to ${BASE_DIR}"
-    if [[ ! -z $YUM_CMD ]]; then
-        sudo yum -y install git-core || exit $?   
-    elif [[ ! -z $APT_GET_CMD ]]; then 
+    if [[ ! -z $git_CMD ]]; then
         sudo apt-get -qq install git || exit $?   
-     else
-        error "error can't install package git"
-        exit 1;
-     fi
+    fi
 
     info "cloning application from git url $git_url" 
     git clone $git_url || exit $?
      
-   
+ 
 
-info "Finished installing application ${app_name}"
+info "Finished cloning application ${app_name}"
 
 
-ctx logger info "hi file import"
+#ctx logger info "hi file import"
