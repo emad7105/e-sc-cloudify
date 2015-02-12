@@ -1,6 +1,7 @@
 ###########################################################
 # This Blueprint for e-sc workflow
-# on an existing hosts.
+# on an existing hosts. It has been recognized by 
+# Cloudify 3.1 
 ###########################################################
 
 tosca_definitions_version: cloudify_dsl_1_0
