@@ -1,3 +1,4 @@
+# e-sc node types / they have been tested on Cloudify 3.1
 node_types:
 
   workflow_service:
