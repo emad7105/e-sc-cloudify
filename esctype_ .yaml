@@ -26,6 +26,21 @@ node_types:
         type: string
         default: file-wrapper
 
+  colinvert:
+    derived_from: workflow_service
+    properties:
+      CopyInput:
+        type: boolean
+        default: true
+      #input
+      input-1:
+        type: string
+        default: data-wrapper
+      #output
+      output-1:
+        type: string
+        default: data-wrapper
+
   exportfile:
     derived_from: workflow_service
     properties:
@@ -235,6 +250,13 @@ node_types:
 relationships:
 
   FileWrapperLink:
+    derived_from: cloudify.relationships.depends_on
+    source_interfaces:
+      cloudify.interfaces.relationship_lifecycle:
+          preconfigure:
+              implementation: scripts/file-preconfigure.sh
+
+  DataWrapperLink:
     derived_from: cloudify.relationships.depends_on
     source_interfaces:
       cloudify.interfaces.relationship_lifecycle:
