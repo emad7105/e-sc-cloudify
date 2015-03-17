@@ -55,6 +55,18 @@ inputs:
       27017: 27017
       28017: 28017
 
+node_types:
+
+  docker_container:
+    derived_from: cloudify.nodes.Root
+    properties:
+      image_name:
+        type: string
+        default: ubuntu
+      container_name:
+        type: string
+        default: mycontainer
+
 node_templates:
 
   host:
@@ -66,16 +78,24 @@ node_templates:
         user: { get_input: agent_user }
         key: { get_input: agent_private_key_path }
 
-  mongod_container:
-    type: cloudify.docker.Container
-    properties:
-      name: esc-container
-      image:
-        repository: ubuntu
+  Mycontainer:
+    type: docker_container
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: docker.docker_plugin.tasks.create_container
+          implementation: scripts/docker-pull.sh
     relationships:
+      - type: cloudify.relationships.contained_in
+        target: host
+
+  Java:
+    type: cloudify.nodes.ApplicationModule
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/java-install.sh
+    relationships:
+      - type: cloudify.relationships.depends_on
+        target: Mycontainer
       - type: cloudify.relationships.contained_in
         target: host

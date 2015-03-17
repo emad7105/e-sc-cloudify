@@ -65,7 +65,7 @@ node_types:
         default: ubuntu
       container_name:
         type: string
-        default: mycontainer
+        default: newcontainer
 
 node_templates:
 
@@ -85,5 +85,17 @@ node_templates:
         create:
           implementation: scripts/docker-pull.sh
     relationships:
+      - type: cloudify.relationships.contained_in
+        target: host
+
+  Java:
+    type: cloudify.nodes.ApplicationModule
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/java-install.sh
+    relationships:
+      - type: cloudify.relationships.depends_on
+        target: Mycontainer
       - type: cloudify.relationships.contained_in
         target: host
