@@ -185,14 +185,14 @@ node_types:
         type: integer
         default: 5005
       output-1:
-        type : string
+        type :string
         default: data-wrapper
 
   csvexport:
     derived_from: workflow_service
     properties:
       AutomaticFolder:
-        type: boolean
+        type: Boolean
         default: true
       FileName:
         type: string
