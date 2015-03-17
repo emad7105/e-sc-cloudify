@@ -1,6 +1,0 @@
-#!/bin/bash
-
-set -e
-
-docker exec -it mycontainer apt-get update
-docker exec -it mycontainer apt-get -y install default-jdk
