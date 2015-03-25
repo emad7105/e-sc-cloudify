@@ -38,6 +38,9 @@ node_types:
       container_ID:
         type: string
         default: container1
+      block_name: 
+        type: string
+        default: block
    
 node_templates:
 
@@ -53,8 +56,9 @@ node_templates:
   container1:
     type: docker_container
     properties:
-      image_name: esc_block/rpq:v1
+      image_name: esc-block/rpq:v1
       container_ID: block1
+      block_name: CSVimport
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
@@ -66,8 +70,9 @@ node_templates:
   container2:
     type: docker_container
     properties:
-      image_name: esc_block1/rpq:v1
+      image_name: esc-block1/rpq:v1
       container_ID: block2
+      block_name: colinvert
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
@@ -81,8 +86,9 @@ node_templates:
   container3:
     type: docker_container
     properties:
-      image_name: esc_block2/rpq:v1
+      image_name: esc-block2/rpq:v1
       container_ID: block3
+      block_name: CSVexport
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
