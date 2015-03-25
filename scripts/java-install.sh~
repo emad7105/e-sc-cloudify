@@ -17,5 +17,6 @@ sudo docker exec -it ${CONTAINER_NAME} apt-get update
 sudo docker exec -it ${CONTAINER_NAME} apt-get -y install ${LIBRARY_NAME}
 
 else
-  ctx logger info "Java already has been installed"
+  ctx logger error "Java already has been installed"
+  exit 1;
 fi
