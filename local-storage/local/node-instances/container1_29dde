@@ -1,1 +1,0 @@
-{"relationships": [{"target_name": "host", "type": "cloudify.relationships.contained_in", "target_id": "host_1c462"}], "name": "container1", "runtime_properties": {}, "state": "started", "node_id": "container1", "version": 7, "host_id": "host_1c462", "id": "container1_29dde"}
