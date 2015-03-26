@@ -223,6 +223,9 @@ node_types:
   spec_library:
     derived_from: cloudify.nodes.ApplicationModule
     properties:
+      lib_name:
+        type: string
+        default: ' '
       version:
         type: string
         default: ''
