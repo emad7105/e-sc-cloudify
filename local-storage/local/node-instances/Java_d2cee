@@ -1,0 +1,1 @@
+{"relationships": [{"target_name": "host", "type": "cloudify.relationships.contained_in", "target_id": "host_fcef8"}, {"target_name": "container1", "type": "cloudify.relationships.depends_on", "target_id": "container1_3e74f"}], "name": "Java", "runtime_properties": {}, "state": "started", "node_id": "Java", "version": 7, "host_id": "host_fcef8", "id": "Java_d2cee"}

@@ -41,15 +41,13 @@ node_types:
         default: container1
    
   WFblock:
-    derived_from: cloudify.nodes.ApplicationModule
+    derived_from: csvimport
     properties:
       container_ID: 
         type: string
       blockURL:
         type: string
         default: 'https://github.com/rawaqasha/eSc-blocks.git'
-      block_name:
-        type: string
 
   Library:
     derived_from: cloudify.nodes.ApplicationModule
@@ -92,11 +90,31 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: scripts/java-install.sh
+          implementation: scripts/java-install2.sh
           inputs:
-            container_ID: { get_property: [web_server, port] }
+            container_name: { get_property: [container1, container_ID] }
     relationships:
       - type: cloudify.relationships.depends_on
         target: container1
       - type: cloudify.relationships.contained_in
         target: host
+
+  CSV_import:
+    type: WFblock
+    properties:
+      block_description: import csv file
+      block_name: CSVimport.jar
+      block_category: File Management
+      service_type: AUTO
+      container_ID: all_in_one
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create: 
+          implementation: scripts/block-deploy3.sh
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host
+      - type: cloudify.relationships.depends_on
+        target: container1
+      - type: cloudify.relationships.depends_on
+        target: Java
