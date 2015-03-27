@@ -1,3 +1,5 @@
+#real nodetypes for eSc blocks
+
 node_types:
 
   workflow_service:

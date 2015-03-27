@@ -1,10 +1,11 @@
-#blueprint for workflow of 3 blocks in 3 containers but the block def are not real block #def
+#eSc workflow with 3 real block def deployed in 3 containers
 
 tosca_definitions_version: cloudify_dsl_1_0
 
 imports:
   - http://www.getcloudify.org/spec/cloudify/3.1/types.yaml
   - https://raw.githubusercontent.com/cloudify-cosmo/cloudify-docker-plugin/1.1/plugin.yaml
+  - esc_nodetypes.yaml
   
 inputs:
 
@@ -40,17 +41,6 @@ node_types:
       container_ID:
         type: string
         default: container1
-   
-  WFblock:
-    derived_from: cloudify.nodes.ApplicationModule
-    properties:
-      container_ID: 
-        type: string
-      blockURL:
-        type: string
-        default: 'https://github.com/rawaqasha/eSc-blocks.git'
-      block_name:
-        type: string
 
   Library:
     derived_from: cloudify.nodes.ApplicationModule
@@ -76,6 +66,8 @@ node_templates:
 
   container1:
     type: docker_container
+    properties:
+      container_ID: container1
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
@@ -85,36 +77,43 @@ node_templates:
         target: host
 
   Java:
-    type: Library
+    type: spec_library
     properties:
-      container_ID: container1
       lib_name: default-jdk
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: scripts/java-install.sh
+          implementation: scripts/java-install2.sh
+          inputs:
+            process:
+              args: [container1]
     relationships:
       - type: cloudify.relationships.depends_on
         target: container1
       - type: cloudify.relationships.contained_in
         target: host
 
-  block:
-    type: WFblock
+  CSV_import:
+    type: csvimport
     properties:
+      block_description: import csv file
       block_name: CSVimport.jar
-      container_ID: container1
+      block_category: File Management
+      service_type: AUTO
     interfaces:
       cloudify.interfaces.lifecycle:
-        create:
-          implementation: scripts/block-deploy.sh
+        create: 
+          implementation: scripts/block-deploy3.sh
+          inputs:
+            process:
+             args: [container1, 'https://github.com/rawaqasha/eSc-blocks.git']
     relationships:
+      - type: cloudify.relationships.contained_in
+        target: host
       - type: cloudify.relationships.depends_on
         target: container1
       - type: cloudify.relationships.depends_on
         target: Java
-      - type: cloudify.relationships.contained_in
-        target: host
 
   container2:
     type: docker_container
@@ -127,40 +126,49 @@ node_templates:
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
+      - type: cloudify.relationships.depends_on
+        target: container1
 
-  Java1:
-    type: Library
+  Java2:
+    type: spec_library
     properties:
-      container_ID: container2
       lib_name: default-jdk
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: scripts/java-install.sh
+          implementation: scripts/java-install2.sh
+          inputs:
+            process:
+              args: [container2]
     relationships:
       - type: cloudify.relationships.depends_on
         target: container2
       - type: cloudify.relationships.contained_in
         target: host
 
-  block1:
-    type: WFblock
+  Col_invert:
+    type: colinvert
     properties:
+      block_description: invert the column of csv file
       block_name: colinvert.jar
-      container_ID: container2
+      block_category: File Management
+      service_type: AUTO
     interfaces:
       cloudify.interfaces.lifecycle:
-        create:
-          implementation: scripts/block-deploy.sh
+        create: 
+          implementation: scripts/block-deploy3.sh
+          inputs:
+            process:
+             args: [container2, 'https://github.com/rawaqasha/eSc-blocks.git']
     relationships:
+      - type: cloudify.relationships.contained_in
+        target: host
+      - type: cloudify.relationships.depends_on
+        target: CSV_import
       - type: cloudify.relationships.depends_on
         target: container2
       - type: cloudify.relationships.depends_on
-        target: Java1
-      - type: cloudify.relationships.depends_on
-        target: block
-      - type: cloudify.relationships.contained_in
-        target: host
+        target: Java2
 
   container3:
     type: docker_container
@@ -173,37 +181,46 @@ node_templates:
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
+      - type: cloudify.relationships.depends_on
+        target: container2
 
-  Java2:
-    type: Library
+  Java3:
+    type: spec_library
     properties:
-      container_ID: container3
       lib_name: default-jdk
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: scripts/java-install.sh
+          implementation: scripts/java-install2.sh
+          inputs:
+            process:
+              args: [container3]
     relationships:
       - type: cloudify.relationships.depends_on
-        target: container1
+        target: container3
       - type: cloudify.relationships.contained_in
         target: host
 
-  block2:
-    type: WFblock
+  CSV_export:
+    type: csvexport
     properties:
+      block_description: export csv file
       block_name: CSVexport.jar
-      container_ID: container3
+      block_category: File Management
+      service_type: AUTO
     interfaces:
       cloudify.interfaces.lifecycle:
-        create:
-          implementation: scripts/block-deploy.sh
+        create: 
+          implementation: scripts/block-deploy3.sh
+          inputs:
+            process:
+             args: [container3, 'https://github.com/rawaqasha/eSc-blocks.git']
     relationships:
-      - type: cloudify.relationships.depends_on
-        target: container1
-      - type: cloudify.relationships.depends_on
-        target: Java
-      - type: cloudify.relationships.depends_on
-        target: block1
       - type: cloudify.relationships.contained_in
         target: host
+      - type: cloudify.relationships.depends_on
+        target: container3
+      - type: cloudify.relationships.depends_on
+        target: Col_invert
+      - type: cloudify.relationships.depends_on
+        target: Java

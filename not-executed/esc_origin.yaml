@@ -1,0 +1,134 @@
+###########################################################
+# This Blueprint for e-sc workflow (3 Blocks)
+# on 3 existing hosts. 
+# It has been uploaded on Cloudify 3.1 but not implemented
+###########################################################
+
+tosca_definitions_version: cloudify_dsl_1_0
+
+imports:  
+  - http://www.getcloudify.org/spec/cloudify/3.1/types.yaml
+  - http://www.getcloudify.org/spec/diamond-plugin/1.1/plugin.yaml
+  - esc_nodetypes.yaml
+
+node_templates:
+
+  host1:
+    type: cloudify.nodes.Compute
+    properties:
+      ip: 127.0.0.1
+      cloudify_agent:
+        user: rawa
+        key: ~/.ssh/id_rsa
+  
+  java1:
+    type: javaruntime
+    properties:
+      version: 1.7
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create: scripts/java-install.sh
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host1
+
+  core-lib1:
+    type: corelibrary
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create: scripts/core_deploy.sh
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host1
+
+  importFile:
+    type: importfile
+    properties:
+      block_description: block for importing file to workflow
+      block_name: import File
+      block_category: File Management
+      service_type: AUTO
+      Source: in.txt
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create: scripts/fileimport_deploy.sh
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host1
+
+  host2:
+    type: cloudify.nodes.Compute
+    properties:
+      ip: 127.0.0.1
+      cloudify_agent:
+        user: rawa
+        key: ~/.ssh/id_rsa
+
+  mega:
+    type: MegaCC
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create: scripts/mega-install.sh
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host2
+
+  Mega-NJ:
+    type: mega-nj
+    properties:
+      block_description: Java service created using the service designer
+      block_name: MEGA_NJ
+      block_category: LVL.MEGA
+      service_type: AUTO
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create: scripts/meganj_deploy.sh
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host2
+      - type: FileWrapperLink
+        target: importFile
+
+  host3:
+    type: cloudify.nodes.Compute
+    properties:
+      ip: 127.0.0.1
+      cloudify_agent:
+        user: rawa
+        key: ~/.ssh/id_rsa
+
+  java2:
+    type: javaruntime
+    properties:
+      version: 1.7
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create: scripts/java-install.sh
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host3
+
+  core-lib2:
+    type: corelibrary
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create: scripts/core_deploy.sh
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host3
+
+  ExportFile:
+    type: exportfile
+    properties:
+      block_description: Export workflow files back to the workspace
+      block_name: Export Files
+      block_category: File Management
+      service_type: AUTO
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create: scripts/exportfile-deploy.sh
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host3
+      - type: FileWrapperLink
+        target: Mega-NJ

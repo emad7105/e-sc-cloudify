@@ -1,5 +1,3 @@
-# all blocks in one container but the block definition is not the real esc def.
-
 tosca_definitions_version: cloudify_dsl_1_0
 
 imports:
@@ -36,33 +34,14 @@ node_types:
     properties:
       image_name:
         type: string
-        default: java
+        default: ubuntu
       container_ID:
         type: string
         default: container1
+      block_name: 
+        type: string
+        default: block
    
-  WFblock:
-    derived_from: cloudify.nodes.ApplicationModule
-    properties:
-      container_ID: 
-        type: string
-      blockURL:
-        type: string
-        default: 'https://github.com/rawaqasha/eSc-blocks.git'
-      block_name:
-        type: string
-
-  Library:
-    derived_from: cloudify.nodes.ApplicationModule
-    properties:
-      container_ID:
-        type: string
-      lib_name:
-        type: string
-      version:
-        type: string
-        default: ' '
-
 node_templates:
 
   host:
@@ -77,73 +56,46 @@ node_templates:
   container1:
     type: docker_container
     properties:
-      container_ID: all_in_one
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        create:
-          implementation: scripts/docker-pull.sh
-    relationships:
-      - type: cloudify.relationships.contained_in
-        target: host
-
-  Java:
-    type: Library
-    properties:
-      container_ID: all_in_one
-      lib_name: default-jdk
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        create:
-          implementation: scripts/java-install.sh
-    relationships:
-      - type: cloudify.relationships.depends_on
-        target: container1
-      - type: cloudify.relationships.contained_in
-        target: host
-
-  block:
-    type: WFblock
-    properties:
+      image_name: esc-block/rpq:v1
+      container_ID: block1
       block_name: CSVimport.jar
-      container_ID: all_in_one
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: scripts/block-deploy.sh
+          implementation: scripts/docker-start.sh
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host
+  
+  container2:
+    type: docker_container
+    properties:
+      image_name: esc-block1/rpq:v1
+      container_ID: block2
+      block_name: colinvert.jar
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/docker-start.sh
     relationships:
       - type: cloudify.relationships.depends_on
         target: container1
-      - type: cloudify.relationships.depends_on
-        target: Java
       - type: cloudify.relationships.contained_in
         target: host
 
-  block1:
-    type: WFblock
+  container3:
+    type: docker_container
     properties:
-      block_name: colinvert.jar
-      container_ID: all_in_one
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        create:
-          implementation: scripts/block-deploy2.sh
-    relationships:
-      - type: cloudify.relationships.depends_on
-        target: block
-      - type: cloudify.relationships.contained_in
-        target: host
-
-  block2:
-    type: WFblock
-    properties:
+      image_name: esc-block2/rpq:v1
+      container_ID: block3
       block_name: CSVexport.jar
-      container_ID: all_in_one
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: scripts/block-deploy2.sh
+          implementation: scripts/docker-start.sh
     relationships:
       - type: cloudify.relationships.depends_on
-        target: block1
+        target: container2
       - type: cloudify.relationships.contained_in
         target: host
+
