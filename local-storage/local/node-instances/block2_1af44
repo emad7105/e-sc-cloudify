@@ -1,1 +1,0 @@
-{"relationships": [{"target_name": "block1", "target_id": "block1_2454d", "type": "cloudify.relationships.depends_on"}, {"target_name": "host", "target_id": "host_fdfd0", "type": "cloudify.relationships.contained_in"}], "name": "block2", "runtime_properties": {}, "state": "started", "node_id": "block2", "version": 14, "host_id": "host_fdfd0", "id": "block2_1af44"}
