@@ -99,7 +99,7 @@ node_templates:
       - type: cloudify.relationships.depends_on
         target: container1
       - type: cloudify.relationships.contained_in
-        target: host
+        target: container1
 
   block:
     type: WFblock
@@ -116,7 +116,7 @@ node_templates:
       - type: cloudify.relationships.depends_on
         target: Java
       - type: cloudify.relationships.contained_in
-        target: host
+        target: container1
 
   block1:
     type: WFblock
@@ -131,7 +131,7 @@ node_templates:
       - type: cloudify.relationships.depends_on
         target: block
       - type: cloudify.relationships.contained_in
-        target: host
+        target: container1
 
   block2:
     type: WFblock
@@ -146,4 +146,4 @@ node_templates:
       - type: cloudify.relationships.depends_on
         target: block1
       - type: cloudify.relationships.contained_in
-        target: host
+        target: container1
