@@ -1,9 +1,11 @@
 #!/bin/bash
 
 set -e
-CONTAINER_ID=$1
+blueprint=$1
+block=$2
+CONTAINER_ID=$3
 BLOCK_NAME=$(ctx node properties block_name)
-BLOCK_URL=$2
+BLOCK_URL=$4
 
 set +e
   GIT=$(which git)
@@ -25,5 +27,5 @@ fi
 
 
 ctx logger info "Execute the block"
-sudo docker exec -it ${CONTAINER_ID} java -jar eSc-blocks/${BLOCK_NAME}
+sudo docker exec -it ${CONTAINER_ID} java -jar eSc-blocks/${BLOCK_NAME} ${blueprint} ${block}
 
