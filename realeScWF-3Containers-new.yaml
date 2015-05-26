@@ -64,6 +64,16 @@ node_templates:
         user: { get_input: agent_user }
         key: { get_input: agent_private_key_path }
 
+  starterBlock:
+    type: cloudify.nodes.ApplicationModule
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/starter.sh
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host
+
   container1:
     type: docker_container
     properties:
@@ -75,6 +85,8 @@ node_templates:
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
+      - type: cloudify.relationships.depends_on
+        target: starterBlock
 
   Java:
     type: spec_library
@@ -271,3 +283,15 @@ node_templates:
                   args: [values]
       - type: cloudify.relationships.depends_on
         target: Java
+
+    finalBlock:
+    type: cloudify.nodes.ApplicationModule
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/final.sh
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host
+      - type: cloudify.relationships.depends_on
+        target: ExportFiles
