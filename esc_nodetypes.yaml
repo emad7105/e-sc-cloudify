@@ -1,5 +1,3 @@
-#real nodetypes for eSc blocks
-
 node_types:
 
   workflow_service:
@@ -43,7 +41,7 @@ node_types:
         type: string
         default: data-wrapper
 
-  exportfile:
+  exportfiles:
     derived_from: workflow_service
     properties:
       targetfolder:
@@ -118,7 +116,7 @@ node_types:
       sitecoveragecutoff(%):
         type: integer
         default: 95
-      #inputs
+      #input
       input-data:
         type: string
         default: file-wrapper
@@ -188,7 +186,7 @@ node_types:
         default: 5005
       output-1:
         type : string
-        default: data-wrapper
+        default: output_port
 
   csvexport:
     derived_from: workflow_service
@@ -210,7 +208,7 @@ node_types:
         description: Surround all String output in Quotes
         type: boolean
         default: false
-      #inputs
+      #input
       input-data:
         type: string
         default: data-wrapper
@@ -221,6 +219,63 @@ node_types:
       file-reference:
         type: string
         default: link-wrapper
+
+  fileJoin:
+    derived_from: workflow_service
+    properties:
+      OutputFileName:
+        type: string
+        default: joinedFile.txt
+      #inputs:
+      file-1:
+        type: String
+        default: file-wrapper
+      file-2:
+        type: string
+        default: file-wrapper
+      #output
+      file-3:
+        type: string
+        default: file-wrapper
+
+  filterDupl:
+    derived_from: workflow_service
+    properties:
+      Normalize Sequence Names:
+        type: boolean
+        default: false
+      #input
+      fasta-files:
+        type: string
+        default: file-wrapper
+      #outputs:
+      filtered-fasta-files:
+        type: string
+        default: file-wrapper
+      removed-sequences:
+        type: string
+        default: data-wrapper
+      sequence-map:
+        type: string
+        default: data-wrapper
+
+  clustralW:
+    derived_from: workflow_service
+    properties:
+      Align:
+        type: string
+        default: true
+      Output-Type:
+        type: string
+        default: CLUSTRAL
+      #input
+      input-sequences:
+        type: string
+        default: file-wrapper
+      #output:
+      aligned-sequences:
+        type: string
+        default: file-wrapper
 
   spec_library:
     derived_from: cloudify.nodes.ApplicationModule
@@ -267,3 +322,11 @@ relationships:
       cloudify.interfaces.relationship_lifecycle:
           preconfigure:
               implementation: scripts/file-preconfigure.sh
+
+  block_connection:
+    derived_from: cloudify.relationships.depend_on
+    source_interfaces:
+      cloudify.interfaces.relationship_lifecycle:
+        postconfigure:
+          implementation: scripts/postconfigure.sh
+          

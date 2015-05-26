@@ -93,13 +93,37 @@ node_templates:
       - type: cloudify.relationships.contained_in
         target: host
 
-  CSV_import:
-    type: csvimport
+  importFile1:
+    type: importfile
     properties:
-      block_description: import csv file
-      block_name: CSVimport.jar
+      block_description: import file
+      block_name: ImportFile.jar
       block_category: File Management
-      service_type: AUTO
+      service_type: block
+      Source: file1.txt
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create: 
+          implementation: scripts/block-deploy3.sh
+          inputs:
+            process:
+             args: [container1, 'https://github.com/rawaqasha/eSc-blocks.git']
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host
+      - type: cloudify.relationships.depends_on
+        target: container1
+      - type: cloudify.relationships.depends_on
+        target: Java
+
+    importFile2:
+    type: importfile
+    properties:
+      block_description: import file
+      block_name: ImportFile.jar
+      block_category: File Management
+      service_type: block
+      Source: file2.txt
     interfaces:
       cloudify.interfaces.lifecycle:
         create: 
@@ -146,13 +170,13 @@ node_templates:
       - type: cloudify.relationships.contained_in
         target: host
 
-  Col_invert:
-    type: colinvert
+  FileJoin:
+    type: fileJoin
     properties:
-      block_description: invert the column of csv file
-      block_name: colinvert.jar
+      block_description: concatenate 2 files
+      block_name: FileJoin.jar
       block_category: File Management
-      service_type: AUTO
+      service_type: block
     interfaces:
       cloudify.interfaces.lifecycle:
         create: 
@@ -163,8 +187,24 @@ node_templates:
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
-      - type: cloudify.relationships.depends_on
-        target: CSV_import
+      - type: block_connection
+        target: importFile1
+        source_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            postconfigure:
+              implementation: scripts/postconfigure.sh
+              inputs:
+                process:
+                  args: [values]
+      - type: block_connection
+        target: importFile2
+        source_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            postconfigure:
+              implementation: scripts/postconfigure.sh
+              inputs:
+                process:
+                  args: [values]
       - type: cloudify.relationships.depends_on
         target: container2
       - type: cloudify.relationships.depends_on
@@ -201,13 +241,13 @@ node_templates:
       - type: cloudify.relationships.contained_in
         target: host
 
-  CSV_export:
-    type: csvexport
+  ExportFiles:
+    type: exportfiles
     properties:
-      block_description: export csv file
-      block_name: CSVexport.jar
+      block_description: export files
+      block_name: ExportFiles.jar
       block_category: File Management
-      service_type: AUTO
+      service_type: block
     interfaces:
       cloudify.interfaces.lifecycle:
         create: 
@@ -220,7 +260,14 @@ node_templates:
         target: host
       - type: cloudify.relationships.depends_on
         target: container3
-      - type: cloudify.relationships.depends_on
-        target: Col_invert
+      - type: block_connection
+        target: FileJoin
+        source_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            postconfigure:
+              implementation: scripts/postconfigure.sh
+              inputs:
+                process:
+                  args: [values]
       - type: cloudify.relationships.depends_on
         target: Java
