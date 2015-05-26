@@ -226,9 +226,9 @@ node_types:
       OutputFileName:
         type: string
         default: joinedFile.txt
-      #inputs:
+      #inputs
       file-1:
-        type: String
+        type: string
         default: file-wrapper
       file-2:
         type: string
@@ -324,7 +324,7 @@ relationships:
               implementation: scripts/file-preconfigure.sh
 
   block_connection:
-    derived_from: cloudify.relationships.depend_on
+    derived_from: cloudify.relationships.depends_on
     source_interfaces:
       cloudify.interfaces.relationship_lifecycle:
         postconfigure:
