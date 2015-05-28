@@ -112,7 +112,7 @@ node_templates:
     type: importfile
     properties:
       block_description: import file
-      block_name: ImportFile.jar
+      block_name: importfile.jar
       block_category: File Management
       service_type: block
       Source: file1.txt
@@ -133,22 +133,22 @@ node_templates:
     type: importfile
     properties:
       block_description: import file
-      block_name: ImportFile.jar
+      block_name: importfile.jar
       block_category: File Management
       service_type: block
       Source: file2.txt
     interfaces:
       cloudify.interfaces.lifecycle:
         create: 
-          implementation: scripts/block-deploy3.sh
+          implementation: scripts/only-deploy.sh
           inputs:
             process:
-             args: [realeScWF, importFile2, container1, 'https://github.com/rawaqasha/eSc-blocks.git']
+             args: [realeScWF, importFile2, container1]
     relationships:
       - type: cloudify.relationships.contained_in
         target: container1
       - type: cloudify.relationships.depends_on
-        target: container1
+        target: importFile1
       - type: cloudify.relationships.depends_on
         target: Java
 
@@ -190,17 +190,12 @@ node_templates:
       block_name: FileJoin.jar
       block_category: File Management
       service_type: block
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        create: 
-          implementation: scripts/block-deploy3.sh
-          inputs:
-            process:
-             args: [realeScWF, FileJoin, container2, 'https://github.com/rawaqasha/eSc-blocks.git']
+      file-1: importFile1/output-1
+      file-2: importFile2/output-1
     relationships:
       - type: cloudify.relationships.contained_in
         target: container2
-      - type: block_connection
+      - type: cloudify.relationships.depends_on
         target: importFile1
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
@@ -208,8 +203,8 @@ node_templates:
               implementation: scripts/preconfigure.sh
               inputs:
                 process:
-                  args: [realeScWF/importFile1/output-1, FileJoin/file-1, out]
-      - type: block_connection
+                  args: [realeScWF/importFile1/output-1, FileJoin/file-1, out, container2, 'https://github.com/rawaqasha/eSc-blocks.git']
+      - type: cloudify.relationships.depends_on
         target: importFile2
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
@@ -217,11 +212,18 @@ node_templates:
               implementation: scripts/preconfigure.sh
               inputs:
                 process:
-                  args: [realeScWF/importFile2/output-1, FileJoin/file-2, out]
+                  args: [realeScWF/importFile2/output-1, FileJoin/file-2, out, container2, 'https://github.com/rawaqasha/eSc-blocks.git']
       - type: cloudify.relationships.depends_on
         target: container2
       - type: cloudify.relationships.depends_on
         target: Java2
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          implementation: scripts/only-deploy.sh
+          inputs:
+            process:
+             args: [realeScWF, FileJoin, container2]
 
   container3:
     type: docker_container
@@ -261,29 +263,29 @@ node_templates:
       block_name: ExportFiles.jar
       block_category: File Management
       service_type: block
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        create: 
-          implementation: scripts/block-deploy3.sh
-          inputs:
-            process:
-             args: [realeScWF, ExportFiles, container3, 'https://github.com/rawaqasha/eSc-blocks.git']
     relationships:
       - type: cloudify.relationships.contained_in
         target: container3
       - type: cloudify.relationships.depends_on
         target: container3
-      - type: block_connection
+      - type: cloudify.relationships.depends_on
         target: FileJoin
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
-            postconfigure:
+            preconfigure:
               implementation: scripts/preconfigure.sh
               inputs:
                 process:
-                  args: [realeScWF/FileJoin/file-3, ExportFiles/file-list, out]
+                  args: [realeScWF/FileJoin/file-3, ExportFiles/file-list, out, container3, 'https://github.com/rawaqasha/eSc-blocks.git']
       - type: cloudify.relationships.depends_on
         target: Java3
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start: 
+          implementation: scripts/block-deploy3.sh
+          inputs:
+            process:
+             args: [realeScWF, ExportFiles, container3, 'https://github.com/rawaqasha/eSc-blocks.git']
 
   finalBlock:
     type: cloudify.nodes.ApplicationModule

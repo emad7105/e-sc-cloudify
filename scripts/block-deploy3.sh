@@ -23,7 +23,8 @@ else
 fi
 
 
- sudo docker exec -it ${CONTAINER_ID} git clone ${BLOCK_URL}
+sudo docker exec -it ${CONTAINER_ID} [ ! -d eSc-blocks ] && sudo docker exec -it ${CONTAINER_ID} git clone ${BLOCK_URL}
+
 
 
 ctx logger info "Execute the block"

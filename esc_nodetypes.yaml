@@ -324,9 +324,9 @@ relationships:
               implementation: scripts/file-preconfigure.sh
 
   block_connection:
-    derived_from: cloudify.relationships.depends_on
-    source_interfaces:
+    derived_from: cloudify.relationships.connected_to
+    target_interfaces:
       cloudify.interfaces.relationship_lifecycle:
         postconfigure:
-          implementation: scripts/postconfigure.sh
+          implementation: scripts/preconfigure.sh
           
