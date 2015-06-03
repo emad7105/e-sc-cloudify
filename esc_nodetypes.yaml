@@ -241,7 +241,10 @@ node_types:
   filterDupl:
     derived_from: workflow_service
     properties:
-      Normalize Sequence Names:
+      Normalize_Sequence_Names:
+        type: boolean
+        default: false
+      Normalize_Duplicates_Only:
         type: boolean
         default: false
       #input

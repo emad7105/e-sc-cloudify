@@ -4,5 +4,5 @@ set -e
 blueprint=$1
 
 #ctx logger info "Execute the block"
-java -jar ~/jars/finalBlock.jar ${blueprint}
+java -jar ~/startNfinish/finalBlock.jar ${blueprint}
 

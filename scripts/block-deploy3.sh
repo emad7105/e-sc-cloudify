@@ -8,7 +8,7 @@ BLOCK_NAME=$(ctx node properties block_name)
 BLOCK_URL=$4
 
 set +e
-  GIT=$(which git)
+  GIT=$(sudo docker exec -it ${CONTAINER_ID} which git)
 set -e
 
 ctx logger info "Deploying ${BLOCk_NAME} on ${CONTAINER_ID}"

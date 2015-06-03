@@ -3,14 +3,14 @@
 set -e
 
 CONTAINER_ID=container2
-BLOCK_URL=https://github.com/rawaqasha/eSc-blocks.git
-blocks_folder='eSc-blocks'
+
 
 set +e
-  GIT=$(which git)
+  GIT=$(sudo docker exec -it ${CONTAINER_ID} which git)
 set -e
 
 
+echo ${GIT}
 
 if [[ -z ${GIT} ]]; then
 
@@ -22,8 +22,4 @@ else
 fi
 
 
-sudo docker exec -it ${CONTAINER_ID} [ ! -d eSc-blocks ] && sudo docker exec -it ${CONTAINER_ID} git clone ${BLOCK_URL}
-
-#ctx logger info "Execute the relation"
-#sudo docker exec -it ${CONTAINER_ID} java -jar eSc-blocks/BlockLinkRelation.jar ${sourcefile} ${dest} ${store}
 

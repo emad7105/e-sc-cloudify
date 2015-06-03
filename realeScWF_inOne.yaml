@@ -72,7 +72,7 @@ node_templates:
           implementation: scripts/starter.sh
           inputs:
             process:
-              args: [realeScWF]
+              args: [realeScWF_inOne]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -122,7 +122,7 @@ node_templates:
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [realeScWF, importFile1, container1, 'https://github.com/rawaqasha/eSc-blocks.git']
+             args: [realeScWF_inOne, importFile1, container1, 'https://github.com/rawaqasha/eSc-blocks.git']
     relationships:
       - type: cloudify.relationships.contained_in
         target: container1
@@ -143,7 +143,7 @@ node_templates:
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [realeScWF, importFile2, container1, 'https://github.com/rawaqasha/eSc-blocks.git']
+             args: [realeScWF_inOne, importFile2, container1, 'https://github.com/rawaqasha/eSc-blocks.git']
     relationships:
       - type: cloudify.relationships.contained_in
         target: container1
@@ -151,37 +151,6 @@ node_templates:
         target: importFile1
       - type: cloudify.relationships.depends_on
         target: Java
-
-  container2:
-    type: docker_container
-    properties:
-      container_ID: container2
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        create:
-          implementation: scripts/docker-pull.sh
-    relationships:
-      - type: cloudify.relationships.contained_in
-        target: host
-      - type: cloudify.relationships.depends_on
-        target: container1
-
-  Java2:
-    type: spec_library
-    properties:
-      lib_name: default-jdk
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        create:
-          implementation: scripts/java-install2.sh
-          inputs:
-            process:
-              args: [container2]
-    relationships:
-      - type: cloudify.relationships.depends_on
-        target: container2
-      - type: cloudify.relationships.contained_in
-        target: host
 
   FileJoin:
     type: fileJoin
@@ -194,7 +163,7 @@ node_templates:
       file-2: importFile2/output-1
     relationships:
       - type: cloudify.relationships.contained_in
-        target: container2
+        target: container1
       - type: cloudify.relationships.depends_on
         target: importFile1
         source_interfaces:
@@ -203,7 +172,7 @@ node_templates:
               implementation: scripts/preconfigure.sh
               inputs:
                 process:
-                  args: [realeScWF/importFile1/output-1, FileJoin/file-1, out, container2, 'https://github.com/rawaqasha/eSc-blocks.git']
+                  args: [realeScWF_inOne/importFile1/output-1, FileJoin/file-1, in, container1, 'https://github.com/rawaqasha/eSc-blocks.git']
       - type: cloudify.relationships.depends_on
         target: importFile2
         source_interfaces:
@@ -212,43 +181,16 @@ node_templates:
               implementation: scripts/preconfigure.sh
               inputs:
                 process:
-                  args: [realeScWF/importFile2/output-1, FileJoin/file-2, out, container2, 'https://github.com/rawaqasha/eSc-blocks.git']
+                  args: [realeScWF_inOne/importFile2/output-1, FileJoin/file-2, in, container1, 'https://github.com/rawaqasha/eSc-blocks.git']
       - type: cloudify.relationships.depends_on
-        target: Java2
+        target: container1
     interfaces:
       cloudify.interfaces.lifecycle:
         start:
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [realeScWF, FileJoin, container2, 'https://github.com/rawaqasha/eSc-blocks.git']
-
-  FilterDupl:
-    type: filterDupl
-    properties:
-      block_description: I don't know
-      block_name: FilterDuplicates.jar
-      block_category: File Management
-      service_type: block      
-    relationships:
-      - type: cloudify.relationships.contained_in
-        target: container2
-      - type: cloudify.relationships.depends_on
-        target: FileJoin
-        source_interfaces:
-          cloudify.interfaces.relationship_lifecycle:
-            preconfigure:
-              implementation: scripts/preconfigure.sh
-              inputs:
-                process:
-                  args: [realeScWF/FileJoin/file-3, FilterDupl/fasta-files, in, container2, 'https://github.com/rawaqasha/eSc-blocks.git']        
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        start:
-          implementation: scripts/block-deploy3.sh
-          inputs:
-            process:
-             args: [realeScWF, FilterDupl, container2, 'https://github.com/rawaqasha/eSc-blocks.git']
+             args: [realeScWF_inOne, FileJoin, container1, 'https://github.com/rawaqasha/eSc-blocks.git']
 
   container3:
     type: docker_container
@@ -262,7 +204,7 @@ node_templates:
       - type: cloudify.relationships.contained_in
         target: host
       - type: cloudify.relationships.depends_on
-        target: container2
+        target: container1
 
   Java3:
     type: spec_library
@@ -294,14 +236,14 @@ node_templates:
       - type: cloudify.relationships.depends_on
         target: container3
       - type: cloudify.relationships.depends_on
-        target: FilterDupl
+        target: FileJoin
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
             preconfigure:
               implementation: scripts/preconfigure.sh
               inputs:
                 process:
-                  args: [realeScWF/FilterDupl/filtered-fasta-files, ExportFiles/file-list, out, container3, 'https://github.com/rawaqasha/eSc-blocks.git']
+                  args: [realeScWF_inOne/FileJoin/file-3, ExportFiles/file-list, out, container3, 'https://github.com/rawaqasha/eSc-blocks.git']
       - type: cloudify.relationships.depends_on
         target: Java3
     interfaces:
@@ -310,7 +252,7 @@ node_templates:
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [realeScWF, ExportFiles, container3, 'https://github.com/rawaqasha/eSc-blocks.git']
+             args: [realeScWF_inOne, ExportFiles, container3, 'https://github.com/rawaqasha/eSc-blocks.git']
 
   finalBlock:
     type: cloudify.nodes.ApplicationModule
@@ -320,7 +262,7 @@ node_templates:
           implementation: scripts/final.sh
           inputs:
             process:
-              args: [realeScWF]
+              args: [realeScWF_inOne]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host

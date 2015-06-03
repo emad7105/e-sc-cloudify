@@ -9,7 +9,7 @@ BLOCK_URL=$5
 blocks_folder='eSc-blocks'
 
 set +e
-  GIT=$(which git)
+  GIT=$(sudo docker exec -it ${CONTAINER_ID} which git)
 set -e
 
 ctx logger info "Deploying ${BLOCk_NAME} on ${CONTAINER_ID}"

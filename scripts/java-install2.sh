@@ -8,7 +8,7 @@ LIBRARY_NAME=$(ctx node properties lib_name)
 ctx logger info "Installing java on"
 
 set +e
-  java=$(which java)
+  java=$(sudo docker exec -it ${CONTAINER_ID} which java)
 set -e
 
 if [[ -z ${java} ]]; then      
