@@ -148,8 +148,6 @@ node_templates:
       - type: cloudify.relationships.contained_in
         target: container1
       - type: cloudify.relationships.depends_on
-        target: importFile1
-      - type: cloudify.relationships.depends_on
         target: Java
 
   container2:
@@ -248,7 +246,7 @@ node_templates:
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [realeScWF, FilterDupl, container2, 'https://github.com/rawaqasha/eSc-blocks.git']
+              args: [realeScWF, FilterDupl, container2, 'https://github.com/rawaqasha/eSc-blocks.git']
 
   container3:
     type: docker_container
@@ -290,8 +288,6 @@ node_templates:
       service_type: block
     relationships:
       - type: cloudify.relationships.contained_in
-        target: container3
-      - type: cloudify.relationships.depends_on
         target: container3
       - type: cloudify.relationships.depends_on
         target: FilterDupl
