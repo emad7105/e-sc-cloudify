@@ -262,7 +262,7 @@ node_types:
         type: string
         default: data-wrapper
 
-  clustralW:
+  clustalW:
     derived_from: workflow_service
     properties:
       Align:
@@ -270,7 +270,7 @@ node_types:
         default: true
       Output-Type:
         type: string
-        default: CLUSTRAL
+        default: CLUSTAL
       #input
       input-sequences:
         type: string
@@ -292,6 +292,17 @@ node_types:
       OS-type:
         type: string
         default: Linux
+
+  clustalw_lib:
+    derived_from: spec_library
+    properties:
+      lib_name:
+        type: string
+      version:
+        type: string
+        default: 2.1
+      lib_URL: 
+        type: string
 
   javaruntime:
     derived_from: spec_library

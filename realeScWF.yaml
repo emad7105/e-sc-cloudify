@@ -181,6 +181,24 @@ node_templates:
       - type: cloudify.relationships.contained_in
         target: host
 
+  ClustalW_Lib:
+    type: clustalw_lib
+    properties:
+      lib_name: clustalw-2.1-linux-x86_64-libcppstatic
+      lib_URL: http://www.clustal.org/download/current/clustalw-2.1-linux-x86_64-libcppstatic.tar.gz
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/clustalw-install.sh
+          inputs:
+            process:
+              args: [container2, 'http://www.clustal.org/download/current/clustalw-2.1-linux-x86_64-libcppstatic.tar.gz']
+    relationships:
+      - type: cloudify.relationships.depends_on
+        target: container2
+      - type: cloudify.relationships.contained_in
+        target: container2
+
   FileJoin:
     type: fileJoin
     properties:
@@ -248,6 +266,37 @@ node_templates:
             process:
               args: [realeScWF, FilterDupl, container2, 'https://github.com/rawaqasha/eSc-blocks.git']
 
+  ClustalW:
+    type: clustalW
+    properties:
+      block_description: I don't know
+      block_name: ClustalW.jar
+      block_category: File Management
+      service_type: block
+      Align: true
+      Output-Type: CLUSTAL      
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container2
+      - type: cloudify.relationships.depends_on
+        target: ClustalW_Lib
+      - type: cloudify.relationships.depends_on
+        target: FilterDupl
+        source_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            preconfigure:
+              implementation: scripts/preconfigure.sh
+              inputs:
+                process:
+                  args: [realeScWF/FilterDupl/filtered-fasta-files, ClustalW/input-sequences, in, container2, 'https://github.com/rawaqasha/eSc-blocks.git']        
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          implementation: scripts/clustalw-deploy.sh
+          inputs:
+            process:
+              args: [realeScWF, ClustalW, container2, 'https://github.com/rawaqasha/eSc-blocks.git',  get_property: [ClustalW_Lib, lib_name]]
+
   container3:
     type: docker_container
     properties:
@@ -290,14 +339,14 @@ node_templates:
       - type: cloudify.relationships.contained_in
         target: container3
       - type: cloudify.relationships.depends_on
-        target: FilterDupl
+        target: ClustalW
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
             preconfigure:
               implementation: scripts/preconfigure.sh
               inputs:
                 process:
-                  args: [realeScWF/FilterDupl/filtered-fasta-files, ExportFiles/file-list, out, container3, 'https://github.com/rawaqasha/eSc-blocks.git']
+                  args: [realeScWF/ClustalW/aligned-sequences, ExportFiles/file-list, out, container3, 'https://github.com/rawaqasha/eSc-blocks.git']
       - type: cloudify.relationships.depends_on
         target: Java3
     interfaces:
@@ -307,6 +356,66 @@ node_templates:
           inputs:
             process:
              args: [realeScWF, ExportFiles, container3, 'https://github.com/rawaqasha/eSc-blocks.git']
+
+  CSV_export1:
+    type: csvexport
+    properties:
+      block_description: export csv file
+      block_name: CSVexport.jar
+      block_category: File Management
+      FileName: out1.csv
+      service_type: block
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container3
+      - type: cloudify.relationships.depends_on
+        target: FilterDupl
+        source_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            preconfigure:
+              implementation: scripts/preconfigure.sh
+              inputs:
+                process:
+                  args: [realeScWF/FilterDupl/sequence-map, CSV_export1/input-data, out, container3, 'https://github.com/rawaqasha/eSc-blocks.git']
+      - type: cloudify.relationships.depends_on
+        target: Java3
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start: 
+          implementation: scripts/block-deploy3.sh
+          inputs:
+            process:
+             args: [realeScWF, CSV_export1, container3, 'https://github.com/rawaqasha/eSc-blocks.git']
+
+  CSV_export2:
+    type: csvexport
+    properties:
+      block_description: export csv file
+      block_name: CSVexport.jar
+      block_category: File Management
+      FileName: out2.csv
+      service_type: block
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container3
+      - type: cloudify.relationships.depends_on
+        target: FilterDupl
+        source_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            preconfigure:
+              implementation: scripts/preconfigure.sh
+              inputs:
+                process:
+                  args: [realeScWF/FilterDupl/sequence-map, CSV_export2/input-data, out, container3, 'https://github.com/rawaqasha/eSc-blocks.git']
+      - type: cloudify.relationships.depends_on
+        target: Java3
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start: 
+          implementation: scripts/block-deploy3.sh
+          inputs:
+            process:
+             args: [realeScWF, CSV_export2, container3, 'https://github.com/rawaqasha/eSc-blocks.git']
 
   finalBlock:
     type: cloudify.nodes.ApplicationModule
@@ -322,3 +431,7 @@ node_templates:
         target: host
       - type: cloudify.relationships.depends_on
         target: ExportFiles
+      - type: cloudify.relationships.depends_on
+        target: CSV_export1
+      - type: cloudify.relationships.depends_on
+        target: CSV_export2
