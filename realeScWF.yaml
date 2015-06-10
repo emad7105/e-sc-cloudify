@@ -42,17 +42,6 @@ node_types:
         type: string
         default: container1
 
-  Library:
-    derived_from: cloudify.nodes.ApplicationModule
-    properties:
-      container_ID:
-        type: string
-      lib_name:
-        type: string
-      version:
-        type: string
-        default: ' '
-
 node_templates:
 
   host:
@@ -199,6 +188,39 @@ node_templates:
       - type: cloudify.relationships.contained_in
         target: container2
 
+  Wine:
+    type: spec_library
+    properties:
+      lib_name: wine
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/wine-install.sh
+          inputs:
+            process:
+              args: [container2]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container2
+
+  Mega-CC:
+    type: MegaCC
+    properties:
+      lib_name: MegaCC-6.0
+      lib_URL: http://www.megasoftware.net/
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/megaCC-install.sh
+          inputs:
+            process:
+              args: [container2, 'https://github.com/rawaqasha/megacc.git']
+    relationships:
+      - type: cloudify.relationships.depends_on
+        target: Wine
+      - type: cloudify.relationships.contained_in
+        target: container2
+
   FileJoin:
     type: fileJoin
     properties:
@@ -211,7 +233,7 @@ node_templates:
     relationships:
       - type: cloudify.relationships.contained_in
         target: container2
-      - type: cloudify.relationships.depends_on
+      - type: block_link
         target: importFile1
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
@@ -220,7 +242,7 @@ node_templates:
               inputs:
                 process:
                   args: [realeScWF/importFile1/output-1, FileJoin/file-1, out, container2, 'https://github.com/rawaqasha/eSc-blocks.git']
-      - type: cloudify.relationships.depends_on
+      - type: block_link
         target: importFile2
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
@@ -249,7 +271,7 @@ node_templates:
     relationships:
       - type: cloudify.relationships.contained_in
         target: container2
-      - type: cloudify.relationships.depends_on
+      - type: block_link
         target: FileJoin
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
@@ -280,7 +302,7 @@ node_templates:
         target: container2
       - type: cloudify.relationships.depends_on
         target: ClustalW_Lib
-      - type: cloudify.relationships.depends_on
+      - type: block_link
         target: FilterDupl
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
@@ -292,10 +314,47 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         start:
-          implementation: scripts/clustalw-deploy.sh
+          implementation: scripts/special-deploy.sh
           inputs:
             process:
               args: [realeScWF, ClustalW, container2, 'https://github.com/rawaqasha/eSc-blocks.git',  get_property: [ClustalW_Lib, lib_name]]
+
+  Mega-NJ:
+    type: mega-nj
+    properties:
+      block_description: I don't know
+      block_name: Mega-NJ.jar
+      block_category: File Management
+      service_type: block 
+      test_of_phylogeny: Bootstrap method
+      no-ofbootstrapreplications: 1000
+      model/method: Kimura 2-parameter model
+      substitutions_to_include: 'd: Transitions + Transversions'
+      rates_among_sites: Uniform rates        
+      gamma_parameter: 1
+      gaps/missing_data_treatment: 'Complete deletion'       
+      site_coverage_cutoff(%): 95          
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container2
+      - type: cloudify.relationships.depends_on
+        target: Mega-CC
+      - type: block_link
+        target: ClustalW
+        source_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            preconfigure:
+              implementation: scripts/preconfigure.sh
+              inputs:
+                process:
+                  args: [realeScWF/ClustalW/aligned-sequences, Mega-NJ/input-data, in, container2, 'https://github.com/rawaqasha/eSc-blocks.git']        
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          implementation: scripts/special-deploy.sh
+          inputs:
+            process:
+              args: [realeScWF, Mega-NJ, container2, 'https://github.com/rawaqasha/eSc-blocks.git',  get_property: [Mega-CC, lib_name]]
 
   container3:
     type: docker_container
@@ -338,15 +397,15 @@ node_templates:
     relationships:
       - type: cloudify.relationships.contained_in
         target: container3
-      - type: cloudify.relationships.depends_on
-        target: ClustalW
+      - type: block_link
+        target: Mega-NJ
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
             preconfigure:
               implementation: scripts/preconfigure.sh
               inputs:
                 process:
-                  args: [realeScWF/ClustalW/aligned-sequences, ExportFiles/file-list, out, container3, 'https://github.com/rawaqasha/eSc-blocks.git']
+                  args: [realeScWF/Mega-NJ/analysis-output, ExportFiles/file-list, out, container3, 'https://github.com/rawaqasha/eSc-blocks.git']
       - type: cloudify.relationships.depends_on
         target: Java3
     interfaces:
@@ -368,7 +427,7 @@ node_templates:
     relationships:
       - type: cloudify.relationships.contained_in
         target: container3
-      - type: cloudify.relationships.depends_on
+      - type: block_link
         target: FilterDupl
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
@@ -398,7 +457,7 @@ node_templates:
     relationships:
       - type: cloudify.relationships.contained_in
         target: container3
-      - type: cloudify.relationships.depends_on
+      - type: block_link
         target: FilterDupl
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:

@@ -90,7 +90,7 @@ node_types:
   mega-nj:
     derived_from: workflow_service
     properties:
-      testofphylogeny:
+      test_of_phylogeny:
         type: string
         default: Bootstrapmethod
       no-ofbootstrapreplications:
@@ -99,21 +99,21 @@ node_types:
       model/method:
         type: string
         default: Kimura 2-parameter model
-      substitutionstoinclude:
+      substitutions_to_include:
         type: string
         default: 'd: Transitions + Transversions'
-      ratesamongsites:
+      rates_among_sites:
         type: string
         default: Uniformrates        
-      gammaparameter:
+      gamma_parameter:
         type: integer
         default: 1
-      gaps/missingdatatreatment:
+      gaps/missing_data_treatment:
         type: string
         default: ''
         # constraints:
         #  - valid_values: ['Complete deletion','Pairwise deletion','Partial deletion']
-      sitecoveragecutoff(%):
+      site_coverage_cutoff(%):
         type: integer
         default: 95
       #input
@@ -317,30 +317,33 @@ node_types:
   MegaCC:
     derived_from: spec_library
     properties:
+      lib_name:
+        type: string
       version:
         type: string
         default: 6.0
+      lib_URL: 
+        type: string
 
 relationships:
 
-  FileWrapperLink:
+  block_link:
     derived_from: cloudify.relationships.depends_on
+
+# relationships for feature work
+  FileWrapperLink:
+    derived_from: block_link
     source_interfaces:
       cloudify.interfaces.relationship_lifecycle:
           preconfigure:
-              implementation: scripts/file-preconfigure.sh
+              implementation: scripts/preconfigure.sh
 
   DataWrapperLink:
-    derived_from: cloudify.relationships.depends_on
+    derived_from: block_link
     source_interfaces:
       cloudify.interfaces.relationship_lifecycle:
           preconfigure:
-              implementation: scripts/file-preconfigure.sh
+              implementation: scripts/preconfigure.sh
 
-  block_connection:
-    derived_from: cloudify.relationships.connected_to
-    target_interfaces:
-      cloudify.interfaces.relationship_lifecycle:
-        postconfigure:
-          implementation: scripts/preconfigure.sh
+  
           
