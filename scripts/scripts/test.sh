@@ -2,7 +2,7 @@
 
 set -e
 
-CONTAINER_ID=container2
+CONTAINER_ID=test
 
 
 set +e
@@ -21,5 +21,7 @@ else
   echo "git already has been installed"
 fi
 
-
+if [ $CONTAINER_ID = "test" ]; then
+   echo "ok"
+fi
 

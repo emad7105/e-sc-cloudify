@@ -29,5 +29,8 @@ sudo docker exec -it ${CONTAINER_ID} [ ! -d eSc-blocks ] && sudo docker exec -it
 
 
 ctx logger info "Execute the block"
+if [ $block = "Mega-NJ.jar" ]; then
+   sudo docker exec -it ${CONTAINER_ID} jar xf eSc-blocks/${BLOCK_NAME} M6CC.mao
+fi
 sudo docker exec -it ${CONTAINER_ID} java -jar eSc-blocks/${BLOCK_NAME} ${blueprint} ${block} ${LIB_DIR}
 

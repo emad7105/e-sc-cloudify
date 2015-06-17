@@ -37,7 +37,7 @@ node_types:
     properties:
       image_name:
         type: string
-        default: java
+        default: rawa/mybase:01
       container_ID:
         type: string
         default: container1
@@ -206,15 +206,16 @@ node_templates:
   Mega-CC:
     type: MegaCC
     properties:
-      lib_name: MegaCC-6.0
+      lib_name: megacc.exe
       lib_URL: http://www.megasoftware.net/
+      lib_path: work
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
           implementation: scripts/megaCC-install.sh
           inputs:
             process:
-              args: [container2, 'https://github.com/rawaqasha/megacc.git']
+              args: [container2, 'https://github.com/rawaqasha/work.git']
     relationships:
       - type: cloudify.relationships.depends_on
         target: Wine
@@ -333,7 +334,7 @@ node_templates:
       rates_among_sites: Uniform rates        
       gamma_parameter: 1
       gaps/missing_data_treatment: 'Complete deletion'       
-      site_coverage_cutoff(%): 95          
+      site_coverage_cutoff(%): 95
     relationships:
       - type: cloudify.relationships.contained_in
         target: container2
@@ -354,7 +355,7 @@ node_templates:
           implementation: scripts/special-deploy.sh
           inputs:
             process:
-              args: [realeScWF, Mega-NJ, container2, 'https://github.com/rawaqasha/eSc-blocks.git',  get_property: [Mega-CC, lib_name]]
+              args: [realeScWF, Mega-NJ, container2, 'https://github.com/rawaqasha/eSc-blocks.git',  get_property: [Mega-CC, lib_path]]
 
   container3:
     type: docker_container
@@ -387,7 +388,7 @@ node_templates:
       - type: cloudify.relationships.contained_in
         target: container3
 
-  ExportFiles:
+  ExportFiles1:
     type: exportfiles
     properties:
       block_description: export files
@@ -405,7 +406,7 @@ node_templates:
               implementation: scripts/preconfigure.sh
               inputs:
                 process:
-                  args: [realeScWF/Mega-NJ/analysis-output, ExportFiles/file-list, out, container3, 'https://github.com/rawaqasha/eSc-blocks.git']
+                  args: [realeScWF/Mega-NJ/analysis-output, ExportFiles1/file-list, out, container3, 'https://github.com/rawaqasha/eSc-blocks.git']
       - type: cloudify.relationships.depends_on
         target: Java3
     interfaces:
@@ -414,7 +415,65 @@ node_templates:
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [realeScWF, ExportFiles, container3, 'https://github.com/rawaqasha/eSc-blocks.git']
+             args: [realeScWF, ExportFiles1, container3, 'https://github.com/rawaqasha/eSc-blocks.git']
+
+  ExportFiles2:
+    type: exportfiles
+    properties:
+      block_description: export files
+      block_name: ExportFiles.jar
+      block_category: File Management
+      service_type: block
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container3
+      - type: block_link
+        target: Mega-NJ
+        source_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            preconfigure:
+              implementation: scripts/preconfigure.sh
+              inputs:
+                process:
+                  args: [realeScWF/Mega-NJ/consensus-output, ExportFiles2/file-list, out, container3, 'https://github.com/rawaqasha/eSc-blocks.git']
+      - type: cloudify.relationships.depends_on
+        target: Java3
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start: 
+          implementation: scripts/block-deploy3.sh
+          inputs:
+            process:
+             args: [realeScWF, ExportFiles2, container3, 'https://github.com/rawaqasha/eSc-blocks.git']
+
+  ExportFiles3:
+    type: exportfiles
+    properties:
+      block_description: export files
+      block_name: ExportFiles.jar
+      block_category: File Management
+      service_type: block
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container3
+      - type: block_link
+        target: Mega-NJ
+        source_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            preconfigure:
+              implementation: scripts/preconfigure.sh
+              inputs:
+                process:
+                  args: [realeScWF/Mega-NJ/summary-info, ExportFiles3/file-list, out, container3, 'https://github.com/rawaqasha/eSc-blocks.git']
+      - type: cloudify.relationships.depends_on
+        target: Java3
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start: 
+          implementation: scripts/block-deploy3.sh
+          inputs:
+            process:
+             args: [realeScWF, ExportFiles3, container3, 'https://github.com/rawaqasha/eSc-blocks.git']
 
   CSV_export1:
     type: csvexport
@@ -489,7 +548,11 @@ node_templates:
       - type: cloudify.relationships.contained_in
         target: host
       - type: cloudify.relationships.depends_on
-        target: ExportFiles
+        target: ExportFiles1
+      - type: cloudify.relationships.depends_on
+        target: ExportFiles2
+      - type: cloudify.relationships.depends_on
+        target: ExportFiles3
       - type: cloudify.relationships.depends_on
         target: CSV_export1
       - type: cloudify.relationships.depends_on

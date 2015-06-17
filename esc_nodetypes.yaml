@@ -292,6 +292,9 @@ node_types:
       OS-type:
         type: string
         default: Linux
+      lib_path:
+        type: string
+        default: ' '
 
   clustalw_lib:
     derived_from: spec_library

@@ -15,7 +15,7 @@ set -e
 if [[ -z ${Git} ]]; then      
         
   sudo docker exec -it ${CONTAINER_NAME} apt-get update
-  sudo docker exec -it ${CONTAINER_NAME} apt-get install git
+  sudo docker exec -it ${CONTAINER_NAME} apt-get -y install git
 
 fi
 
