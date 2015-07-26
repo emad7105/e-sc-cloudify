@@ -6,27 +6,28 @@ dest=$2
 store=$3
 CONTAINER_ID=$4
 BLOCK_URL=$5
-blocks_folder='eSc-blocks'
 
-set +e
-  GIT=$(sudo docker exec -it ${CONTAINER_ID} which git)
+
+set +e 
+  Wget=$(sudo docker exec -it ${CONTAINER_ID} which wget)
 set -e
 
-ctx logger info "Deploying ${BLOCk_NAME} on ${CONTAINER_ID}"
 
-if [[ -z ${GIT} ]]; then
+ctx logger info "Transfering data to ${BLOCk_NAME} on ${CONTAINER_ID}"
+
+if [[ -z ${Wget} ]]; then
 
   sudo docker exec -it ${CONTAINER_ID} apt-get update
-  sudo docker exec -it ${CONTAINER_ID} apt-get -y install git
+  sudo docker exec -it ${CONTAINER_ID} apt-get -y install wget
 
 else
-  ctx logger info "git already has been installed"
+ ctx logger info "wget already has been installed"
 fi
 
+#sudo docker exec -it ${CONTAINER_ID} [ ! -d ${blueprint} ] && sudo docker exec -it ${CONTAINER_ID} mkdir #${blueprint}
 
-sudo docker exec -it ${CONTAINER_ID} [ ! -d eSc-blocks ] && sudo docker exec -it ${CONTAINER_ID} git clone ${BLOCK_URL}
+sudo docker exec -it ${CONTAINER_ID} [ ! -f BlockLinkRelation.jar ] && sudo docker exec -it ${CONTAINER_ID} wget ${BLOCK_URL}
 
-
-#ctx logger info "Execute the relation"
-sudo docker exec -it ${CONTAINER_ID} java -jar eSc-blocks/BlockLinkRelation.jar ${sourcefile} ${dest} ${store}
+ctx logger info "Execute the relation"
+sudo docker exec -it ${CONTAINER_ID} java -jar BlockLinkRelation.jar ${sourcefile} ${dest} ${store}
 

@@ -4,12 +4,26 @@ set -e
 
 blueprint=$1
 
-if [ ! -d ~/startNfinish ]; then
+set +e
+  Wget=$(which wget)
+set -e
 
-   git clone https://github.com/rawaqasha/eSc-blocks.git ~/startNfinish
+if [[ -z ${Wget} ]]; then      
+        
+   apt-get update
+  apt-get install wget
 
 fi
 
-#ctx logger info "Execute the block"
+if [ ! -d ~/startNfinish ]; then
+
+   mkdir ~/startNfinish
+
+fi
+
+wget -O ~/startNfinish/starterBlock.jar https://github.com/rawaqasha/eSc-blocks/raw/master/starterBlock.jar
+
+ctx logger info "Execute first block"
+
 java -jar ~/startNfinish/starterBlock.jar ${blueprint}
 

@@ -64,8 +64,21 @@ node_templates:
         user: { get_input: agent_user }
         key: { get_input: agent_private_key_path }
 
+  lib:
+    type: Library
+    properties:
+      container_ID: 'lib1:  name: java
+                            version: 1.7
+                     lib2:  name: wine
+                            version: 1.4' 
+      lib_name:
+        type: string
+      version:
+        type: string
+        default: ' '
+
   starterBlock:
-    type: cloudify.nodes.ApplicationModule
+    type: cloudify.nodes.ApplicationModule 
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
@@ -73,12 +86,3 @@ node_templates:
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
-      - type: block_connection
-        target: host
-        source_interfaces:
-          cloudify.interfaces.relationship_lifecycle:
-            preconfigure:
-              implementation: scripts/postconfigure.sh
-              inputs:
-                process:
-                  args: [test/block/output-1, block1/input-1, out]

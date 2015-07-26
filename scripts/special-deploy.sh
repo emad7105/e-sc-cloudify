@@ -9,28 +9,29 @@ BLOCK_URL=$4
 LIB_DIR=$5
 
 set +e
-  GIT=$(sudo docker exec -it ${CONTAINER_ID} which git)
+  Wget=$(sudo docker exec -it ${CONTAINER_ID} which wget)
 set -e
 
 ctx logger info "Deploying ${BLOCk_NAME} on ${CONTAINER_ID}"
 
-if [[ -z ${GIT} ]]; then
+if [[ -z ${Wget} ]]; then
 
   sudo docker exec -it ${CONTAINER_ID} apt-get update
-  sudo docker exec -it ${CONTAINER_ID} apt-get -y install git
+  sudo docker exec -it ${CONTAINER_ID} apt-get -y install wget
 
 else
-  ctx logger info "git already has been installed"
+ ctx logger info "wget already has been installed"
 fi
 
 
-sudo docker exec -it ${CONTAINER_ID} [ ! -d eSc-blocks ] && sudo docker exec -it ${CONTAINER_ID} git clone ${BLOCK_URL}
+sudo docker exec -it ${CONTAINER_ID} [ ! -d ${blueprint} ] && sudo docker exec -it ${CONTAINER_ID} mkdir ${blueprint}
 
+sudo docker exec -it ${CONTAINER_ID} [ ! -f ${blueprint}/${BLOCK_NAME} ] && sudo docker exec -it ${CONTAINER_ID} wget -O ${blueprint}/${BLOCK_NAME} ${BLOCK_URL}
 
 
 ctx logger info "Execute the block"
-if [ $block = "Mega-NJ.jar" ]; then
-   sudo docker exec -it ${CONTAINER_ID} jar xf eSc-blocks/${BLOCK_NAME} M6CC.mao
+if [ $block = "Mega-NJ" ]; then
+   sudo docker exec -it ${CONTAINER_ID} jar xf ${blueprint}/${BLOCK_NAME} M6CC.mao
 fi
-sudo docker exec -it ${CONTAINER_ID} java -jar eSc-blocks/${BLOCK_NAME} ${blueprint} ${block} ${LIB_DIR}
+sudo docker exec -it ${CONTAINER_ID} java -jar ${blueprint}/${BLOCK_NAME} ${blueprint} ${block} ${LIB_DIR}
 

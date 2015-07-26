@@ -5,7 +5,8 @@ tosca_definitions_version: cloudify_dsl_1_0
 imports:
   - http://www.getcloudify.org/spec/cloudify/3.1/types.yaml
   - https://raw.githubusercontent.com/cloudify-cosmo/cloudify-docker-plugin/1.1/plugin.yaml
-  - esc_nodetypes.yaml
+  - https://raw.githubusercontent.com/rawaqasha/e-sc-cloudify/master/esc_nodetypes.yaml
+#  - esc_nodetypes.yaml
   
 inputs:
 
@@ -111,7 +112,7 @@ node_templates:
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [realeScWF, importFile1, container1, 'https://github.com/rawaqasha/eSc-blocks.git']
+             args: [realeScWF, importFile1, container1, 'https://github.com/rawaqasha/eSc-blocks/raw/master/importfile.jar']
     relationships:
       - type: cloudify.relationships.contained_in
         target: container1
@@ -132,7 +133,7 @@ node_templates:
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [realeScWF, importFile2, container1, 'https://github.com/rawaqasha/eSc-blocks.git']
+             args: [realeScWF, importFile2, container1, 'https://github.com/rawaqasha/eSc-blocks/raw/master/importfile.jar']
     relationships:
       - type: cloudify.relationships.contained_in
         target: container1
@@ -242,7 +243,7 @@ node_templates:
               implementation: scripts/preconfigure.sh
               inputs:
                 process:
-                  args: [realeScWF/importFile1/output-1, FileJoin/file-1, out, container2, 'https://github.com/rawaqasha/eSc-blocks.git']
+                  args: [realeScWF/importFile1/output-1, FileJoin/file-1, out, container2, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
       - type: block_link
         target: importFile2
         source_interfaces:
@@ -251,7 +252,7 @@ node_templates:
               implementation: scripts/preconfigure.sh
               inputs:
                 process:
-                  args: [realeScWF/importFile2/output-1, FileJoin/file-2, out, container2, 'https://github.com/rawaqasha/eSc-blocks.git']
+                  args: [realeScWF/importFile2/output-1, FileJoin/file-2, out, container2, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
       - type: cloudify.relationships.depends_on
         target: Java2
     interfaces:
@@ -260,7 +261,7 @@ node_templates:
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [realeScWF, FileJoin, container2, 'https://github.com/rawaqasha/eSc-blocks.git']
+             args: [realeScWF, FileJoin, container2, 'https://github.com/rawaqasha/eSc-blocks/raw/master/FileJoin.jar']
 
   FilterDupl:
     type: filterDupl
@@ -280,14 +281,14 @@ node_templates:
               implementation: scripts/preconfigure.sh
               inputs:
                 process:
-                  args: [realeScWF/FileJoin/file-3, FilterDupl/fasta-files, in, container2, 'https://github.com/rawaqasha/eSc-blocks.git']        
+                  args: [realeScWF/FileJoin/file-3, FilterDupl/fasta-files, in, container2, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']        
     interfaces:
       cloudify.interfaces.lifecycle:
         start:
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-              args: [realeScWF, FilterDupl, container2, 'https://github.com/rawaqasha/eSc-blocks.git']
+              args: [realeScWF, FilterDupl, container2, 'https://github.com/rawaqasha/eSc-blocks/raw/master/FilterDuplicates.jar']
 
   ClustalW:
     type: clustalW
@@ -311,14 +312,14 @@ node_templates:
               implementation: scripts/preconfigure.sh
               inputs:
                 process:
-                  args: [realeScWF/FilterDupl/filtered-fasta-files, ClustalW/input-sequences, in, container2, 'https://github.com/rawaqasha/eSc-blocks.git']        
+                  args: [realeScWF/FilterDupl/filtered-fasta-files, ClustalW/input-sequences, in, container2, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']        
     interfaces:
       cloudify.interfaces.lifecycle:
         start:
           implementation: scripts/special-deploy.sh
           inputs:
             process:
-              args: [realeScWF, ClustalW, container2, 'https://github.com/rawaqasha/eSc-blocks.git',  get_property: [ClustalW_Lib, lib_name]]
+              args: [realeScWF, ClustalW, container2, 'https://github.com/rawaqasha/eSc-blocks/raw/master/ClustalW.jar',  get_property: [ClustalW_Lib, lib_name]]
 
   Mega-NJ:
     type: mega-nj
@@ -348,14 +349,14 @@ node_templates:
               implementation: scripts/preconfigure.sh
               inputs:
                 process:
-                  args: [realeScWF/ClustalW/aligned-sequences, Mega-NJ/input-data, in, container2, 'https://github.com/rawaqasha/eSc-blocks.git']        
+                  args: [realeScWF/ClustalW/aligned-sequences, Mega-NJ/input-data, in, container2, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']        
     interfaces:
       cloudify.interfaces.lifecycle:
         start:
           implementation: scripts/special-deploy.sh
           inputs:
             process:
-              args: [realeScWF, Mega-NJ, container2, 'https://github.com/rawaqasha/eSc-blocks.git',  get_property: [Mega-CC, lib_path]]
+              args: [realeScWF, Mega-NJ, container2, 'https://github.com/rawaqasha/eSc-blocks/raw/master/Mega-NJ.jar',  get_property: [Mega-CC, lib_path]]
 
   container3:
     type: docker_container
@@ -406,7 +407,7 @@ node_templates:
               implementation: scripts/preconfigure.sh
               inputs:
                 process:
-                  args: [realeScWF/Mega-NJ/analysis-output, ExportFiles1/file-list, out, container3, 'https://github.com/rawaqasha/eSc-blocks.git']
+                  args: [realeScWF/Mega-NJ/analysis-output, ExportFiles1/file-list, out, container3, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
       - type: cloudify.relationships.depends_on
         target: Java3
     interfaces:
@@ -415,7 +416,7 @@ node_templates:
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [realeScWF, ExportFiles1, container3, 'https://github.com/rawaqasha/eSc-blocks.git']
+             args: [realeScWF, ExportFiles1, container3, 'https://github.com/rawaqasha/eSc-blocks/raw/master/ExportFiles.jar']
 
   ExportFiles2:
     type: exportfiles
@@ -435,7 +436,7 @@ node_templates:
               implementation: scripts/preconfigure.sh
               inputs:
                 process:
-                  args: [realeScWF/Mega-NJ/consensus-output, ExportFiles2/file-list, out, container3, 'https://github.com/rawaqasha/eSc-blocks.git']
+                  args: [realeScWF/Mega-NJ/consensus-output, ExportFiles2/file-list, out, container3, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
       - type: cloudify.relationships.depends_on
         target: Java3
     interfaces:
@@ -444,7 +445,7 @@ node_templates:
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [realeScWF, ExportFiles2, container3, 'https://github.com/rawaqasha/eSc-blocks.git']
+             args: [realeScWF, ExportFiles2, container3, 'https://github.com/rawaqasha/eSc-blocks/raw/master/ExportFiles.jar']
 
   ExportFiles3:
     type: exportfiles
@@ -464,7 +465,7 @@ node_templates:
               implementation: scripts/preconfigure.sh
               inputs:
                 process:
-                  args: [realeScWF/Mega-NJ/summary-info, ExportFiles3/file-list, out, container3, 'https://github.com/rawaqasha/eSc-blocks.git']
+                  args: [realeScWF/Mega-NJ/summary-info, ExportFiles3/file-list, out, container3, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
       - type: cloudify.relationships.depends_on
         target: Java3
     interfaces:
@@ -473,7 +474,7 @@ node_templates:
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [realeScWF, ExportFiles3, container3, 'https://github.com/rawaqasha/eSc-blocks.git']
+             args: [realeScWF, ExportFiles3, container3, 'https://github.com/rawaqasha/eSc-blocks/raw/master/ExportFiles.jar']
 
   CSV_export1:
     type: csvexport
@@ -494,7 +495,7 @@ node_templates:
               implementation: scripts/preconfigure.sh
               inputs:
                 process:
-                  args: [realeScWF/FilterDupl/sequence-map, CSV_export1/input-data, out, container3, 'https://github.com/rawaqasha/eSc-blocks.git']
+                  args: [realeScWF/FilterDupl/sequence-map, CSV_export1/input-data, out, container3, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
       - type: cloudify.relationships.depends_on
         target: Java3
     interfaces:
@@ -503,7 +504,7 @@ node_templates:
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [realeScWF, CSV_export1, container3, 'https://github.com/rawaqasha/eSc-blocks.git']
+             args: [realeScWF, CSV_export1, container3, 'https://github.com/rawaqasha/eSc-blocks/raw/master/CSVexport.jar']
 
   CSV_export2:
     type: csvexport
@@ -524,7 +525,7 @@ node_templates:
               implementation: scripts/preconfigure.sh
               inputs:
                 process:
-                  args: [realeScWF/FilterDupl/sequence-map, CSV_export2/input-data, out, container3, 'https://github.com/rawaqasha/eSc-blocks.git']
+                  args: [realeScWF/FilterDupl/sequence-map, CSV_export2/input-data, out, container3, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
       - type: cloudify.relationships.depends_on
         target: Java3
     interfaces:
@@ -533,7 +534,7 @@ node_templates:
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [realeScWF, CSV_export2, container3, 'https://github.com/rawaqasha/eSc-blocks.git']
+             args: [realeScWF, CSV_export2, container3, 'https://github.com/rawaqasha/eSc-blocks/raw/master/CSVexport.jar']
 
   finalBlock:
     type: cloudify.nodes.ApplicationModule
