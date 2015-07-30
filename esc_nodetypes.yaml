@@ -280,6 +280,18 @@ node_types:
         type: string
         default: file-wrapper
 
+  zipFile:
+    derived_from: workflow_service
+    properties:
+      #input
+      input-1:
+        type: string
+        default: file-wrapper
+      #output:
+      output-1:
+        type: string
+        default: file-wrapper
+
   spec_library:
     derived_from: cloudify.nodes.ApplicationModule
     properties:
