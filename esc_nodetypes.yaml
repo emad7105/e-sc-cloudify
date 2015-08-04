@@ -350,7 +350,7 @@ node_types:
       reference-library:
         type: string
         default: library-wrapper
-      #output:
+      #output
       converted-files:
         type: string
         default: file-wrapper
