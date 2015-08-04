@@ -368,7 +368,7 @@ node_types:
         type: boolean
         default: true
       OrderByTimestamp:
-        type boolean
+        type: boolean
         default: false
       Wildcard:
         type: string
