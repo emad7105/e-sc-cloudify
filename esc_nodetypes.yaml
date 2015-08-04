@@ -372,7 +372,7 @@ node_types:
         default: false
       Wildcard:
         type: string
-        default "*.*"
+        default: "*.*"
       #output
       imported-files:
         type: string
