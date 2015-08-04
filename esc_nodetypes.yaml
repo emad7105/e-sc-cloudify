@@ -340,7 +340,7 @@ node_types:
   SAMtools:
     derived_from: workflow_service
     properties:
-      Minimum-mapping-quality
+      Minimum-mapping-quality:
         type: integer
         default: 0
       #input
