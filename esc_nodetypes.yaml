@@ -1,5 +1,5 @@
 node_types:
-
+# general block
   workflow_service:
     derived_from: cloudify.nodes.ApplicationModule
     properties:
@@ -12,7 +12,7 @@ node_types:
         type: string
       service_type:
         type: string
-
+# eSc blocks
   importfile:
     derived_from: workflow_service
     properties:
@@ -292,6 +292,92 @@ node_types:
         type: string
         default: file-wrapper
 
+  gZip:
+    derived_from: workflow_service
+    properties:
+      Decompress:
+        type: boolean
+        default: false
+      Compression-details:
+        type: boolean
+        default: false
+      Speed-CompressionRatio:
+        type: integer
+        default: 6
+      Ignore-errors:
+        type: boolean
+        default: false
+      #input
+      input-files:
+        type: string
+        default: file-wrapper
+      #output:
+      output-files:
+        type: string
+        default: file-wrapper
+
+  BWA-mem:
+    derived_from: workflow_service
+    properties:
+      Mark-shorter-splits:
+        type: boolean
+        default: false
+      Number-of-threads :
+        type: integer
+        default: 1
+      #input
+      sequences-fastq:
+        type: string
+        default: file-wrapper
+      reference-library:
+        type: string
+        default: library-wrapper
+      #output:
+      alignment-output:
+        type: string
+        default: file-wrapper
+
+  SAMtools:
+    derived_from: workflow_service
+    properties:
+      Minimum-mapping-quality
+        type: integer
+        default: 0
+      #input
+      input-files:
+        type: string
+        default: file-wrapper
+      reference-library:
+        type: string
+        default: library-wrapper
+      #output:
+      converted-files:
+        type: string
+        default: file-wrapper
+
+  Import-Dir:
+    derived_from: workflow_service
+    properties:
+      SourceFolder:
+        type: string
+        default: ' '
+      Recursive:
+        type: boolean
+        default: false
+      OrderByName:
+        type: boolean
+        default: true
+      OrderByTimestamp:
+        type boolean
+        default: false
+      Wildcard:
+        type: string
+        default "*.*"
+      #output
+      imported-files:
+        type: string
+        default: file-wrapper
+#general lib description
   spec_library:
     derived_from: cloudify.nodes.ApplicationModule
     properties:
@@ -307,7 +393,7 @@ node_types:
       lib_path:
         type: string
         default: ' '
-
+#specific libraries for eSc blocks
   clustalw_lib:
     derived_from: spec_library
     properties:
@@ -337,6 +423,27 @@ node_types:
       version:
         type: string
         default: 6.0
+      lib_URL: 
+        type: string
+
+  BWA-lib:
+    derived_from: spec_library
+    properties:
+      version:
+        type: string
+        default: 0.7
+      lib_URL: 
+        type: string
+
+  SAMTools-lib:
+    derived_from: spec_library
+    properties:
+      lib_URL: 
+        type: string
+
+  HG19-lib:
+    derived_from: spec_library
+    properties:
       lib_URL: 
         type: string
 
