@@ -2,16 +2,16 @@
 
 set -e
 blueprint=$1
-block=$2
-CONTAINER_ID=$3
+block=$(ctx node name)
+CONTAINER_ID=$2
 BLOCK_NAME=$(ctx node properties block_name)
-BLOCK_URL=$4
+BLOCK_URL=$3
 
 set +e
   Wget=$(sudo docker exec -it ${CONTAINER_ID} which wget)
 set -e
 
-ctx logger info "Deploying ${BLOCk_NAME} on ${CONTAINER_ID}"
+ctx logger info "Deploying ${block} on ${CONTAINER_ID}"
 
 if [[ -z ${Wget} ]]; then
 
@@ -24,7 +24,7 @@ fi
 
 sudo docker exec -it ${CONTAINER_ID} [ ! -d ${blueprint} ] && sudo docker exec -it ${CONTAINER_ID} mkdir ${blueprint}
 
-sudo docker exec -it ${CONTAINER_ID} [ ! -f ${blueprint}/${BLOCK_NAME} ] && sudo docker exec -it ${CONTAINER_ID} wget -O ${blueprint}/${BLOCK_NAME} ${BLOCK_URL}
+sudo docker exec -it ${CONTAINER_ID} [ ! -f ${blueprint}/${block} ] && sudo docker exec -it ${CONTAINER_ID} wget -O ${blueprint}/${block} ${BLOCK_URL}
 
 
 

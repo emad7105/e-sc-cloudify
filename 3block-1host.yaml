@@ -63,7 +63,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: scripts/starter.sh
+          implementation: scripts/start-inhost.sh
           inputs:
             process:
               args: [3block-1host]
@@ -106,16 +106,22 @@ node_templates:
     type: csvimport
     properties:
       block_description: import csv file
-      block_name: CSVimport.jar
+      block_name: CSVimport1.jar
       block_category: File Management
+      source: '~/input/file.csv'
       service_type: block
     interfaces:
       cloudify.interfaces.lifecycle:
-        create: 
+        create:
+          implementation: scripts/block-input.sh
+          inputs:
+            process:
+             args: [get_property: [SELF, source], file.csv, container1, 3block-1host]
+        start: 
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [3block-1host, CSV_import, container1, 'https://github.com/rawaqasha/eSc-blocks/raw/master/CSVimport.jar']
+             args: [3block-1host, CSV_import, container1, 'https://github.com/rawaqasha/eSc-blocks/raw/master/CSVimport1.jar']
     relationships:
       - type: cloudify.relationships.contained_in
         target: container1
@@ -133,7 +139,7 @@ node_templates:
       service_type: block
     interfaces:
       cloudify.interfaces.lifecycle:
-        create: 
+        start: 
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
@@ -149,22 +155,28 @@ node_templates:
               implementation: scripts/preconfigure.sh
               inputs:
                 process:
-                  args: [3block-1host/CSV_import/ouput-1, Col_invert/input-1, in, container1, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
+                  args: [3block-1host/CSV_import/output-2, Col_invert/input-1, in, container1, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
 
   CSV_export:
     type: csvexport
     properties:
       block_description: export csv file
-      block_name: CSVexport.jar
+      block_name: CSVexport1.jar
       block_category: File Management
       service_type: block
+      FileName: out1.csv 
     interfaces:
       cloudify.interfaces.lifecycle:
-        create: 
+        configure: 
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [3block-1host, CSV_export, container1, 'https://github.com/rawaqasha/eSc-blocks/raw/master/CSVexport.jar']
+             args: [3block-1host, CSV_export, container1, 'https://github.com/rawaqasha/eSc-blocks/raw/master/CSVexport1.jar']
+        start:
+          implementation: scripts/block-output.sh
+          inputs:
+            process:
+             args: [3block-1host, CSV_export, container1]
     relationships:
       - type: cloudify.relationships.contained_in
         target: container1
@@ -176,19 +188,5 @@ node_templates:
               implementation: scripts/preconfigure.sh
               inputs:
                 process:
-                  args: [realeScWF/Col_invert/output-1, CSV_export/input-data, in, container1, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
+                  args: [3block-1host/Col_invert/output-1, CSV_export/input-data, in, container1, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
 
-  finalBlock:
-    type: cloudify.nodes.ApplicationModule
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        create:
-          implementation: scripts/final.sh
-          inputs:
-            process:
-              args: [realeScWF]
-    relationships:
-      - type: cloudify.relationships.contained_in
-        target: host
-      - type: cloudify.relationships.depends_on
-        target: CSV_export

@@ -63,7 +63,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: scripts/starter.sh
+          implementation: scripts/start-inhost.sh
           inputs:
             process:
               args: [FileZip-WF]
@@ -79,6 +79,9 @@ node_templates:
       cloudify.interfaces.lifecycle:
         create:
           implementation: scripts/container.sh
+          inputs:
+            process:
+              args: [FileZip-WF]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -109,14 +112,19 @@ node_templates:
       block_name: ImportFile1.jar
       block_category: File Management
       service_type: block
-      Source: ~/input/file1.txt
+      Source: ~/input/file.jpg
     interfaces:
       cloudify.interfaces.lifecycle:
-        create: 
+        configure:
+          implementation: scripts/get-input.sh
+          inputs:
+            process:
+             args: [FileZip-WF, container1]
+        start: 
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [FileZip-WF, importFile, container1, https://github.com/rawaqasha/eScBlocks-host/raw/master/ImportFile1.jar]
+             args: [FileZip-WF, container1, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/ImportFile1.jar']
     relationships:
       - type: cloudify.relationships.contained_in
         target: container1
@@ -126,14 +134,24 @@ node_templates:
   container2:
     type: docker_container
     properties:
-      container_ID: container1
+      container_ID: container2
     interfaces:
       cloudify.interfaces.lifecycle:
-        create:
+        configure:
+          implementation: scripts/container-config.sh
+          inputs:
+            process:
+              args: [container1]
+        start:
           implementation: scripts/container.sh
+          inputs:
+            process:
+              args: [FileZip-WF]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
+      - type: cloudify.relationships.depends_on
+        target: ImportFile
 
   Java2:
     type: spec_library
@@ -161,11 +179,11 @@ node_templates:
       service_type: block
     interfaces:
       cloudify.interfaces.lifecycle:
-        create: 
+        start: 
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [FileZip-WF, ZipFile, container2, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/ZipFile.jar']
+             args: [FileZip-WF, container2, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/ZipFile.jar']
     relationships:
       - type: cloudify.relationships.contained_in
         target: container2
@@ -176,22 +194,32 @@ node_templates:
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
             preconfigure:
-              implementation: scripts/preconf.sh
+              implementation: scripts/datacopy.sh
               inputs:
                 process:
-                  args: [FileZip-WF/ImportFile/ouput-1, ZipFile/input-1, container2]
+                  args: [ImportFile/output-1, ZipFile/input-1, FileZip-WF, container2]
 
   container3:
     type: docker_container
     properties:
-      container_ID: container1
+      container_ID: container3
     interfaces:
       cloudify.interfaces.lifecycle:
-        create:
+        configure:
+          implementation: scripts/container-config.sh
+          inputs:
+            process:
+              args: [container2]
+        start:
           implementation: scripts/container.sh
+          inputs:
+            process:
+              args: [FileZip-WF]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
+      - type: cloudify.relationships.depends_on
+        target: ZipFile
 
   Java3:
     type: spec_library
@@ -225,10 +253,10 @@ node_templates:
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
             preconfigure:
-              implementation: scripts/preconf.sh
+              implementation: scripts/datacopy.sh
               inputs:
                 process:
-                  args: [FileZip-WF/ZipFile/output-1, ExportFiles/file-list, container3]
+                  args: [ZipFile/output-1, ExportFiles/file-list, FileZip-WF, container3]
       - type: cloudify.relationships.depends_on
         target: Java3
     interfaces:
