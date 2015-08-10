@@ -6,7 +6,6 @@ block=$2
 CONTAINER_ID=$3
 BLOCK_NAME=$(ctx node properties block_name)
 BLOCK_URL=$4
-LIB_DIR=$5
 
 set +e
   Wget=$(sudo docker exec -it ${CONTAINER_ID} which wget)
@@ -23,15 +22,12 @@ else
  ctx logger info "wget already has been installed"
 fi
 
-
 sudo docker exec -it ${CONTAINER_ID} [ ! -d ${blueprint} ] && sudo docker exec -it ${CONTAINER_ID} mkdir ${blueprint}
 
 sudo docker exec -it ${CONTAINER_ID} [ ! -f ${blueprint}/${BLOCK_NAME} ] && sudo docker exec -it ${CONTAINER_ID} wget -O ${blueprint}/${BLOCK_NAME} ${BLOCK_URL}
 
 
+
 ctx logger info "Execute the block"
-if [ $block = "Mega-NJ" ]; then
-   sudo docker exec -it ${CONTAINER_ID} jar xf ${blueprint}/${BLOCK_NAME} M6CC.mao
-fi
-sudo docker exec -it ${CONTAINER_ID} java -jar ${blueprint}/${BLOCK_NAME} ${blueprint} ${block} ${LIB_DIR}
+sudo docker exec -it ${CONTAINER_ID} java -jar ${blueprint}/${BLOCK_NAME} ${blueprint} ${block}
 
