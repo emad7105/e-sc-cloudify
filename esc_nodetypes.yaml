@@ -340,7 +340,7 @@ node_types:
   SAMtools:
     derived_from: workflow_service
     properties:
-      Minimum-mapping-quality
+      Minimum-mapping-quality:
         type: integer
         default: 0
       #input
@@ -350,7 +350,7 @@ node_types:
       reference-library:
         type: string
         default: library-wrapper
-      #output:
+      #output
       converted-files:
         type: string
         default: file-wrapper
@@ -368,11 +368,11 @@ node_types:
         type: boolean
         default: true
       OrderByTimestamp:
-        type boolean
+        type: boolean
         default: false
       Wildcard:
         type: string
-        default "*.*"
+        default: "*.*"
       #output
       imported-files:
         type: string
