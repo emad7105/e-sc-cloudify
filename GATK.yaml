@@ -145,6 +145,21 @@ node_templates:
       - type: cloudify.relationships.contained_in
         target: container2
 
+  GATK-Lib:
+    type: GATK-lib
+    properties:
+      lib_name: GATK-2.7-4
+   interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/get-GATKlib.sh
+          inputs:
+            process:
+              args: [container2]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container2
+
   GATK-Variant:
     type: GATK-Variant
     properties:
@@ -164,6 +179,8 @@ node_templates:
         target: container2
       - type: cloudify.relationships.depends_on
         target: Java1
+      - type: cloudify.relationships.depends_on
+        target: GATK-Lib
       - type: block_link
         target: importFile
         source_interfaces:
@@ -196,6 +213,21 @@ node_templates:
       cloudify.interfaces.lifecycle:
         create:
           implementation: scripts/java-install2.sh
+          inputs:
+            process:
+              args: [container3]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container3
+
+  GATK-Lib1:
+    type: GATK-lib
+    properties:
+      lib_name: GATK-2.7-4
+   interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/get-GATKlib.sh
           inputs:
             process:
               args: [container3]
@@ -242,6 +274,8 @@ node_templates:
                   args: [GATK/GATK-Variant/tranches-file, GATK-Apply/tranches-file, out, container3, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
       - type: cloudify.relationships.depends_on
         target: Java2
+      - type: cloudify.relationships.depends_on
+        target: GATK-Lib1
     interfaces:
       cloudify.interfaces.lifecycle:
         start:
@@ -279,6 +313,21 @@ node_templates:
       - type: cloudify.relationships.contained_in
         target: container4
 
+  GATK-Lib2:
+    type: GATK-lib
+    properties:
+      lib_name: GATK-2.7-4
+   interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/get-GATKlib.sh
+          inputs:
+            process:
+              args: [container4]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container4
+
   GATK-Variant1:
     type: GATK-Variant
     properties:
@@ -298,6 +347,8 @@ node_templates:
         target: container4
       - type: cloudify.relationships.depends_on
         target: Java3
+      - type: cloudify.relationships.depends_on
+        target: GATK-Lib2
       - type: block_link
         target: importFile
         source_interfaces:
@@ -330,6 +381,21 @@ node_templates:
       cloudify.interfaces.lifecycle:
         create:
           implementation: scripts/java-install2.sh
+          inputs:
+            process:
+              args: [container5]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container5
+
+  GATK-Lib3:
+    type: GATK-lib
+    properties:
+      lib_name: GATK-2.7-4
+   interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/get-GATKlib.sh
           inputs:
             process:
               args: [container5]
@@ -376,6 +442,8 @@ node_templates:
                   args: [GATK/GATK-Variant1/tranches-file, GATK-Apply1/tranches-file, out, container5, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
       - type: cloudify.relationships.depends_on
         target: Java4
+      - type: cloudify.relationships.depends_on
+        target: GATK-Lib3
     interfaces:
       cloudify.interfaces.lifecycle:
         start:

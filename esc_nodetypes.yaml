@@ -388,7 +388,7 @@ node_types:
         type: integer
         default: 8
       Standard-Deviation:
-        type: double
+        type: float
         default: 10.0
       Produce-data-plots:
         type: boolean
@@ -436,8 +436,8 @@ node_types:
         type: string
         default: SILENT
       Truth Sensitivity Level:
-        type: double
-        default: 99.0
+        type: integer
+        default: 99
       Mode:
         type: string
         default: SNP
@@ -537,6 +537,12 @@ node_types:
     properties:
       lib_URL: 
         type: string
+
+  GATK-lib:
+    properties:
+      version:
+        type: string
+        default: 2.7-4
 
 relationships:
 
