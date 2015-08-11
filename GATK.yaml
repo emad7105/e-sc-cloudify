@@ -41,7 +41,7 @@ node_types:
       container_ID:
         type: string
         default: container1
-
+#############################################
 node_templates:
 
   host:
