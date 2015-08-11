@@ -275,7 +275,7 @@ node_templates:
           implementation: scripts/final.sh
           inputs:
             process:
-              args: [container3]
+              args: [FileZip-WF]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host

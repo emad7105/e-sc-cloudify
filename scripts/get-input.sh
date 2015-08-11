@@ -12,9 +12,9 @@ sourcefile=${HOME}/input/file.jpg
 sudo docker exec -it ${CONTAINER_ID} [ ! -d ${blueprint} ] && sudo docker exec -it ${CONTAINER_ID} mkdir ${blueprint}
 
 
-#ctx logger info "copy the input"
+ctx logger info "copy the input"
 
 filename=$(basename "$sourcefile")
 #tar -cf -  ${filename} | docker exec -i ${CONTAINER_ID} /bin/tar -C root/${blueprint} -xf –
-cat ${sourcefile} | docker exec -i ${CONTAINER_ID} sh -c 'cat > /root/${blueprint}/hhh.jpg'
+cat ${sourcefile} | docker exec -i ${CONTAINER_ID} sh -c 'cat > /root/'${blueprint}/${filename}
 
