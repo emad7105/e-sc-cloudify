@@ -377,6 +377,97 @@ node_types:
       imported-files:
         type: string
         default: file-wrapper
+
+  GATK-variant:
+    derived_from: workflow_service
+    properties:
+      Validation-Stringency:
+        type: string
+        default: SILENT
+      Max-Gaussians:
+        type: integer
+        default: 8
+      Standard-Deviation:
+        type: double
+        default: 10.0
+      Produce-data-plots:
+        type: boolean
+        default: true
+      Use-Annotations:
+        type: string
+        default: ' '
+      Mode:
+        type: string
+        default: SNP
+      Resource-Configuration:
+        type: string
+        default: ' '
+      Number-of-data-threads:
+        type: integer
+        default: 1
+      Run-in-the-N-way-mode:
+        type: boolean
+        default: false
+      Initial-Java-Heap-Size:
+        type: string
+        default: 128MiB
+      Maximum-Java-Heap-Size:
+        type: string
+        default: 512MiB
+      #input
+      variant-files:
+        type: string
+        default: file-wrapper
+      #output
+      recal-file:
+        type: string
+        default: file-wrapper
+      tranches-file:
+        type: string
+        default: file-wrapper
+      rscript-file:
+        type: string
+        default: file-wrapper
+
+  GATK-apply:
+    derived_from: workflow_service
+    properties:
+      Validation-Stringency:
+        type: string
+        default: SILENT
+      Truth Sensitivity Level:
+        type: double
+        default: 99.0
+      Mode:
+        type: string
+        default: SNP
+      Number-of-data-threads:
+        type: integer
+        default: 1
+      Run-in-the-N-way-mode:
+        type: boolean
+        default: false
+      Initial-Java-Heap-Size:
+        type: string
+        default: 128MiB
+      Maximum-Java-Heap-Size:
+        type: string
+        default: 512MiB
+      #input
+      recal-file:
+        type: string
+        default: file-wrapper
+      tranches-file:
+        type: string
+        default: file-wrapper
+      variant-files:
+        type: string
+        default: file-wrapper
+      #output
+      recalibrated-variants:
+        type: string
+        default: file-wrapper
+
 #general lib description
   spec_library:
     derived_from: cloudify.nodes.ApplicationModule
