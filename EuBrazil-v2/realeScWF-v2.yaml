@@ -567,6 +567,11 @@ node_templates:
       container_ID: container8
     interfaces:
       cloudify.interfaces.lifecycle:
+        configure:
+          implementation: scripts/container-config.sh
+          inputs:
+            process:
+              args: [container7]
         start:
           implementation: scripts/docker-pull.sh
     relationships:
@@ -625,6 +630,11 @@ node_templates:
       container_ID: container9
     interfaces:
       cloudify.interfaces.lifecycle:
+        configure:
+          implementation: scripts/container-config.sh
+          inputs:
+            process:
+              args: [container8]
         start:
           implementation: scripts/docker-pull.sh
     relationships:

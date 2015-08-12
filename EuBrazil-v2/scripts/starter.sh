@@ -1,6 +1,7 @@
 #!/bin/bash
 
 set -e
+
 blueprint=$1
 
 set +e
@@ -20,7 +21,9 @@ if [ ! -d ~/startNfinish ]; then
 
 fi
 
-wget -O ~/startNfinish/finalBlock.jar https://github.com/rawaqasha/eSc-blocks/raw/master/finalBlock.jar
-#ctx logger info "Execute the block"
-java -jar ~/startNfinish/finalBlock.jar ${blueprint}
+wget -O ~/startNfinish/starterBlock.jar https://github.com/rawaqasha/eSc-blocks/raw/master/starterBlock.jar
+
+ctx logger info "Execute first block"
+
+java -jar ~/startNfinish/starterBlock.jar ${blueprint}
 
