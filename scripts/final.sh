@@ -3,24 +3,18 @@
 set -e
 blueprint=$1
 
-set +e
-  Wget=$(which wget)
-set -e
+container=$1
 
-if [[ -z ${Wget} ]]; then      
-        
-   apt-get update
-  apt-get install wget
+ctx logger info "cleaning"
 
-fi
+for dir in ~/${blueprint}/*/
+do
+    d=${dir%*/}
+    rm -r ${d}
+done
 
-if [ ! -d ~/startNfinish ]; then
+rm ~/${blueprint}/${blueprint}.yaml
+ctx logger info "Deleting ${container}"
 
-   mkdir ~/startNfinish
-
-fi
-
-wget -O ~/startNfinish/finalBlock.jar https://github.com/rawaqasha/eSc-blocks/raw/master/finalBlock.jar
-#ctx logger info "Execute the block"
-java -jar ~/startNfinish/finalBlock.jar ${blueprint}
+sudo docker rm -f ${container}
 
