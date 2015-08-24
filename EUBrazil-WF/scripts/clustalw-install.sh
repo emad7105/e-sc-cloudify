@@ -9,10 +9,10 @@ Lib_URL=$2
 #ctx logger info "Installing ClustalW lib on ${CONTAINER_NAME}"
 
 set +e
-  Wget=$(sudo docker exec -it ${CONTAINER_ID} which wget)
+  Wget=$(which wget)
 set -e
 
-if [[ -n "${Wget}" ]]; then      
+if [[ -z ${Wget} ]]; then      
         
   sudo docker exec -it ${CONTAINER_NAME} apt-get update
   sudo docker exec -it ${CONTAINER_NAME} apt-get install wget

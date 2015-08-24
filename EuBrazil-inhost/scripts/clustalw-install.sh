@@ -8,8 +8,9 @@ Lib_URL=$2
 
 #ctx logger info "Installing ClustalW lib on ${CONTAINER_NAME}"
 
+
 set +e
-  Wget=$(sudo docker exec -it ${CONTAINER_ID} which wget)
+  Wget=$(sudo docker exec -it ${CONTAINER_NAME} which wget)
 set -e
 
 if [[ -n "${Wget}" ]]; then      
@@ -19,6 +20,5 @@ if [[ -n "${Wget}" ]]; then
 
 fi
 
-#sudo docker exec -it ${CONTAINER_NAME} mkdir Clustal-lib
 sudo docker exec -it ${CONTAINER_NAME} wget ${Lib_URL}
 sudo docker exec -it ${CONTAINER_NAME} tar -zxvf clustalw-2.1-linux-x86_64-libcppstatic.tar.gz
