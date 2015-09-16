@@ -1,0 +1,8 @@
+EuBrasil WF
+11 blocks, 11 containers (centos, java(ubuntu14.04), rawa/mybase:v1 (ubuntu 12.04)), data transformation through mounted folder
+
+unneeded containers are deleted in next block
+
+input files are in ~/input folder
+
+output files are in the mounted folder

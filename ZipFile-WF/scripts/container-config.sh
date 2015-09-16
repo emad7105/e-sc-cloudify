@@ -1,18 +1,15 @@
 #!/bin/bash
 
 set -e
-container=$1
+container1=$1
 
+container2=$2
+	
 #ctx logger info "Deleting ${container}"
 
-if [ -z "$container1"]; then
+a=${@}
 
-   sudo docker rm -f ${container1}
-
-fi
-
-if [ -z "$container2"]; then
-
- sudo docker rm -f ${container2}
-
-fi
+for var in "$@"
+do
+  sudo docker rm -f "${var}"
+done

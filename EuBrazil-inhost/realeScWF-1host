@@ -1,0 +1,7 @@
+EuBrasil WF
+11 blocks, 1 container ubuntu14.04, data transformation through mounted folder
+
+
+input files are in ~/input folder
+
+output files are in the mounted folder

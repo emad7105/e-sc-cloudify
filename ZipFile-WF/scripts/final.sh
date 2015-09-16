@@ -3,7 +3,7 @@
 set -e
 blueprint=$1
 
-container=$1
+container=$2
 
 ctx logger info "cleaning"
 
