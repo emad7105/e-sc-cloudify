@@ -1,4 +1,4 @@
-#eSc workflow with 3 real block def deployed on 3 containers
+#eSc Picard workflow with 8 real block def. deployed on 8 containers
 
 tosca_definitions_version: cloudify_dsl_1_0
 
@@ -41,7 +41,7 @@ node_types:
       container_ID:
         type: string
         default: container1
-#############################################
+
 node_templates:
 
   host:
@@ -58,10 +58,10 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: scripts/starter.sh
+          implementation: scripts/starter-inhost.sh
           inputs:
             process:
-              args: [GATK]
+              args: [Picard]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -73,7 +73,10 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: scripts/docker-pull.sh
+          implementation: scripts/container.sh
+          inputs:
+            process:
+              args: [Picard]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -95,21 +98,26 @@ node_templates:
       - type: cloudify.relationships.contained_in
         target: container1
 
-  importFile:
-    type: importfile
+  ImportDir:
+    type: Import-Dir
     properties:
-      block_description: import file
-      block_name: importfile.jar
+      block_description: import Dir
+      block_name: ImportDir.jar
       block_category: File Management
       service_type: block
-      Source: file1.txt
+      SourceFolder: ~/inputDir
     interfaces:
       cloudify.interfaces.lifecycle:
-        create: 
+        configure:
+          implementation: scripts/get-input.sh
+          inputs:
+            process:
+             args: [Picard, container1]
+        start: 
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [GATK, importFile, container1, 'https://github.com/rawaqasha/eSc-blocks/raw/master/importfile.jar']
+             args: [Picard, container1, '']
     relationships:
       - type: cloudify.relationships.contained_in
         target: container1
@@ -121,14 +129,17 @@ node_templates:
     properties:
       container_ID: container2
     interfaces:
-      cloudify.interfaces.lifecycle:
-        create:
-          implementation: scripts/docker-pull.sh
+      cloudify.interfaces.lifecycle:        
+        start:
+          implementation: scripts/container.sh
+          inputs:
+            process:
+              args: [FileZip-inhost]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
       - type: cloudify.relationships.depends_on
-        target: importFile
+        target: importFile1
 
   Java1:
     type: spec_library
@@ -145,52 +156,34 @@ node_templates:
       - type: cloudify.relationships.contained_in
         target: container2
 
-  GATK-Lib:
-    type: GATK-lib
+  PickFiles:
+    type: pick-Files
     properties:
-      lib_name: GATK-2.7-4
-      lib_URL: 
-   interfaces:
-      cloudify.interfaces.lifecycle:
-        create:
-          implementation: scripts/get-GATKlib.sh
-          inputs:
-            process:
-              args: [container2, GATK]
-    relationships:
-      - type: cloudify.relationships.contained_in
-        target: container2
-
-  GATK-Variant:
-    type: GATK-Variant
-    properties:
-      block_description: Create a Gaussian mixture model by looking at the annotations values over a high quality subset of the input call set and then evaluate all input variants
-      block_name: GATK-Variant.jar
-      block_category: e-Genome.GATK
+      block_description: Pick files
+      block_name: Pick-Files.jar
+      block_category: File Management
       service_type: block
     interfaces:
       cloudify.interfaces.lifecycle:
-        create: 
+        start: 
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [GATK, container2, ]
+             args: [Picard, container2, '']
     relationships:
+      - type: block_link
+        target: ImportDir
+        source_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            datacopy:
+              implementation: scripts/datacopy.sh
+              inputs:
+                process:
+                  args: [ImportDir/imported-files, PickFiles/input-files, Picard, container2]
       - type: cloudify.relationships.contained_in
         target: container2
       - type: cloudify.relationships.depends_on
         target: Java1
-      - type: cloudify.relationships.depends_on
-        target: GATK-Lib
-      - type: block_link
-        target: importFile
-        source_interfaces:
-          cloudify.interfaces.relationship_lifecycle:
-            preconfigure:
-              implementation: scripts/preconfigure.sh
-              inputs:
-                process:
-                  args: [GATK/importFile/output-1, GATK-Variant/variant-files, out, container2, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
 
   container3:
     type: docker_container
@@ -198,13 +191,14 @@ node_templates:
       container_ID: container3
     interfaces:
       cloudify.interfaces.lifecycle:
-        create:
-          implementation: scripts/docker-pull.sh
+        start:
+          implementation: scripts/container.sh
+          inputs:
+            process:
+              args: [Picard]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
-      - type: cloudify.relationships.depends_on
-        target: GATK-Variant
 
   Java2:
     type: spec_library
@@ -221,69 +215,35 @@ node_templates:
       - type: cloudify.relationships.contained_in
         target: container3
 
-  GATK-Lib1:
-    type: GATK-lib
+  PicardCleanSAM:
+    type: picard-CleanSAM
     properties:
-      lib_name: GATK-2.7-4
-   interfaces:
-      cloudify.interfaces.lifecycle:
-        create:
-          implementation: scripts/get-GATKlib.sh
-          inputs:
-            process:
-              args: [container3]
-    relationships:
-      - type: cloudify.relationships.contained_in
-        target: container3
-
-  GATK-Apply:
-    type: GATK-Apply
-    properties:
-      block_description: Applies cuts to the input vcf file (by adding filter lines) to achieve the desired novel truth sensitivity levels which were specified during VariantRecalibration.
-      block_name: GATK-Apply.jar
-      block_category: e-Genome.GATK
+      block_description: To be ..
+      block_name: Picard-CleanSAM.jar
+      block_category: File Management
       service_type: block
+      Comments: 
     relationships:
       - type: cloudify.relationships.contained_in
         target: container3
       - type: block_link
-        target: importFile
+        target: PickFiles
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
-            preconfigure:
-              implementation: scripts/preconfigure.sh
+            datacopy:
+              implementation: scripts/datacopy.sh
               inputs:
                 process:
-                  args: [GATK/importFile/output-1, GATK-Apply/variant-files, out, container3, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
-      - type: block_link
-        target: GATK-Variant
-        source_interfaces:
-          cloudify.interfaces.relationship_lifecycle:
-            preconfigure:
-              implementation: scripts/preconfigure.sh
-              inputs:
-                process:
-                  args: [GATK/GATK-Variant/recal-file, GATK-Apply/recal-file, out, container3, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
-      - type: block_link
-        target: GATK-Variant
-        source_interfaces:
-          cloudify.interfaces.relationship_lifecycle:
-            preconfigure:
-              implementation: scripts/preconfigure.sh
-              inputs:
-                process:
-                  args: [GATK/GATK-Variant/tranches-file, GATK-Apply/tranches-file, out, container3, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
+                  args: [PickFiles/selected-files, PicardCleanSAM/input-SAM_BAM-files, Picard, container3]
       - type: cloudify.relationships.depends_on
         target: Java2
-      - type: cloudify.relationships.depends_on
-        target: GATK-Lib1
     interfaces:
       cloudify.interfaces.lifecycle:
         start:
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [GATK, container3, 'https://github.com/rawaqasha/eSc-blocks/raw/master/FileJoin.jar']
+             args: [Picard, container3, '']
 
   container4:
     type: docker_container
@@ -291,13 +251,14 @@ node_templates:
       container_ID: container4
     interfaces:
       cloudify.interfaces.lifecycle:
-        create:
-          implementation: scripts/docker-pull.sh
+        start:
+          implementation: scripts/container.sh
+          inputs:
+            process:
+              args: [Picard]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
-      - type: cloudify.relationships.depends_on
-        target: GATK-Apply
 
   Java3:
     type: spec_library
@@ -314,51 +275,35 @@ node_templates:
       - type: cloudify.relationships.contained_in
         target: container4
 
-  GATK-Lib2:
-    type: GATK-lib
+  Picard-Mark:
+    type: picard-MarkDuplicates
     properties:
-      lib_name: GATK-2.7-4
-   interfaces:
-      cloudify.interfaces.lifecycle:
-        create:
-          implementation: scripts/get-GATKlib.sh
-          inputs:
-            process:
-              args: [container4]
-    relationships:
-      - type: cloudify.relationships.contained_in
-        target: container4
-
-  GATK-Variant1:
-    type: GATK-Variant
-    properties:
-      block_description: Create a Gaussian mixture model by looking at the annotations values over a high quality subset of the input call set and then evaluate all input variants
-      block_name: GATK-Variant.jar
-      block_category: e-Genome.GATK
+      block_description: I don't know
+      block_name: Picard-Mark.jar
+      block_category: File Management
       service_type: block
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        create: 
-          implementation: scripts/block-deploy3.sh
-          inputs:
-            process:
-             args: [GATK, container4, ]
+      Comments: 
     relationships:
       - type: cloudify.relationships.contained_in
         target: container4
       - type: cloudify.relationships.depends_on
         target: Java3
-      - type: cloudify.relationships.depends_on
-        target: GATK-Lib2
       - type: block_link
-        target: importFile
+        target: PicardCleanSAM
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
-            preconfigure:
-              implementation: scripts/preconfigure.sh
+            datacopy:
+              implementation: scripts/datacopy.sh
               inputs:
                 process:
-                  args: [GATK/importFile/output-1, GATK-Variant1/variant-files, out, container4, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
+                  args: [PicardCleanSAM/cleaned-SAM_BAM-files, Picard-Mark/input-SAM_BAM-files, Picard, container4]
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          implementation: scripts/block-deploy3.sh
+          inputs:
+            process:
+              args: [Picard, container4, '']
 
   container5:
     type: docker_container
@@ -366,13 +311,14 @@ node_templates:
       container_ID: container5
     interfaces:
       cloudify.interfaces.lifecycle:
-        create:
-          implementation: scripts/docker-pull.sh
+        start:
+          implementation: scripts/container.sh
+          inputs:
+            process:
+              args: [Picard]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
-      - type: cloudify.relationships.depends_on
-        target: GATK-Variant1
 
   Java4:
     type: spec_library
@@ -389,83 +335,48 @@ node_templates:
       - type: cloudify.relationships.contained_in
         target: container5
 
-  GATK-Lib3:
-    type: GATK-lib
+  Picard-Add:
+    type: picard-ADDOrReplaceRG
     properties:
-      lib_name: GATK-2.7-4
-   interfaces:
-      cloudify.interfaces.lifecycle:
-        create:
-          implementation: scripts/get-GATKlib.sh
-          inputs:
-            process:
-              args: [container5]
-    relationships:
-      - type: cloudify.relationships.contained_in
-        target: container5
-
-  GATK-Apply1:
-    type: GATK-Apply
-    properties:
-      block_description: Applies cuts to the input vcf file (by adding filter lines) to achieve the desired novel truth sensitivity levels which were specified during VariantRecalibration.
-      block_name: GATK-Apply.jar
-      block_category: e-Genome.GATK
+      block_description: I don't know
+      block_name: Picard-Add.jar
+      block_category: File Management
       service_type: block
+      Comments: 
     relationships:
       - type: cloudify.relationships.contained_in
         target: container5
       - type: block_link
-        target: GATK-Apply
+        target: Picard-Mark
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
-            preconfigure:
-              implementation: scripts/preconfigure.sh
+            datacopy:
+              implementation: scripts/datacopy.sh
               inputs:
                 process:
-                  args: [GATK/GATK-Apply/recalibrated-variants, GATK-Apply1/variant-files, out, container5, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
-      - type: block_link
-        target: GATK-Variant1
-        source_interfaces:
-          cloudify.interfaces.relationship_lifecycle:
-            preconfigure:
-              implementation: scripts/preconfigure.sh
-              inputs:
-                process:
-                  args: [GATK/GATK-Variant1/recal-file, GATK-Apply1/recal-file, out, container5, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
-      - type: block_link
-        target: GATK-Variant1
-        source_interfaces:
-          cloudify.interfaces.relationship_lifecycle:
-            preconfigure:
-              implementation: scripts/preconfigure.sh
-              inputs:
-                process:
-                  args: [GATK/GATK-Variant1/tranches-file, GATK-Apply1/tranches-file, out, container5, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
-      - type: cloudify.relationships.depends_on
-        target: Java4
-      - type: cloudify.relationships.depends_on
-        target: GATK-Lib3
+                  args: [Picard-Mark/marked-SAM_BAM-file, Picard-Add/input-SAM_BAM-files, Picard, container5]        
     interfaces:
       cloudify.interfaces.lifecycle:
         start:
-          implementation: scripts/block-deploy3.sh
+          implementation: scripts/special-deploy.sh
           inputs:
             process:
-             args: [GATK, container5, 'https://github.com/rawaqasha/eSc-blocks/raw/master/FileJoin.jar']
+              args: [Picard, container5, '']
 
   container6:
     type: docker_container
     properties:
-      container_ID: container7
+      container_ID: container6
     interfaces:
       cloudify.interfaces.lifecycle:
-        create:
-          implementation: scripts/docker-pull.sh
+        start:
+          implementation: scripts/container.sh
+          inputs:
+            process:
+              args: [Picard]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
-      - type: cloudify.relationships.depends_on
-        target: GATK-Apply1
 
   Java5:
     type: spec_library
@@ -482,7 +393,146 @@ node_templates:
       - type: cloudify.relationships.contained_in
         target: container6
 
-  ExportFiles:
+  SAMTools-Lib:
+    type: SAMTools-lib
+    properties:
+      lib_name: SamTools-0.1.19
+      lib_URL: https://github.com/rawaqasha/work/raw/master/samtools
+      lib_path: Picard
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/SAMTools-install.sh
+          inputs:
+            process:
+              args: [container6]
+    relationships:
+      - type: cloudify.relationships.depends_on
+        target: Wine
+      - type: cloudify.relationships.contained_in
+        target: container6
+
+  SAMTools:
+    type: SAMtools-index
+    properties:
+      block_description: I don't know
+      block_name: SAMTools.jar
+      block_category: File Management
+      service_type: block
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container6
+      - type: cloudify.relationships.depends_on
+        target: DAMTools-Lib
+      - type: cloudify.relationships.depends_on
+        target: Java5
+      - type: block_link
+        target: Picard-Add
+        source_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            datacopy:
+              implementation: scripts/datacopy.sh
+              inputs:
+                process:
+                  args: [Picard-Add/output-SAM_BAM-files, SAMTools/input-BAM-files, Picard, container6]        
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          implementation: scripts/special-deploy.sh
+          inputs:
+            process:
+              args: [Picard, container6, '',  get_property: [SAMTools-Lib, lib_path]]
+
+  container7:
+    type: docker_container
+    properties:
+      container_ID: container7
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          implementation: scripts/container.sh
+          inputs:
+            process:
+              args: [Picard]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host
+
+  Java6:
+    type: spec_library
+    properties:
+      lib_name: default-jdk
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/java-install2.sh
+          inputs:
+            process:
+              args: [container7]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container7
+
+  ExportFiles1:
+    type: exportfiles
+    properties:
+      block_description: export files
+      block_name: ExportFiles1.jar
+      block_category: File Management
+      service_type: block
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container7
+      - type: block_link
+        target: SAMTools
+        source_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            datacopy:
+              implementation: scripts/datacopy.sh
+              inputs:
+                process:
+                  args: [SAMTools/index-BAI-files, ExportFiles1/file-list, Picard, container7]
+      - type: cloudify.relationships.depends_on
+        target: Java6
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start: 
+          implementation: scripts/block-deploy3.sh
+          inputs:
+            process:
+             args: [Picard, container7, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/ExportFiles1.jar']
+
+  container8:
+    type: docker_container
+    properties:
+      container_ID: container8
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          implementation: scripts/container.sh
+          inputs:
+            process:
+              args: [Picard]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host
+
+  Java7:
+    type: spec_library
+    properties:
+      lib_name: default-jdk
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/java-install2.sh
+          inputs:
+            process:
+              args: [container8]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container8
+
+  ExportFiles2:
     type: exportfiles
     properties:
       block_description: export files
@@ -491,37 +541,44 @@ node_templates:
       service_type: block
     relationships:
       - type: cloudify.relationships.contained_in
-        target: container6
+        target: container8
       - type: block_link
-        target: GATK-Apply1
+        target: Picard-Add
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
-            preconfigure:
-              implementation: scripts/preconfigure.sh
+            datacopy:
+              implementation: scripts/datacopy.sh
               inputs:
                 process:
-                  args: [GATK/GATK-Apply1/recalibrated-variants, ExportFiles/file-list, out, container6, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
+                  args: [Picard-Add/output-SAM_BAM-files, ExportFiles2/file-list, Picard, container8]
       - type: cloudify.relationships.depends_on
-        target: Java5
+        target: Java7
     interfaces:
       cloudify.interfaces.lifecycle:
         start: 
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [GATK, container6, 'https://github.com/rawaqasha/eSc-blocks/raw/master/ExportFiles.jar']
+             args: [Picard, container8, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/ExportFiles1.jar']
 
   finalBlock:
     type: cloudify.nodes.ApplicationModule
     interfaces:
       cloudify.interfaces.lifecycle:
-        create:
+        configure:
+          implementation: scripts/container-config.sh
+          inputs:
+            process:
+              args: [container7]
+        start:
           implementation: scripts/final.sh
           inputs:
             process:
-              args: [GATK]
+              args: [Picard]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
       - type: cloudify.relationships.depends_on
-        target: ExportFiles
+        target: ExportFiles1
+      - type: cloudify.relationships.depends_on
+        target: ExportFiles2

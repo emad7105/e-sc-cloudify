@@ -337,21 +337,129 @@ node_types:
         type: string
         default: file-wrapper
 
-  SAMtools:
+  SAMtools-index:
     derived_from: workflow_service
     properties:
-      Minimum-mapping-quality:
-        type: integer
-        default: 0
+      #input
+      input-BAM-files:
+        type: string
+        default: file-wrapper
+      #output
+      index-BAI-files:
+        type: string
+        default: file-wrapper
+
+  pick-Files:
+    derived_from: workflow_service
+    properties:
+      FileNameOrIndex:
+        type: string
+        default: "."
+      PickByIndex:
+        type: boolean
+        default: false
+      FailIfEmpty:
+        type: boolean
+        default: true
       #input
       input-files:
         type: string
         default: file-wrapper
-      reference-library:
-        type: string
-        default: library-wrapper
       #output
-      converted-files:
+      selected-files:
+        type: string
+        default: file-wrapper
+      remaining-files:
+        type: string
+        default: file-wrapper
+
+  picard-CleanSAM:
+    derived_from: workflow_service
+    properties:
+      Validation-Stringency:
+        type: string
+        default: STRICT
+      Comments:
+        type: string
+      #input
+      input-SAM_BAM-files:
+        type: string
+        default: file-wrapper
+      #output
+      cleaned-SAM_BAM-files:
+        type: string
+        default: file-wrapper
+
+  picard-MarkDuplicates:
+    derived_from: workflow_service
+    properties:
+      Validation-Stringency:
+        type: string
+        default: STRICT
+      Comments:
+        type: string
+      Assume-Sorted:
+        type: boolean
+        default: false
+      Remove-Duplicates
+        type: boolean
+        default: false
+      #input
+      input-SAM_BAM-files:
+        type: string
+        default: file-wrapper
+      #output
+      marked-SAM_BAM-file:
+        type: string
+        default: file-wrapper
+      metrics-file:
+        type: string
+        default: file-wrapper
+
+  picard-ADDOrReplaceRG:
+    derived_from: workflow_service
+    properties:
+      Validation-Stringency:
+        type: string
+        default: STRICT
+      Comments:
+        type: string
+      RG-ID:
+        type: string
+        default: 1
+      RG-Library
+        type: string
+        default: ''
+      RG-Platform:
+        type: string
+        default: ''
+      RG-Platform-Unit:
+        type: string
+        default: ''
+      RG-Sample-Name:
+        type: string
+        default: ''
+      RG-Sequencing-Center:
+        type: string
+        default: 1
+      RG-Description
+        type: string
+        default: ''
+      RG-Predicted-Insert-Size:
+        type: string
+        default: ''
+      Sort-Order:
+        type: string
+        default: ''
+      RG-Run-Date:
+        type: string
+        default: ''
+      #input
+      input-SAM_BAM-files:
+        type: string
+        default: file-wrapper
+      #output
+      output-SAM_BAM-files:
         type: string
         default: file-wrapper
 
@@ -373,6 +481,18 @@ node_types:
       Wildcard:
         type: string
         default: "*.*"
+      ImportToSubDirectory:
+        type: boolean
+        default: false
+      SubDirectoryName:
+        type: string
+        default: ''
+      KeepDirStructure:
+        type: boolean
+        default: false
+      KeepSameFolderAsServer
+        type: boolean
+        default: false
       #output
       imported-files:
         type: string
@@ -539,10 +659,13 @@ node_types:
         type: string
 
   GATK-lib:
+    derived_from: spec_library
     properties:
       version:
         type: string
         default: 2.7-4
+      lib_URL:
+        type: string
 
 relationships:
 
