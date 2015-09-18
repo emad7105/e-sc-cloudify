@@ -427,7 +427,7 @@ node_types:
       RG-ID:
         type: string
         default: 1
-      RG-Library
+      RG-Library:
         type: string
         default: ''
       RG-Platform:
