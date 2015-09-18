@@ -442,7 +442,7 @@ node_types:
       RG-Sequencing-Center:
         type: string
         default: 1
-      RG-Description
+      RG-Description:
         type: string
         default: ''
       RG-Predicted-Insert-Size:
