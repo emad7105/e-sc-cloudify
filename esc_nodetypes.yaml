@@ -588,6 +588,37 @@ node_types:
         type: string
         default: file-wrapper
 
+  sleep:
+    derived_from: workflow_service
+    properties:
+      Sleep-time:
+        type: integer
+        default: 10
+      #input
+      input-1:
+        type: string
+        default: data-wrapper
+      #output
+      output-1:
+        type: string
+        default: data-wrapper
+
+  sleep-CsvToFile:
+    derived_from: workflow_service
+    properties:
+      Sleep-time:
+        type: integer
+        default: 10
+      #input
+      input-1:
+        type: string
+        default: data-wrapper
+      #output
+      output-file:
+        type: string
+        default: file-wrapper
+
+  
 #general lib description
   spec_library:
     derived_from: cloudify.nodes.ApplicationModule
