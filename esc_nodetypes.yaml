@@ -401,7 +401,7 @@ node_types:
       Assume-Sorted:
         type: boolean
         default: false
-      Remove-Duplicates
+      Remove-Duplicates:
         type: boolean
         default: false
       #input
