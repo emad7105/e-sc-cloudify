@@ -1,0 +1,582 @@
+#eSc Picard workflow with 8 real block def. deployed on 8 containers
+
+tosca_definitions_version: cloudify_dsl_1_0
+
+imports:
+  - http://www.getcloudify.org/spec/cloudify/3.1/types.yaml
+  - https://raw.githubusercontent.com/cloudify-cosmo/cloudify-docker-plugin/1.1/plugin.yaml
+  - https://raw.githubusercontent.com/rawaqasha/e-sc-cloudify/master/esc_nodetypes.yaml
+
+inputs:
+
+  host_ip:
+      description: >
+        The ip of the host the application will be deployed on  
+      default: 127.0.0.1
+
+  agent_user:
+      description: >
+        User name used when SSH-ing into the started machine
+      default: ubuntu
+
+  agent_private_key_path:
+      description: >
+        Path to a private key that resided on the management machine.
+        SSH-ing into agent machines will be done with this key.
+      default: ~/.ssh/agent_key.pem
+
+  install_agent: 
+      description: > 
+        When running in local mode set this to false
+      default: false
+
+node_types:
+
+  docker_container:
+    derived_from: cloudify.nodes.Root
+    properties:
+      image_name:
+        type: string
+        default: rawa/mybase:01
+      container_ID:
+        type: string
+        default: container1
+
+node_templates:
+
+  host:
+    type: cloudify.nodes.Compute
+    properties:
+      install_agent: { get_input: install_agent }
+      ip: { get_input: host_ip }
+      cloudify_agent:
+        user: { get_input: agent_user }
+        key: { get_input: agent_private_key_path }
+
+  starterBlock:
+    type: cloudify.nodes.ApplicationModule
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/starter-inhost.sh
+          inputs:
+            process:
+              args: [Picard]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host
+
+  container1:
+    type: docker_container
+    properties:
+      container_ID: container1
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/container.sh
+          inputs:
+            process:
+              args: [Picard]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host
+      - type: cloudify.relationships.depends_on
+        target: starterBlock
+
+  Java:
+    type: spec_library
+    properties:
+      lib_name: default-jdk
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/java-install2.sh
+          inputs:
+            process:
+              args: [container1]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container1
+
+  ImportDir:
+    type: Import-Dir
+    properties:
+      block_description: import Dir
+      block_name: ImportDir.jar
+      block_category: File Management
+      service_type: block
+      SourceFolder: ~/myDir
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        configure:
+          implementation: scripts/get-Dir.sh
+          inputs:
+            process:
+             args: [Picard]
+        start: 
+          implementation: scripts/block-deploy3.sh
+          inputs:
+            process:
+             args: [Picard, container1, '']
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container1
+      - type: cloudify.relationships.depends_on
+        target: Java
+
+  container2:
+    type: docker_container
+    properties:
+      container_ID: container2
+    interfaces:
+      cloudify.interfaces.lifecycle:        
+        start:
+          implementation: scripts/container.sh
+          inputs:
+            process:
+              args: [FileZip-inhost]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host
+
+  Java1:
+    type: spec_library
+    properties:
+      lib_name: default-jdk
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/java-install2.sh
+          inputs:
+            process:
+              args: [container2]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container2
+
+  PickFiles:
+    type: pick-Files
+    properties:
+      block_description: Pick files
+      block_name: Pick-Files.jar
+      block_category: File Management
+      service_type: block
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start: 
+          implementation: scripts/block-deploy3.sh
+          inputs:
+            process:
+             args: [Picard, container2, '']
+    relationships:
+      - type: block_link
+        target: ImportDir
+        source_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            datacopy:
+              implementation: scripts/datacopy.sh
+              inputs:
+                process:
+                  args: [ImportDir/imported-files, PickFiles/input-files, Picard, container2]
+      - type: cloudify.relationships.contained_in
+        target: container2
+      - type: cloudify.relationships.depends_on
+        target: Java1
+
+  container3:
+    type: docker_container
+    properties:
+      container_ID: container3
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          implementation: scripts/container.sh
+          inputs:
+            process:
+              args: [Picard]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host
+
+  Java2:
+    type: spec_library
+    properties:
+      lib_name: default-jdk
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/java-install2.sh
+          inputs:
+            process:
+              args: [container3]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container3
+
+  PicardCleanSAM:
+    type: picard-CleanSAM
+    properties:
+      block_description: To be ..
+      block_name: Picard-CleanSAM.jar
+      block_category: File Management
+      service_type: block
+      Comments: 
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container3
+      - type: block_link
+        target: PickFiles
+        source_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            datacopy:
+              implementation: scripts/datacopy.sh
+              inputs:
+                process:
+                  args: [PickFiles/selected-files, PicardCleanSAM/input-SAM_BAM-files, Picard, container3]
+      - type: cloudify.relationships.depends_on
+        target: Java2
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          implementation: scripts/block-deploy3.sh
+          inputs:
+            process:
+             args: [Picard, container3, '']
+
+  container4:
+    type: docker_container
+    properties:
+      container_ID: container4
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          implementation: scripts/container.sh
+          inputs:
+            process:
+              args: [Picard]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host
+
+  Java3:
+    type: spec_library
+    properties:
+      lib_name: default-jdk
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/java-install2.sh
+          inputs:
+            process:
+              args: [container4]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container4
+
+  Picard-Mark:
+    type: picard-MarkDuplicates
+    properties:
+      block_description: I don't know
+      block_name: Picard-Mark.jar
+      block_category: File Management
+      service_type: block
+      Comments: 
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container4
+      - type: cloudify.relationships.depends_on
+        target: Java3
+      - type: block_link
+        target: PicardCleanSAM
+        source_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            datacopy:
+              implementation: scripts/datacopy.sh
+              inputs:
+                process:
+                  args: [PicardCleanSAM/cleaned-SAM_BAM-files, Picard-Mark/input-SAM_BAM-files, Picard, container4]
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          implementation: scripts/block-deploy3.sh
+          inputs:
+            process:
+              args: [Picard, container4, '']
+
+  container5:
+    type: docker_container
+    properties:
+      container_ID: container5
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          implementation: scripts/container.sh
+          inputs:
+            process:
+              args: [Picard]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host
+
+  Java4:
+    type: spec_library
+    properties:
+      lib_name: default-jdk
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/java-install2.sh
+          inputs:
+            process:
+              args: [container5]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container5
+
+  Picard-Add:
+    type: picard-ADDOrReplaceRG
+    properties:
+      block_description: I don't know
+      block_name: Picard-Add.jar
+      block_category: File Management
+      service_type: block
+      Comments: 
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container5
+      - type: block_link
+        target: Picard-Mark
+        source_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            datacopy:
+              implementation: scripts/datacopy.sh
+              inputs:
+                process:
+                  args: [Picard-Mark/marked-SAM_BAM-file, Picard-Add/input-SAM_BAM-files, Picard, container5]        
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          implementation: scripts/special-deploy.sh
+          inputs:
+            process:
+              args: [Picard, container5, '']
+
+  container6:
+    type: docker_container
+    properties:
+      container_ID: container6
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          implementation: scripts/container.sh
+          inputs:
+            process:
+              args: [Picard]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host
+
+  Java5:
+    type: spec_library
+    properties:
+      lib_name: default-jdk
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/java-install2.sh
+          inputs:
+            process:
+              args: [container6]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container6
+
+  SAMTools-Lib:
+    type: SAMTools-lib
+    properties:
+      lib_name: SamTools-0.1.19
+      lib_URL: https://github.com/rawaqasha/work/raw/master/samtools
+      lib_path: Picard
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/SAMTools-install.sh
+          inputs:
+            process:
+              args: [container6]
+    relationships:
+      - type: cloudify.relationships.depends_on
+        target: Wine
+      - type: cloudify.relationships.contained_in
+        target: container6
+
+  SAMTools:
+    type: SAMtools-index
+    properties:
+      block_description: I don't know
+      block_name: SAMTools.jar
+      block_category: File Management
+      service_type: block
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container6
+      - type: cloudify.relationships.depends_on
+        target: DAMTools-Lib
+      - type: cloudify.relationships.depends_on
+        target: Java5
+      - type: block_link
+        target: Picard-Add
+        source_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            datacopy:
+              implementation: scripts/datacopy.sh
+              inputs:
+                process:
+                  args: [Picard-Add/output-SAM_BAM-files, SAMTools/input-BAM-files, Picard, container6]        
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          implementation: scripts/special-deploy.sh
+          inputs:
+            process:
+              args: [Picard, container6, '',  get_property: [SAMTools-Lib, lib_path]]
+
+  container7:
+    type: docker_container
+    properties:
+      container_ID: container7
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          implementation: scripts/container.sh
+          inputs:
+            process:
+              args: [Picard]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host
+
+  Java6:
+    type: spec_library
+    properties:
+      lib_name: default-jdk
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/java-install2.sh
+          inputs:
+            process:
+              args: [container7]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container7
+
+  ExportFiles1:
+    type: exportfiles
+    properties:
+      block_description: export files
+      block_name: ExportFiles1.jar
+      block_category: File Management
+      service_type: block
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container7
+      - type: block_link
+        target: SAMTools
+        source_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            datacopy:
+              implementation: scripts/datacopy.sh
+              inputs:
+                process:
+                  args: [SAMTools/index-BAI-files, ExportFiles1/file-list, Picard, container7]
+      - type: cloudify.relationships.depends_on
+        target: Java6
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start: 
+          implementation: scripts/block-deploy3.sh
+          inputs:
+            process:
+             args: [Picard, container7, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/ExportFiles1.jar']
+
+  container8:
+    type: docker_container
+    properties:
+      container_ID: container8
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          implementation: scripts/container.sh
+          inputs:
+            process:
+              args: [Picard]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host
+
+  Java7:
+    type: spec_library
+    properties:
+      lib_name: default-jdk
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/java-install2.sh
+          inputs:
+            process:
+              args: [container8]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container8
+
+  ExportFiles2:
+    type: exportfiles
+    properties:
+      block_description: export files
+      block_name: ExportFiles.jar
+      block_category: File Management
+      service_type: block
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container8
+      - type: block_link
+        target: Picard-Add
+        source_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            datacopy:
+              implementation: scripts/datacopy.sh
+              inputs:
+                process:
+                  args: [Picard-Add/output-SAM_BAM-files, ExportFiles2/file-list, Picard, container8]
+      - type: cloudify.relationships.depends_on
+        target: Java7
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start: 
+          implementation: scripts/block-deploy3.sh
+          inputs:
+            process:
+             args: [Picard, container8, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/ExportFiles1.jar']
+
+  finalBlock:
+    type: cloudify.nodes.ApplicationModule
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        configure:
+          implementation: scripts/container-config.sh
+          inputs:
+            process:
+              args: [container7]
+        start:
+          implementation: scripts/final.sh
+          inputs:
+            process:
+              args: [Picard]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host
+      - type: cloudify.relationships.depends_on
+        target: ExportFiles1
+      - type: cloudify.relationships.depends_on
+        target: ExportFiles2
