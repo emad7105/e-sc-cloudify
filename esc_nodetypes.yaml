@@ -490,7 +490,7 @@ node_types:
       KeepDirStructure:
         type: boolean
         default: false
-      KeepSameFolderAsServer
+      KeepSameFolderAsServer:
         type: boolean
         default: false
       #output
