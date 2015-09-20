@@ -58,7 +58,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: scripts/starter-inhost.sh
+          implementation: scripts/start-inhost.sh
           inputs:
             process:
               args: [Random]
@@ -104,20 +104,20 @@ node_templates:
       block_description: import csv file
       block_name: CSVimport1.jar
       block_category: File Management
-      source: '~/input/file.csv'
+      source: 'Random/file.csv'
       service_type: block
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: scripts/block-input.sh
+          implementation: scripts/get-input.sh
           inputs:
             process:
-             args: [get_property: [SELF, source], file.csv, container1, Random]
+             args: [Random, container1]
         start: 
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [Random, CSV_import, container1, 'https://github.com/rawaqasha/eSc-blocks/raw/master/CSVimport1.jar']
+             args: [Random, container1, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/CSVimport1.jar']
     relationships:
       - type: cloudify.relationships.contained_in
         target: container1
@@ -163,6 +163,7 @@ node_templates:
       block_name: Sleep.jar
       block_category: File Management
       service_type: block
+      Sleep-time: 10
     interfaces:
       cloudify.interfaces.lifecycle:
         configure:
@@ -180,11 +181,11 @@ node_templates:
         target: CSV_import
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
-            datacopy:
+            preconfigure:
               implementation: scripts/datacopy.sh
               inputs:
                 process:
-                  args: [CSV_import/output-1, Sleep/input-1, Random, container2]
+                  args: [CSV_import/output-2, Sleep/input-1, Random, container2]
       - type: cloudify.relationships.contained_in
         target: container2
       - type: cloudify.relationships.depends_on
@@ -240,7 +241,7 @@ node_templates:
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [Random, Col_invert, container3, 'https://github.com/rawaqasha/eSc-blocks/raw/master/Col-invert.jar']
+             args: [Random, container3, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/Col-invert.jar']
     relationships:
       - type: cloudify.relationships.contained_in
         target: container3
@@ -522,7 +523,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         configure:
-          implementation: scripts/container-clean.sh
+          implementation: scripts/containers-clean.sh
           inputs:
             process:
               args: [container4, container7]

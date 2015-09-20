@@ -2,7 +2,7 @@
 
 set -e
 blueprint=$1
-file=$(ctx node properties Source)
+file=$(ctx node properties source)
 CONTAINER_ID=$2
 sourcefile=${HOME}/input/${file}
 #$(ctx node properties Source)

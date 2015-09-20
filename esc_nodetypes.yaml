@@ -592,7 +592,7 @@ node_types:
     derived_from: workflow_service
     properties:
       Sleep-time:
-        type: integer
+        type: string
         default: 10
       #input
       input-1:
@@ -607,7 +607,7 @@ node_types:
     derived_from: workflow_service
     properties:
       Sleep-time:
-        type: integer
+        type: string
         default: 10
       #input
       input-1:
