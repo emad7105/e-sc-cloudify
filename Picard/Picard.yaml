@@ -58,7 +58,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: scripts/starter-inhost.sh
+          implementation: scripts/start-inhost.sh
           inputs:
             process:
               args: [Picard]
@@ -105,7 +105,7 @@ node_templates:
       block_name: ImportDir.jar
       block_category: File Management
       service_type: block
-      SourceFolder: ~/myDir
+      SourceFolder: ~/myDir/Data
     interfaces:
       cloudify.interfaces.lifecycle:
         configure:
@@ -220,7 +220,7 @@ node_templates:
       block_name: Picard-CleanSAM.jar
       block_category: File Management
       service_type: block
-      Comments: 
+      Comments: ''
     relationships:
       - type: cloudify.relationships.contained_in
         target: container3
@@ -280,7 +280,7 @@ node_templates:
       block_name: Picard-Mark.jar
       block_category: File Management
       service_type: block
-      Comments: 
+      Comments: ''
     relationships:
       - type: cloudify.relationships.contained_in
         target: container4
@@ -340,7 +340,7 @@ node_templates:
       block_name: Picard-Add.jar
       block_category: File Management
       service_type: block
-      Comments: 
+      Comments: ''
     relationships:
       - type: cloudify.relationships.contained_in
         target: container5
@@ -356,7 +356,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         start:
-          implementation: scripts/special-deploy.sh
+          implementation: scripts/block-deploy3.sh
           inputs:
             process:
               args: [Picard, container5, '']
@@ -405,8 +405,6 @@ node_templates:
             process:
               args: [container6]
     relationships:
-      - type: cloudify.relationships.depends_on
-        target: Wine
       - type: cloudify.relationships.contained_in
         target: container6
 
@@ -564,12 +562,12 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         configure:
-          implementation: scripts/container-config.sh
+          implementation: scripts/containers-clean.sh
           inputs:
             process:
               args: [container7]
         start:
-          implementation: scripts/final.sh
+          implementation: scripts/final-inhost.sh
           inputs:
             process:
               args: [Picard]

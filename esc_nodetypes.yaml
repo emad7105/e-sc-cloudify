@@ -378,7 +378,7 @@ node_types:
     properties:
       Validation-Stringency:
         type: string
-        default: STRICT
+        default: LENIENT
       Comments:
         type: string
       #input
@@ -395,15 +395,15 @@ node_types:
     properties:
       Validation-Stringency:
         type: string
-        default: STRICT
+        default: LENIENT
       Comments:
         type: string
       Assume-Sorted:
         type: boolean
-        default: false
+        default: true
       Remove-Duplicates:
         type: boolean
-        default: false
+        default: true
       #input
       input-SAM_BAM-files:
         type: string
@@ -421,7 +421,7 @@ node_types:
     properties:
       Validation-Stringency:
         type: string
-        default: STRICT
+        default: LENIENT
       Comments:
         type: string
       RG-ID:
@@ -429,16 +429,16 @@ node_types:
         default: 1
       RG-Library:
         type: string
-        default: ''
+        default: test-lib
       RG-Platform:
         type: string
-        default: ''
+        default: illumina
       RG-Platform-Unit:
         type: string
-        default: ''
+        default: unknown
       RG-Sample-Name:
         type: string
-        default: ''
+        default: 1
       RG-Sequencing-Center:
         type: string
         default: 1
