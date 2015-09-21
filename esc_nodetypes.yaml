@@ -356,7 +356,7 @@ node_types:
         type: string
         default: "."
       PickByIndex:
-        type: boolean
+        type: string
         default: false
       FailIfEmpty:
         type: boolean
