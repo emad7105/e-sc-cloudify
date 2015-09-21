@@ -163,7 +163,7 @@ node_templates:
       block_name: Sleep.jar
       block_category: File Management
       service_type: block
-      Sleep-time: 10
+      Sleep-time: '10'
     interfaces:
       cloudify.interfaces.lifecycle:
         configure:
@@ -358,6 +358,7 @@ node_templates:
       block_name: Sleep1.jar
       block_category: File Management
       service_type: block
+      Sleep-time: '10'
     interfaces:
       cloudify.interfaces.lifecycle:
         configure:
@@ -375,7 +376,7 @@ node_templates:
         target: Col_invert
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
-            datacopy:
+            preconfigure:
               implementation: scripts/datacopy.sh
               inputs:
                 process:
@@ -497,11 +498,10 @@ node_templates:
         target: ZipFile
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
-            datacopy:
+            preconfigure:
               implementation: scripts/datacopy.sh
               inputs:
-                process:
-                
+                process:                
                   args: [ZipFile/output-1, ExportFiles/file-list, Random, container7]
       - type: cloudify.relationships.depends_on
         target: Java6
