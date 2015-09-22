@@ -37,7 +37,7 @@ node_types:
     properties:
       image_name:
         type: string
-        default: ubuntu:14.04
+        default: rawa/mybase:01
       container_ID:
         type: string
         default: container1

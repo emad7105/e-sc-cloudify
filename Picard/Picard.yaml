@@ -426,7 +426,7 @@ node_templates:
   SAMTools-Lib:
     type: SAMTools-lib
     properties:
-      lib_name: Samtools
+      lib_name: samtools
       lib_URL: 'https://github.com/rawaqasha/work/raw/master/samtools'
       lib_path: Picard
     interfaces:

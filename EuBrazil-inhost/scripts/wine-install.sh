@@ -12,7 +12,7 @@ set +e
 set -e
 
 if [[ -z ${wine} ]]; then      
- #sudo docker exec -it ${CONTAINER_ID} dpkg --add-architecture i386   
+        
  sudo docker exec -it ${CONTAINER_ID} apt-get update
  sudo docker exec -it ${CONTAINER_ID} apt-get -y install ${LIBRARY_NAME}
 

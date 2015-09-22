@@ -9,7 +9,7 @@ Lib_URL=$2
 #ctx logger info "Installing MegaCC lib on ${CONTAINER_NAME}"
 
 set +e
-  Git=$(sudo docker exec -it ${CONTAINER_NAME} which git)
+  Git=$(sudo docker exec -it ${CONTAINER_ID} which git)
 set -e
 
 if [[ -z ${Git} ]]; then      

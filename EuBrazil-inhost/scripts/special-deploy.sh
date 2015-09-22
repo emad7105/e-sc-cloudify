@@ -1,5 +1,3 @@
-#!/bin/bash
-
 set -e
 blueprint=$1
 block=$(ctx node name)
@@ -34,4 +32,3 @@ if [ $block = "Mega-NJ" ]; then
    sudo docker exec -it ${CONTAINER_ID} jar xf ${blueprint}/${BLOCK_NAME} M6CC.mao
 fi
 sudo docker exec -it ${CONTAINER_ID} java -jar ${blueprint}/${BLOCK_NAME} ${blueprint} ${block} ${LIB_DIR}
-
