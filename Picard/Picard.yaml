@@ -163,7 +163,7 @@ node_templates:
       block_name: Pick-Files.jar
       block_category: File Management
       service_type: block
-      FileNameOrIndex: 'Probe.PFC_0030_MSt_GAGTGG.sorted.bam.bai'
+      FileNameOrIndex: robe.PFC_0030_MSt_GAGTGG.sorted.bam
       PickByIndex: 'false'
     interfaces:
       cloudify.interfaces.lifecycle:
@@ -231,6 +231,7 @@ node_templates:
       block_name: Picard-CleanSAM.jar
       block_category: File Management
       service_type: block
+      Validation-Stringency: LENIENT
       Comments: ''
     relationships:
       - type: cloudify.relationships.contained_in
@@ -298,6 +299,9 @@ node_templates:
       block_name: Picard-Mark.jar
       block_category: File Management
       service_type: block
+      Validation-Stringency: LENIENT
+      Assume-Sorted: 'true'
+      Remove-Duplicates: 'true'
       Comments: ''
     relationships:
       - type: cloudify.relationships.contained_in
@@ -319,7 +323,7 @@ node_templates:
           implementation: scripts/containers-clean.sh
           inputs:
             process:
-             args: [container3]
+             args: []
         start:
           implementation: scripts/block-deploy3.sh
           inputs:
@@ -365,7 +369,18 @@ node_templates:
       block_name: Picard-Add.jar
       block_category: File Management
       service_type: block
+      Validation-Stringency: LENIENT
       Comments: ''
+      RG-ID: 1
+      RG-Library: test-lib
+      RG-Platform: illumina
+      RG-Platform-Unit: unknown
+      RG-Sample-Name: 1
+      RG-Sequencing-Center: 1
+      RG-Description: ''
+      RG-Predicted-Insert-Size: ''
+      Sort-Order: ''
+      RG-Run-Date: ''
     relationships:
       - type: cloudify.relationships.contained_in
         target: container5

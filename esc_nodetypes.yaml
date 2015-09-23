@@ -399,10 +399,10 @@ node_types:
       Comments:
         type: string
       Assume-Sorted:
-        type: boolean
+        type: string
         default: true
       Remove-Duplicates:
-        type: boolean
+        type: string
         default: true
       #input
       input-SAM_BAM-files:
