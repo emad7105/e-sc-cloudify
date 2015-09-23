@@ -400,10 +400,10 @@ node_types:
         type: string
       Assume-Sorted:
         type: string
-        default: true
+        default: 'true'
       Remove-Duplicates:
         type: string
-        default: true
+        default: 'true'
       #input
       input-SAM_BAM-files:
         type: string
