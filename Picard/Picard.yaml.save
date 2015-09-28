@@ -1,4 +1,4 @@
-#eSc Random workflow with 7 real block def. deployed on 7 containers
+#eSc Picard workflow with 8 real block def. deployed on 8 containers
 
 tosca_definitions_version: cloudify_dsl_1_0
 
@@ -37,8 +37,8 @@ node_types:
     properties:
       image_name:
         type: string
-        default: mybase14
-      container_ID:
+        default: java
+      container_I
         type: string
         default: container1
 
@@ -61,7 +61,7 @@ node_templates:
           implementation: scripts/start-inhost.sh
           inputs:
             process:
-              args: [Random]
+              args: [Picard]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -76,7 +76,7 @@ node_templates:
           implementation: scripts/container.sh
           inputs:
             process:
-              args: [Random]
+              args: [Picard]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -98,26 +98,26 @@ node_templates:
       - type: cloudify.relationships.contained_in
         target: container1
 
-  CSV_import:
-    type: csvimport
+  ImportDir:
+    type: Import-Dir
     properties:
-      block_description: import csv file
-      block_name: CSVimport1.jar
+      block_description: import Dir
+      block_name: ImportDir.jar
       block_category: File Management
-      source: 'Random/file.csv'
       service_type: block
+      SourceFolder: 'myDir/Data'
     interfaces:
       cloudify.interfaces.lifecycle:
-        create:
-          implementation: scripts/get-input.sh
+        configure:
+          implementation: scripts/get-Dir.sh
           inputs:
             process:
-             args: [Random, container1]
+             args: [Picard]
         start: 
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [Random, container1, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/CSVimport1.jar']
+             args: [Picard, container1, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/ImportDir.jar']
     relationships:
       - type: cloudify.relationships.contained_in
         target: container1
@@ -134,12 +134,12 @@ node_templates:
           implementation: scripts/container.sh
           inputs:
             process:
-              args: [Random]
+              args: [Picard]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
       - type: cloudify.relationships.depends_on
-        target: CSV_import
+        target: ImportDir
 
   Java1:
     type: spec_library
@@ -156,14 +156,15 @@ node_templates:
       - type: cloudify.relationships.contained_in
         target: container2
 
-  Sleep:
-    type: sleep
+  PickFiles:
+    type: pick-Files
     properties:
-      block_description: sleep
-      block_name: Sleep.jar
+      block_description: Pick files
+      block_name: Pick-Files.jar
       block_category: File Management
       service_type: block
-      Sleep-time: '10'
+      FileNameOrIndex: probe.PFC_0030_MSt_GAGTGG.sorted.bam
+      PickByIndex: 'false'
     interfaces:
       cloudify.interfaces.lifecycle:
         configure:
@@ -175,17 +176,17 @@ node_templates:
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [Random, container2, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/Sleep.jar']
+             args: [Picard, container2, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/Pick-Files.jar']
     relationships:
       - type: block_link
-        target: CSV_import
+        target: ImportDir
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
             preconfigure:
               implementation: scripts/datacopy.sh
               inputs:
                 process:
-                  args: [CSV_import/output-2, Sleep/input-1, Random, container2]
+                  args: [ImportDir/imported-files, PickFiles/input-files, Picard, container2]
       - type: cloudify.relationships.contained_in
         target: container2
       - type: cloudify.relationships.depends_on
@@ -201,12 +202,12 @@ node_templates:
           implementation: scripts/container.sh
           inputs:
             process:
-              args: [Random]
+              args: [Picard]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
       - type: cloudify.relationships.depends_on
-        target: Sleep
+        target: PickFiles
 
   Java2:
     type: spec_library
@@ -223,13 +224,29 @@ node_templates:
       - type: cloudify.relationships.contained_in
         target: container3
 
-  Col_invert:
-    type: colinvert
+  PicardCleanSAM:
+    type: picard-CleanSAM
     properties:
-      block_description: invert the column of csv file
-      block_name: Col-invert.jar
+      block_description: To be ..
+      block_name: Picard-CleanSAM.jar
       block_category: File Management
       service_type: block
+      Validation-Stringency: LENIENT
+      Comments: ''
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container3
+      - type: block_link
+        target: PickFiles
+        source_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            preconfigure:
+              implementation: scripts/datacopy.sh
+              inputs:
+                process:
+                  args: [PickFiles/selected-files, PicardCleanSAM/input-SAM_BAM-files, Picard, container3]
+      - type: cloudify.relationships.depends_on
+        target: Java2
     interfaces:
       cloudify.interfaces.lifecycle:
         configure:
@@ -237,25 +254,11 @@ node_templates:
           inputs:
             process:
              args: [container2]
-        start: 
+        start:
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [Random, container3, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/Col-invert.jar']
-    relationships:
-      - type: cloudify.relationships.contained_in
-        target: container3
-      - type: cloudify.relationships.depends_on
-        target: Java2
-      - type: block_link
-        target: Sleep
-        source_interfaces:
-          cloudify.interfaces.relationship_lifecycle:
-            preconfigure:
-              implementation: scripts/datacopy.sh
-              inputs:
-                process:
-                  args: [Sleep/output-1, Col_invert/input-1, Random, container3]
+             args: [Picard, container3, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/Picard-CleanSAM.jar']
 
   container4:
     type: docker_container
@@ -267,12 +270,12 @@ node_templates:
           implementation: scripts/container.sh
           inputs:
             process:
-              args: [Random]
+              args: [Picard]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
       - type: cloudify.relationships.depends_on
-        target: Col_invert
+        target: PicardCleanSAM
 
   Java3:
     type: spec_library
@@ -289,35 +292,43 @@ node_templates:
       - type: cloudify.relationships.contained_in
         target: container4
 
-  CSV_export:
-    type: csvexport
+  Picard-Mark:
+    type: picard-MarkDuplicates
     properties:
-      block_description: export csv file
-      block_name: CSVexport1.jar
+      block_description: I don't know
+      block_name: Picard-Mark.jar
       block_category: File Management
-      FileName: out1.csv
       service_type: block
+      Validation-Stringency: LENIENT
+      Assume-Sorted: 'true'
+      Remove-Duplicates: 'true'
+      Comments: ''
     relationships:
       - type: cloudify.relationships.contained_in
         target: container4
+      - type: cloudify.relationships.depends_on
+        target: Java3
       - type: block_link
-        target: Col_invert
+        target: PicardCleanSAM
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
             preconfigure:
               implementation: scripts/datacopy.sh
               inputs:
                 process:
-                  args: [Col_invert/output-1, CSV_export/input-data, Random, container4]
-      - type: cloudify.relationships.depends_on
-        target: Java3
+                  args: [PicardCleanSAM/cleaned-SAM_BAM-files, Picard-Mark/input-SAM_BAM-files, Picard, container4]
     interfaces:
       cloudify.interfaces.lifecycle:
-        start: 
+        configure:
+          implementation: scripts/containers-clean.sh
+          inputs:
+            process:
+             args: [container3]
+        start:
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [Random, container4, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/CSVexport1.jar']
+              args: [Picard, container4, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/Picard-Mark.jar']
 
   container5:
     type: docker_container
@@ -329,12 +340,12 @@ node_templates:
           implementation: scripts/container.sh
           inputs:
             process:
-              args: [Random]
+              args: [Picard]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
       - type: cloudify.relationships.depends_on
-        target: Col_invert
+        target: Picard-Mark
 
   Java4:
     type: spec_library
@@ -351,40 +362,49 @@ node_templates:
       - type: cloudify.relationships.contained_in
         target: container5
 
-  Sleep1:
-    type: sleep-CsvToFile
+  Picard-Add:
+    type: picard-ADDOrReplaceRG
     properties:
-      block_description: sleep
-      block_name: Sleep1.jar
+      block_description: I don't know
+      block_name: Picard-Add.jar
       block_category: File Management
       service_type: block
-      Sleep-time: '10'
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        configure:
-          implementation: scripts/containers-clean.sh
-          inputs:
-            process:
-             args: [container3]
-        start: 
-          implementation: scripts/block-deploy3.sh
-          inputs:
-            process:
-             args: [Random, container5, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/Sleep1.jar']
+      Validation-Stringency: LENIENT
+      Comments: ''
+      RG-ID: '1'
+      RG-Library: test-lib
+      RG-Platform: illumina
+      RG-Platform-Unit: unknown
+      RG-Sample-Name: '1'
+      RG-Sequencing-Center: '1'
+      RG-Description: ''
+      RG-Predicted-Insert-Size: ''
+      Sort-Order: ''
+      RG-Run-Date: ''
     relationships:
+      - type: cloudify.relationships.contained_in
+        target: container5
       - type: block_link
-        target: Col_invert
+        target: Picard-Mark
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
             preconfigure:
               implementation: scripts/datacopy.sh
               inputs:
                 process:
-                  args: [Col_invert/output-1, Sleep1/input-1, Random, container5]
-      - type: cloudify.relationships.contained_in
-        target: container5
-      - type: cloudify.relationships.depends_on
-        target: Java4
+                  args: [Picard-Mark/marked-SAM_BAM-file, Picard-Add/input-SAM_BAM-files, Picard, container5]        
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        configure:
+          implementation: scripts/containers-clean.sh
+          inputs:
+            process:
+             args: [container4]
+        start:
+          implementation: scripts/block-deploy3.sh
+          inputs:
+            process:
+              args: [Picard, container5, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/Picard-Add.jar']
 
   container6:
     type: docker_container
@@ -396,12 +416,12 @@ node_templates:
           implementation: scripts/container.sh
           inputs:
             process:
-              args: [Random]
+              args: [Picard]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
       - type: cloudify.relationships.depends_on
-        target: Sleep1
+        target: Picard-Add
 
   Java5:
     type: spec_library
@@ -418,39 +438,53 @@ node_templates:
       - type: cloudify.relationships.contained_in
         target: container6
 
-  ZipFile:
-    type: zipFile
+  SAMTools-Lib:
+    type: SAMTools-lib
     properties:
-      block_description: invert the column of csv file
-      block_name: ZipFile.jar
-      block_category: File Management
-      service_type: block
+      lib_name: samtools
+      lib_URL: 'https://github.com/rawaqasha/work/raw/master/samtools'
+      lib_path: Picard
     interfaces:
       cloudify.interfaces.lifecycle:
-        configure:
-          implementation: scripts/containers-clean.sh
+        create:
+          implementation: scripts/SAMTools-install.sh
           inputs:
             process:
-             args: [container5]
-        start: 
-          implementation: scripts/block-deploy3.sh
-          inputs:
-            process:
-             args: [Random, container6, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/ZipFile.jar']
+              args: [container6]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container6
+
+  SAMTools:
+    type: SAMtools-index
+    properties:
+      block_description: I don't know
+      block_name: SAMTools.jar
+      block_category: File Management
+      service_type: block
     relationships:
       - type: cloudify.relationships.contained_in
         target: container6
       - type: cloudify.relationships.depends_on
+        target: SAMTools-Lib
+      - type: cloudify.relationships.depends_on
         target: Java5
       - type: block_link
-        target: Sleep1
+        target: Picard-Add
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
             preconfigure:
               implementation: scripts/datacopy.sh
               inputs:
                 process:
-                  args: [Sleep1/output-file, ZipFile/input-1, Random, container6]
+                  args: [Picard-Add/output-SAM_BAM-files, SAMTools/input-BAM-files, Picard, container6]        
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          implementation: scripts/block-deploy3.sh
+          inputs:
+            process:
+              args: [Picard, container6, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/SAMTools.jar',  get_property: [SAMTools-Lib, lib_path]]
 
   container7:
     type: docker_container
@@ -462,12 +496,12 @@ node_templates:
           implementation: scripts/container.sh
           inputs:
             process:
-              args: [Random]
+              args: [Picard]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
       - type: cloudify.relationships.depends_on
-        target: ZipFile
+        target: SAMTools
 
   Java6:
     type: spec_library
@@ -484,7 +518,7 @@ node_templates:
       - type: cloudify.relationships.contained_in
         target: container7
 
-  ExportFiles:
+  ExportFiles1:
     type: exportfiles
     properties:
       block_description: export files
@@ -495,14 +529,14 @@ node_templates:
       - type: cloudify.relationships.contained_in
         target: container7
       - type: block_link
-        target: ZipFile
+        target: SAMTools
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
             preconfigure:
               implementation: scripts/datacopy.sh
               inputs:
-                process:                
-                  args: [ZipFile/output-1, ExportFiles/file-list, Random, container7]
+                process:
+                  args: [SAMTools/index-BAI-files, ExportFiles1/file-list, Picard, container7]
       - type: cloudify.relationships.depends_on
         target: Java6
     interfaces:
@@ -516,7 +550,68 @@ node_templates:
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [Random, container7, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/ExportFiles1.jar']
+             args: [Picard, container7, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/ExportFiles1.jar']
+
+  container8:
+    type: docker_container
+    properties:
+      container_ID: container8
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          implementation: scripts/container.sh
+          inputs:
+            process:
+              args: [Picard]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host
+      - type: cloudify.relationships.depends_on
+        target: Picard-Add
+
+  Java7:
+    type: spec_library
+    properties:
+      lib_name: default-jdk
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/java-install2.sh
+          inputs:
+            process:
+              args: [container8]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container8
+
+  ExportFiles2:
+    type: exportfiles
+    properties:
+      block_description: export files
+      block_name: ExportFiles1.jar
+      block_category: File Management
+      service_type: block
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container8
+      - type: block_link
+        target: Picard-Add
+        source_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            preconfigure:
+              implementation: scripts/datacopy.sh
+              inputs:
+                process:
+                  args: [Picard-Add/output-SAM_BAM-files, ExportFiles2/file-list, Picard, container8]
+      - type: cloudify.relationships.depends_on
+        target: Java7
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start: 
+          implementation: scripts/block-deploy3.sh
+          inputs:
+            process:
+             args: [Picard, container8, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/ExportFiles1.jar']
 
   finalBlock:
     type: cloudify.nodes.ApplicationModule
@@ -526,14 +621,16 @@ node_templates:
           implementation: scripts/containers-clean.sh
           inputs:
             process:
-              args: [container4, container7]
+              args: [container5, container8, container7]
         start:
           implementation: scripts/final-inhost.sh
           inputs:
             process:
-              args: [Random]
+              args: [Picard]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
       - type: cloudify.relationships.depends_on
-        target: ExportFiles
+        target: ExportFiles1
+      - type: cloudify.relationships.depends_on
+        target: ExportFiles2

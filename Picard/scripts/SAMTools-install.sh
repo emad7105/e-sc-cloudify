@@ -8,9 +8,9 @@ Lib_name=$(ctx node properties lib_name)
 
 set +e
   Wget=$(sudo docker exec -it ${CONTAINER_ID} which wget)
-set e-
+set -e
 
-	if [[ -n "${Wget}" ]]; then
+	if [[ -z ${Wget} ]]; then
          	sudo docker exec -it ${CONTAINER_ID} apt-get update
   	        sudo docker exec -it ${CONTAINER_ID} apt-get -y install wget
         fi
