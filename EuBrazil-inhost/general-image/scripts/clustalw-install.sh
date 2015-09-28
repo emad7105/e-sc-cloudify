@@ -9,7 +9,5 @@ Lib_URL=$2
 #ctx logger info "Installing ClustalW lib on ${CONTAINER_NAME}"
 
 
-
-
 sudo docker exec -it ${CONTAINER_NAME} wget ${Lib_URL}
 sudo docker exec -it ${CONTAINER_NAME} tar -zxvf clustalw-2.1-linux-x86_64-libcppstatic.tar.gz

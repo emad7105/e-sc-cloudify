@@ -37,7 +37,7 @@ node_types:
     properties:
       image_name:
         type: string
-        default: rawa/mybase:01
+        default: mybase:01
       container_ID:
         type: string
         default: container1
@@ -83,21 +83,6 @@ node_templates:
       - type: cloudify.relationships.depends_on
         target: starterBlock
 
-  Java:
-    type: spec_library
-    properties:
-      lib_name: default-jdk
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        create:
-          implementation: scripts/java-install2.sh
-          inputs:
-            process:
-              args: [container1]
-    relationships:
-      - type: cloudify.relationships.contained_in
-        target: container1
-
   ImportDir:
     type: Import-Dir
     properties:
@@ -121,8 +106,7 @@ node_templates:
     relationships:
       - type: cloudify.relationships.contained_in
         target: container1
-      - type: cloudify.relationships.depends_on
-        target: Java
+
   PickFiles:
     type: pick-Files
     properties:

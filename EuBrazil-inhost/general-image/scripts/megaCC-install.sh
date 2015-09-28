@@ -9,6 +9,5 @@ Lib_URL=$2
 #ctx logger info "Installing MegaCC lib on ${CONTAINER_NAME}"
 
 
-
 sudo docker exec -it ${CONTAINER_NAME} git clone ${Lib_URL}
 

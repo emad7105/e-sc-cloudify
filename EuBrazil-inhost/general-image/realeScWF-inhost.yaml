@@ -83,21 +83,6 @@ node_templates:
       - type: cloudify.relationships.depends_on
         target: starterBlock
 
-  Java:
-    type: spec_library
-    properties:
-      lib_name: default-jdk
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        create:
-          implementation: scripts/java-install2.sh
-          inputs:
-            process:
-              args: [container1]
-    relationships:
-      - type: cloudify.relationships.contained_in
-        target: container1
-
   importFile1:
     type: importfile
     properties:
@@ -121,8 +106,6 @@ node_templates:
     relationships:
       - type: cloudify.relationships.contained_in
         target: container1
-      - type: cloudify.relationships.depends_on
-        target: Java
 
   container2:
     type: docker_container
@@ -140,21 +123,6 @@ node_templates:
         target: host
       - type: cloudify.relationships.depends_on
         target: importFile1
-
-  Java1:
-    type: spec_library
-    properties:
-      lib_name: default-jdk
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        create:
-          implementation: scripts/java-install2.sh
-          inputs:
-            process:
-              args: [container2]
-    relationships:
-      - type: cloudify.relationships.contained_in
-        target: container2
 
   importFile2:
     type: importfile
@@ -179,8 +147,6 @@ node_templates:
     relationships:
       - type: cloudify.relationships.contained_in
         target: container2
-      - type: cloudify.relationships.depends_on
-        target: Java1
 
   container3:
     type: docker_container
@@ -198,21 +164,6 @@ node_templates:
         target: host
       - type: cloudify.relationships.depends_on
         target: importFile2
-
-  Java2:
-    type: spec_library
-    properties:
-      lib_name: default-jdk
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        create:
-          implementation: scripts/java-install2.sh
-          inputs:
-            process:
-              args: [container3]
-    relationships:
-      - type: cloudify.relationships.contained_in
-        target: container3
 
   FileJoin:
     type: fileJoin
@@ -244,8 +195,6 @@ node_templates:
               inputs:
                 process:
                   args: [importFile2/output-1, FileJoin/file-2, realeScWF-inhost, container3]
-      - type: cloudify.relationships.depends_on
-        target: Java2
     interfaces:
       cloudify.interfaces.lifecycle:
         configure:
@@ -276,21 +225,6 @@ node_templates:
       - type: cloudify.relationships.depends_on
         target: FileJoin
 
-  Java3:
-    type: spec_library
-    properties:
-      lib_name: default-jdk
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        create:
-          implementation: scripts/java-install2.sh
-          inputs:
-            process:
-              args: [container4]
-    relationships:
-      - type: cloudify.relationships.contained_in
-        target: container4
-
   FilterDupl:
     type: filterDupl
     properties:
@@ -301,8 +235,6 @@ node_templates:
     relationships:
       - type: cloudify.relationships.contained_in
         target: container4
-      - type: cloudify.relationships.depends_on
-        target: Java3
       - type: block_link
         target: FileJoin
         source_interfaces:
@@ -342,21 +274,6 @@ node_templates:
       - type: cloudify.relationships.depends_on
         target: FilterDupl
 
-  Java4:
-    type: spec_library
-    properties:
-      lib_name: default-jdk
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        create:
-          implementation: scripts/java-install2.sh
-          inputs:
-            process:
-              args: [container5]
-    relationships:
-      - type: cloudify.relationships.contained_in
-        target: container5
-
   ClustalW_Lib:
     type: clustalw_lib
     properties:
@@ -370,8 +287,6 @@ node_templates:
             process:
               args: [container5, 'http://www.clustal.org/download/current/clustalw-2.1-linux-x86_64-libcppstatic.tar.gz']
     relationships:
-      - type: cloudify.relationships.depends_on
-        target: Java4
       - type: cloudify.relationships.contained_in
         target: container5
 
@@ -428,21 +343,6 @@ node_templates:
       - type: cloudify.relationships.depends_on
         target: ClustalW
 
-  Java5:
-    type: spec_library
-    properties:
-      lib_name: default-jdk
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        create:
-          implementation: scripts/java-install2.sh
-          inputs:
-            process:
-              args: [container6]
-    relationships:
-      - type: cloudify.relationships.contained_in
-        target: container6
-
   Wine:
     type: spec_library
     properties:
@@ -497,8 +397,6 @@ node_templates:
         target: container6
       - type: cloudify.relationships.depends_on
         target: Mega-CC
-      - type: cloudify.relationships.depends_on
-        target: Java5
       - type: block_link
         target: ClustalW
         source_interfaces:
@@ -538,21 +436,6 @@ node_templates:
       - type: cloudify.relationships.depends_on
         target: Mega-NJ
 
-  Java6:
-    type: spec_library
-    properties:
-      lib_name: default-jdk
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        create:
-          implementation: scripts/java-install2.sh
-          inputs:
-            process:
-              args: [container7]
-    relationships:
-      - type: cloudify.relationships.contained_in
-        target: container7
-
   ExportFiles1:
     type: exportfiles
     properties:
@@ -572,8 +455,6 @@ node_templates:
               inputs:
                 process:
                   args: [Mega-NJ/analysis-output, ExportFiles1/file-list, realeScWF-inhost, container7]
-      - type: cloudify.relationships.depends_on
-        target: Java6
     interfaces:
       cloudify.interfaces.lifecycle:
         configure:
@@ -604,21 +485,6 @@ node_templates:
       - type: cloudify.relationships.depends_on
         target: Mega-NJ
 
-  Java7:
-    type: spec_library
-    properties:
-      lib_name: default-jdk
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        create:
-          implementation: scripts/java-install2.sh
-          inputs:
-            process:
-              args: [container8]
-    relationships:
-      - type: cloudify.relationships.contained_in
-        target: container8
-
   ExportFiles2:
     type: exportfiles
     properties:
@@ -638,8 +504,6 @@ node_templates:
               inputs:
                 process:
                   args: [Mega-NJ/consensus-output, ExportFiles2/file-list, realeScWF-inhost, container8]
-      - type: cloudify.relationships.depends_on
-        target: Java7
     interfaces:
       cloudify.interfaces.lifecycle:
         start: 
@@ -665,21 +529,6 @@ node_templates:
       - type: cloudify.relationships.depends_on
         target: Mega-NJ
 
-  Java8:
-    type: spec_library
-    properties:
-      lib_name: default-jdk
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        create:
-          implementation: scripts/java-install2.sh
-          inputs:
-            process:
-              args: [container9]
-    relationships:
-      - type: cloudify.relationships.contained_in
-        target: container9
-
   ExportFiles3:
     type: exportfiles
     properties:
@@ -699,8 +548,6 @@ node_templates:
               inputs:
                 process:
                   args: [Mega-NJ/summary-info, ExportFiles3/file-list, realeScWF-inhost, container9]
-      - type: cloudify.relationships.depends_on
-        target: Java8
     interfaces:
       cloudify.interfaces.lifecycle:
         start: 
@@ -726,21 +573,6 @@ node_templates:
       - type: cloudify.relationships.depends_on
         target: FilterDupl
 
-  Java9:
-    type: spec_library
-    properties:
-      lib_name: default-jdk
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        create:
-          implementation: scripts/java-install2.sh
-          inputs:
-            process:
-              args: [container10]
-    relationships:
-      - type: cloudify.relationships.contained_in
-        target: container10
-
   CSV_export1:
     type: csvexport
     properties:
@@ -761,8 +593,6 @@ node_templates:
               inputs:
                 process:
                   args: [FilterDupl/sequence-map, CSV_export1/input-data, realeScWF-inhost, container10, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
-      - type: cloudify.relationships.depends_on
-        target: Java9
     interfaces:
       cloudify.interfaces.lifecycle:
         start: 
@@ -788,21 +618,6 @@ node_templates:
       - type: cloudify.relationships.depends_on
         target: FilterDupl
 
-  Java10:
-    type: spec_library
-    properties:
-      lib_name: default-jdk
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        create:
-          implementation: scripts/java-install2.sh
-          inputs:
-            process:
-              args: [container11]
-    relationships:
-      - type: cloudify.relationships.contained_in
-        target: container11
-
   CSV_export2:
     type: csvexport
     properties:
@@ -823,8 +638,6 @@ node_templates:
               inputs:
                 process:
                   args: [FilterDupl/sequence-map, CSV_export2/input-data, realeScWF-inhost, container11]
-      - type: cloudify.relationships.depends_on
-        target: Java10
     interfaces:
       cloudify.interfaces.lifecycle:
         start: 

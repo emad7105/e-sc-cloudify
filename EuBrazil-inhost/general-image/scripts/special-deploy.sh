@@ -6,6 +6,20 @@ BLOCK_NAME=$(ctx node properties block_name)
 BLOCK_URL=$3
 LIB_DIR=$4
 
+set +e
+  Wget=$(sudo docker exec -it ${CONTAINER_ID} which wget)
+set -e
+
+ctx logger info "Deploying ${BLOCk_NAME} on ${CONTAINER_ID}"
+
+if [[ -z ${Wget} ]]; then
+
+  sudo docker exec -it ${CONTAINER_ID} apt-get update
+  sudo docker exec -it ${CONTAINER_ID} apt-get -y install wget
+
+else
+ ctx logger info "wget already has been installed"
+fi
 
 
 sudo docker exec -it ${CONTAINER_ID} [ ! -d ${blueprint} ] && sudo docker exec -it ${CONTAINER_ID} mkdir ${blueprint}
