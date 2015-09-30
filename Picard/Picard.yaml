@@ -37,7 +37,7 @@ node_types:
     properties:
       image_name:
         type: string
-        default: rawa/mybase:01
+        default: mybase14
       container_ID:
         type: string
         default: container1
@@ -163,7 +163,7 @@ node_templates:
       block_name: Pick-Files.jar
       block_category: File Management
       service_type: block
-      FileNameOrIndex: probe.PFC_0030_MSt_GAGTGG.sorted.bam
+      FileNameOrIndex: Probe.PFC_0030_MSt_GAGTGG.sorted.bam
       PickByIndex: 'false'
     interfaces:
       cloudify.interfaces.lifecycle:
