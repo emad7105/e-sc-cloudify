@@ -37,7 +37,7 @@ node_types:
     properties:
       image_name:
         type: string
-        default: mybase:01
+        default: ubuntu14-java
       container_ID:
         type: string
         default: container1
@@ -69,6 +69,7 @@ node_templates:
   container1:
     type: docker_container
     properties:
+      image_name: ubuntu:14.04
       container_ID: container1
     interfaces:
       cloudify.interfaces.lifecycle:
@@ -86,7 +87,7 @@ node_templates:
   Java:
     type: spec_library
     properties:
-      lib_name: default-jdk
+      lib_name: default-jre
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
@@ -414,6 +415,7 @@ node_templates:
   container6:
     type: docker_container
     properties:
+      image_name: rawa/mybase:01
       container_ID: container6
     interfaces:
       cloudify.interfaces.lifecycle:

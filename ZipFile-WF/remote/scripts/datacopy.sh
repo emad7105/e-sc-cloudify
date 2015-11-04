@@ -6,9 +6,6 @@ dest=$2
 blueprint=$3
 container=$4
 
-# Start Timestamp
-STARTTIME=`date +%s.%N`
-
 sourceDir=$(dirname "$sourcefile")
 filename=$(basename "$sourcefile")
 destDir=$(dirname "$dest")
@@ -18,10 +15,3 @@ sudo chmod 777 ~/${blueprint}/${sourcefile}.ser
 
 cp ~/${blueprint}/${sourcefile}.ser ~/${blueprint}/${dest}.ser
 
-# End timestamp
-ENDTIME=`date +%s.%N`
-
-# Convert nanoseconds to milliseconds
-# crudely by taking first 3 decimal places
-TIMEDIFF=`echo "$ENDTIME - $STARTTIME" | bc | awk -F"." '{print $1"."substr($2,1,3)}'`
-echo "copy data to $container: $TIMEDIFF" * | sed 's/[ \t]/, /g' >> ~/list.csv

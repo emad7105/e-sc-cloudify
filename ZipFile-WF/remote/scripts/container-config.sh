@@ -13,4 +13,3 @@ for var in "$@"
 do
   sudo docker rm -f "${var}"
 done
-

@@ -3,7 +3,7 @@
 set -e
 blueprint=$1
 
-
+container=$2
 
 ctx logger info "cleaning"
 
@@ -14,7 +14,7 @@ do
 done
 
 rm ~/${blueprint}/${blueprint}.yaml
-#ctx logger info "Deleting ${container}"
+ctx logger info "Deleting ${container}"
 
-
+sudo docker rm -f ${container}
 
