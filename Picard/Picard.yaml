@@ -37,7 +37,7 @@ node_types:
     properties:
       image_name:
         type: string
-        default: mybase14
+        default: rawa/mybase:01 #complete:v2 
       container_ID:
         type: string
         default: container1

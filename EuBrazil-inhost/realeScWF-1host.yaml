@@ -37,7 +37,7 @@ node_types:
     properties:
       image_name:
         type: string
-        default: rawa/mybase:01
+        default: complete-wf1 #rawa/mybase:01
       container_ID:
         type: string
         default: container1
@@ -496,7 +496,7 @@ node_templates:
           implementation: scripts/containers-clean.sh
           inputs:
             process:
-              args: [container1]
+              args: []
         start:
           implementation: scripts/final-inhost.sh
           inputs:

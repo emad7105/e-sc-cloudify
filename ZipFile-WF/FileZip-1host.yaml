@@ -42,7 +42,7 @@ node_types:
     properties:
       image_name:
         type: string
-        default: 
+        default: complete-wf4 
       container_ID:
         type: string
         default: container1

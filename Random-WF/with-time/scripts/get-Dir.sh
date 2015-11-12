@@ -1,25 +1,21 @@
 #!/bin/bash
 
 set -e
-
 blueprint=$1
+Dir=~/myDir #$(ctx node properties SourceFolder)
 # Start Timestamp
 STARTTIME=`date +%s.%N`
+sourceDir=${HOME}/${blueprint}/$(basename "$Dir")
 
-if [ ! -d ~/${blueprint} ]; then
 
-   mkdir ~/${blueprint}
+#ctx logger info "copy the Dir"
 
-fi
 
-ctx logger info "copy ${blueprint}.yaml to ~/${blueprint}"
-
-cp ${blueprint}.yaml ~/${blueprint}
-
+cp -r ${Dir} ${sourceDir}
 # End timestamp
 ENDTIME=`date +%s.%N`
 
 # Convert nanoseconds to milliseconds
 # crudely by taking first 3 decimal places
 TIMEDIFF=`echo "$ENDTIME - $STARTTIME" | bc | awk -F"." '{print $1"."substr($2,1,3)}'`
-echo "initiate WF folder : $TIMEDIFF" * | sed 's/[ \t]/, /g' >> ~/list.csv
+echo "creating the container $CONTAINER_NAME: $TIMEDIFF" * | sed 's/[ \t]/, /g' >> ~/list.csv 

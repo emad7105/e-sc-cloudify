@@ -6,26 +6,46 @@ block=$(ctx node name)
 CONTAINER_ID=$2
 BLOCK_NAME=$(ctx node properties block_name)
 BLOCK_URL=$3
+
 # Start Timestamp
 STARTTIME=`date +%s.%N`
+
+set +e
+ Yum=$(sudo docker exec -it ${CONTAINER_ID} which yum)
+set -e
+
+ctx logger info "Deploying ${block} on ${CONTAINER_ID}"
+
+
+
+  if [[ -n "${Yum}" ]]; then
+	Wget=$(sudo docker exec -it ${CONTAINER_ID} rpm -qa wget)
+	if [[ -z ${Wget} ]]; then
+	   #sudo docker exec -it ${CONTAINER_ID} yum update
+	   sudo docker exec -it ${CONTAINER_ID} yum -y install wget
+        fi
+  else
         set +e
-        	Wget=$(sudo docker exec -it ${CONTAINER_ID} which wget)
+	  Wget=$(sudo docker exec -it ${CONTAINER_ID} which wget)
         set -e
 	if [[ -z ${Wget} ]]; then
          	sudo docker exec -it ${CONTAINER_ID} apt-get update
   	        sudo docker exec -it ${CONTAINER_ID} apt-get -y install wget
         fi
 
+  fi
+
 sudo docker exec -it ${CONTAINER_ID} [ ! -d ${blueprint} ] && sudo docker exec -it ${CONTAINER_ID} mkdir ${blueprint}
 
 sudo docker exec -it ${CONTAINER_ID} [ ! -f ${blueprint}/${BLOCK_NAME} ] && sudo docker exec -it ${CONTAINER_ID} wget -O ${blueprint}/${BLOCK_NAME} ${BLOCK_URL}
+
 # End timestamp
 ENDTIME=`date +%s.%N`
 
 # Convert nanoseconds to milliseconds
 # crudely by taking first 3 decimal places
 TIMEDIFF=`echo "$ENDTIME - $STARTTIME" | bc | awk -F"." '{print $1"."substr($2,1,3)}'`
-echo "download block $block : $TIMEDIFF" * | sed 's/[ \t]/, /g' >> ~/list.csv #>~/time.txt 2>&1
+echo "download $block in $CONTAINER_ID: $TIMEDIFF" * | sed 's/[ \t]/, /g' >> ~/list.csv
 
 # Start Timestamp
 STARTTIME=`date +%s.%N`
@@ -39,4 +59,4 @@ ENDTIME=`date +%s.%N`
 # Convert nanoseconds to milliseconds
 # crudely by taking first 3 decimal places
 TIMEDIFF=`echo "$ENDTIME - $STARTTIME" | bc | awk -F"." '{print $1"."substr($2,1,3)}'`
-echo "execute block $block : $TIMEDIFF" * | sed 's/[ \t]/, /g' >> ~/list.csv #>~/time.txt 2>&1
+echo "execute $block in $CONTAINER_ID: $TIMEDIFF" * | sed 's/[ \t]/, /g' >> ~/list.csv

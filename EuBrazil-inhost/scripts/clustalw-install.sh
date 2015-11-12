@@ -17,9 +17,10 @@ STARTTIME=`date +%s.%N`
          	sudo docker exec -it ${CONTAINER_NAME} apt-get update
   	        sudo docker exec -it ${CONTAINER_NAME} apt-get -y install wget
         fi
-
-sudo docker exec -it ${CONTAINER_NAME} wget ${Lib_URL}
-sudo docker exec -it ${CONTAINER_NAME} tar -zxvf clustalw-2.1-linux-x86_64-libcppstatic.tar.gz
+if [[ ! -d "work" ]]; then
+    sudo docker exec -it ${CONTAINER_NAME} wget ${Lib_URL}
+    sudo docker exec -it ${CONTAINER_NAME} tar -zxvf clustalw-2.1-linux-x86_64-libcppstatic.tar.gz
+fi
 
 # End timestamp
 ENDTIME=`date +%s.%N`

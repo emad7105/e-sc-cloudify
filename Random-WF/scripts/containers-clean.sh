@@ -6,6 +6,8 @@ container1=$1
 container2=$2
 	
 #ctx logger info "Deleting ${container}"
+# Start Timestamp
+STARTTIME=`date +%s.%N`
 
 a=${@}
 
@@ -13,11 +15,11 @@ for var in "$@"
 do
   sudo docker rm -f "${var}"
 done
-#if [ -n "${container1}" ]; then
- #  sudo docker rm -f ${container1}
-#fi
 
-#if [ -n "${container2}" ]; then
-# sudo docker rm -f ${container2}
-#fi
+# End timestamp
+ENDTIME=`date +%s.%N`
 
+# Convert nanoseconds to milliseconds
+# crudely by taking first 3 decimal places
+TIMEDIFF=`echo "$ENDTIME - $STARTTIME" | bc | awk -F"." '{print $1"."substr($2,1,3)}'`
+echo "delete some containers : $TIMEDIFF" * | sed 's/[ \t]/, /g' >> ~/list.csv

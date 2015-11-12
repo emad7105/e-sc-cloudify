@@ -18,7 +18,7 @@ STARTTIME=`date +%s.%N`
   	        sudo docker exec -it ${CONTAINER_NAME} apt-get -y install git
         fi
 
-sudo docker exec -it ${CONTAINER_NAME} git clone ${Lib_URL}
+sudo docker exec -it ${CONTAINER_NAME} [ ! -d "work" ] &&sudo docker exec -it ${CONTAINER_NAME} git clone ${Lib_URL}
 # End timestamp
 ENDTIME=`date +%s.%N`
 
