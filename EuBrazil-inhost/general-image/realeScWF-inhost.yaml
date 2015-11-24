@@ -37,7 +37,7 @@ node_types:
     properties:
       image_name:
         type: string
-        default: mybase:01
+        default: rawa/general
       container_ID:
         type: string
         default: container1
@@ -201,7 +201,7 @@ node_templates:
           implementation: scripts/containers-clean.sh
           inputs:
             process:
-             args: [container1, container2]
+             args: [container2]
         start:
           implementation: scripts/block-deploy3.sh
           inputs:
@@ -250,7 +250,7 @@ node_templates:
           implementation: scripts/containers-clean.sh
           inputs:
             process:
-             args: [container3]
+             args: []
         start:
           implementation: scripts/block-deploy3.sh
           inputs:
@@ -319,7 +319,7 @@ node_templates:
           implementation: scripts/containers-clean.sh
           inputs:
             process:
-             args: [container4]
+             args: []
         start:
           implementation: scripts/special-deploy.sh
           inputs:
@@ -412,7 +412,7 @@ node_templates:
           implementation: scripts/containers-clean.sh
           inputs:
             process:
-             args: [container5]
+             args: []
         start:
           implementation: scripts/special-deploy.sh
           inputs:
@@ -461,7 +461,7 @@ node_templates:
           implementation: scripts/containers-clean.sh
           inputs:
             process:
-             args: [container6]
+             args: []
         start: 
           implementation: scripts/block-deploy3.sh
           inputs:
@@ -654,7 +654,7 @@ node_templates:
           implementation: scripts/containers-clean.sh
           inputs:
             process:
-              args: [container7, container8, container9, container10, container11]
+              args: []
         start:
           implementation: scripts/final-inhost.sh
           inputs:
