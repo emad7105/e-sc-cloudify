@@ -1,17 +1,7 @@
 #!/bin/bash
 
 set -e
-#blueprint=$1
 
-#container=$(ctx deployment id)
+sudo docker run --name temp -it -d rawa/nj:01 bin/bash
 
-
-#ctx logger info "Deleting ${container}"
-
-#sudo docker rm -f ${container}
-Yum=$(which git)
-
-if [[ -n ${Yum} ]]; then
-  echo "yum"
-fi
-
+#sudo docker exec -it temp apt-get install -y git
