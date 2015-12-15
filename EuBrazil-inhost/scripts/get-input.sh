@@ -4,20 +4,20 @@ set -e
 blueprint=$1
 file=$(ctx node properties Source)
 CONTAINER_ID=$2
-sourcefile=${HOME}/input/${file}
-#$(ctx node properties Source)
+input_dir=$3
+inputFile=$4
+
 # Start Timestamp
 STARTTIME=`date +%s.%N`
+size="$(du -ch ${input_dir}/${inputFile} | grep total)"
+echo "copy the input file ${input_dir}/${inputFile}:${size} to ${CONTAINER_ID}:root/${blueprint}/${file}" >> ~/depl-steps.txt
+
+sudo docker exec -it ${CONTAINER_ID} [ ! -d root/${blueprint} ] && sudo docker exec -it ${CONTAINER_ID} mkdir root/${blueprint}
 
 
-sudo docker exec -it ${CONTAINER_ID} [ ! -d ${blueprint} ] && sudo docker exec -it ${CONTAINER_ID} mkdir ${blueprint}
+ctx logger info "copy the input ${input_dir}/${inputFile}"
 
-
-ctx logger info "copy the input"
-
-filename=$(basename "$sourcefile")
-#tar -cf -  ${filename} | docker exec -i ${CONTAINER_ID} /bin/tar -C root/${blueprint} -xf –
-cat ${sourcefile} | docker exec -i ${CONTAINER_ID} sh -c 'cat > /root/'${blueprint}/${filename}
+cat ${input_dir}/${inputFile} | docker exec -i ${CONTAINER_ID} sh -c 'cat > /root/'${blueprint}/${file}
 
 # End timestamp
 ENDTIME=`date +%s.%N`

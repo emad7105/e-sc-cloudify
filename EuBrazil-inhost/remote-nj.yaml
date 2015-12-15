@@ -342,7 +342,7 @@ node_templates:
             task_properties:
               container_name: container4
               blueprint: remote-nj
-              block_url: https://github.com/rawaqasha/eScBlocks-host/raw/master/ImportFile1.jar
+              block_url: https://github.com/rawaqasha/eScBlocks-host/raw/master/FilterDuplicates1.jar
             fabric_env:
               host_string: 192.168.56.101
               user: remote

@@ -52,7 +52,7 @@ STARTTIME=`date +%s.%N`
 
 ctx logger info "Execute the block"
 sudo docker exec -it ${CONTAINER_ID} java -jar ${blueprint}/${BLOCK_NAME} ${blueprint} ${block}
-
+sudo docker ps -s >> ~/docker.csv
 # End timestamp
 ENDTIME=`date +%s.%N`
 

@@ -5,7 +5,7 @@ sourcefile=$1
 dest=$2
 blueprint=$3
 VM=$4
-data_Location=$5
+data_Location="out_data" #$5
 
 sourceDir=$(dirname "$sourcefile")
 filename=$(basename "$sourcefile")
@@ -19,10 +19,12 @@ sudo chmod 777 ~/${blueprint}/${sourcefile}.ser
 
 cp ~/${blueprint}/${sourcefile}.ser ~/${blueprint}/${dest}.ser
 
-if [ "$data_Location" = "local_data"]; then
+if [ "$data_Location" = "local_data" ] 
+then
    ssh ${VM} cp ~/${blueprint}/${sourcefile}.ser ~/${blueprint}/${dest}.ser
 else
    scp ~/${blueprint}/${blueprint}.yaml ${VM}:${blueprint}/${blueprint}.yaml
    scp ~/${blueprint}/${sourcefile}.ser ${VM}:${blueprint}/${dest}.ser
+   scp -r ~/${blueprint}/${sourceDir} ${VM}:${blueprint}/${sourceDir}
 fi
 
