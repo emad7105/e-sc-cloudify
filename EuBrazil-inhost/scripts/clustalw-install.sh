@@ -5,6 +5,7 @@ set -e
 CONTAINER_NAME=$1
 Lib_URL=$2
 #LIBRARY_NAME=$(ctx node properties lib_name)
+echo "Installing ClustalW-library on ${CONTAINER_ID}" >> ~/depl-steps.txt
 
 #ctx logger info "Installing ClustalW lib on ${CONTAINER_NAME}"
 # Start Timestamp

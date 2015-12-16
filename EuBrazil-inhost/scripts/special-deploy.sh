@@ -8,10 +8,10 @@ LIB_DIR=$4
 
 # Start Timestamp
 STARTTIME=`date +%s.%N`
+echo "Creating the Dir ${CONTAINER_ID}:tasks" >> ~/depl-steps.txt
+sudo docker exec -it ${CONTAINER_ID} [ ! -d tasks ] && sudo docker exec -it ${CONTAINER_ID} mkdir tasks
 
-sudo docker exec -it ${CONTAINER_ID} [ ! -d ${blueprint} ] && sudo docker exec -it ${CONTAINER_ID} mkdir ${blueprint}
-
-sudo docker exec -it ${CONTAINER_ID} [ ! -f ${blueprint}/${BLOCK_NAME} ] && sudo docker exec -it ${CONTAINER_ID} wget -O ${blueprint}/${BLOCK_NAME} ${BLOCK_URL}
+sudo docker exec -it ${CONTAINER_ID} [ ! -f tasks/${BLOCK_NAME} ] && sudo docker exec -it ${CONTAINER_ID} wget -O tasks/${BLOCK_NAME} ${BLOCK_URL}
 
 # End timestamp
 ENDTIME=`date +%s.%N`
@@ -23,11 +23,14 @@ echo "download $block in $CONTAINER_ID: $TIMEDIFF" * | sed 's/[ \t]/, /g' >> ~/l
 
 # Start Timestamp
 STARTTIME=`date +%s.%N`
+
+echo "Executing  ${BLOCK_NAME} on ${CONTAINER_ID}" >> ~/depl-steps.txt
+
 ctx logger info "Execute the block"
 if [ $block = "Mega-NJ" ]; then
-   sudo docker exec -it ${CONTAINER_ID} jar xf ${blueprint}/${BLOCK_NAME} M6CC.mao
+   sudo docker exec -it ${CONTAINER_ID} jar xf tasks/${BLOCK_NAME} M6CC.mao
 fi
-sudo docker exec -it ${CONTAINER_ID} java -jar ${blueprint}/${BLOCK_NAME} ${blueprint} ${block} ${LIB_DIR}
+sudo docker exec -it ${CONTAINER_ID} java -jar tasks/${BLOCK_NAME} ${blueprint} ${block} ${LIB_DIR}
 
 # End timestamp
 ENDTIME=`date +%s.%N`

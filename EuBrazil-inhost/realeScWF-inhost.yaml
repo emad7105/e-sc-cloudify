@@ -1,10 +1,9 @@
-#eSc workflow with 3 real block def deployed on 3 containers
+#eSc workflow of 11 tasks deployed on 11 containers
 
 tosca_definitions_version: cloudify_dsl_1_0
 
 imports:
   - http://www.getcloudify.org/spec/cloudify/3.1/types.yaml
-  - https://raw.githubusercontent.com/cloudify-cosmo/cloudify-docker-plugin/1.1/plugin.yaml
   - https://raw.githubusercontent.com/rawaqasha/e-sc-cloudify/master/esc_nodetypes.yaml
 
 inputs:
@@ -27,7 +26,7 @@ inputs:
   docker-image: 
       description: > 
         Docker image to be used for container building
-      default: 'rawa/nj:01'
+      default: 'rawa/nj'
 
 node_types:
 
@@ -411,7 +410,7 @@ node_templates:
   container6:
     type: docker_container
     properties:
-      image_name: rawa/mybase:01
+      #image_name: rawa/mybase:01
       container_ID: container6
     interfaces:
       cloudify.interfaces.lifecycle:
@@ -621,7 +620,7 @@ node_templates:
     type: exportfiles
     properties:
       block_description: export files
-      block_name: ExportFiles.jar
+      block_name: ExportFiles1.jar
       block_category: File Management
       service_type: block
     relationships:

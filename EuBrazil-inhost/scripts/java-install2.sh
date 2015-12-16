@@ -5,7 +5,10 @@ set -e
 CONTAINER_ID=$1
 LIBRARY_NAME=$(ctx node properties lib_name)
 
+echo "Install Java1.7 on ${CONTAINER_ID}" >> ~/depl-steps.txt
+
 #ctx logger info "Installing java on"
+
 # Start Timestamp
 STARTTIME=`date +%s.%N`
 set +e
