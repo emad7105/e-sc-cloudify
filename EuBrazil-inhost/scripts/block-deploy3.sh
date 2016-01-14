@@ -6,6 +6,7 @@ block=$(ctx node name)
 CONTAINER_ID=$2
 BLOCK_NAME=$(ctx node properties block_name)
 BLOCK_URL=$3
+Input_file=$4
 
 # Start Timestamp
 STARTTIME=`date +%s.%N`
@@ -54,7 +55,7 @@ STARTTIME=`date +%s.%N`
 echo "Executing  ${BLOCK_NAME} on ${CONTAINER_ID}" >> ~/depl-steps.txt
 
 ctx logger info "Execute the block"
-sudo docker exec -it ${CONTAINER_ID} java -jar tasks/${BLOCK_NAME} ${blueprint} ${block}
+sudo docker exec -it ${CONTAINER_ID} java -jar tasks/${BLOCK_NAME} ${blueprint} ${block} ${Input_file}
 sudo docker ps -s >> ~/docker.csv
 # End timestamp
 ENDTIME=`date +%s.%N`
