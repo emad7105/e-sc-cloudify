@@ -7,6 +7,7 @@ echo "Create workflow folder ${blueprint} and copy in the blueprint  " >> ~/depl
 if [ ! -d ~/${blueprint} ]; then
 
    mkdir ~/${blueprint}
+   mkdir ~/${blueprint}/tasks
 
 fi
 

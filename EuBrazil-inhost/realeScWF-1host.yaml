@@ -26,7 +26,7 @@ inputs:
   docker-image: 
       description: > 
         Docker image to be used for container building
-      default: 'rawa/ubuntu14'
+      default: 'rawa/nj'
 
 node_types:
 
@@ -491,7 +491,7 @@ node_templates:
           implementation: scripts/containers-clean.sh
           inputs:
             process:
-              args: []
+              args: [container1]
         start:
           implementation: scripts/final-inhost.sh
           inputs:

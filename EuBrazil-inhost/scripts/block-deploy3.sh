@@ -11,35 +11,19 @@ Input_file=$4
 # Start Timestamp
 STARTTIME=`date +%s.%N`
 
-set +e
- Yum=$(sudo docker exec -it ${CONTAINER_ID} which yum)
-set -e
-
 ctx logger info "Deploying ${block} on ${CONTAINER_ID}"
 
-
-
-  if [[ -n "${Yum}" ]]; then
-	Wget=$(sudo docker exec -it ${CONTAINER_ID} rpm -qa wget)
-	if [[ -z ${Wget} ]]; then
-	   sudo docker exec -it ${CONTAINER_ID} yum update
-	   sudo docker exec -it ${CONTAINER_ID} yum -y install wget
-        fi
-  else
-        set +e
-	  Wget=$(sudo docker exec -it ${CONTAINER_ID} which wget)
-        set -e
-	if [[ -z ${Wget} ]]; then
-         	sudo docker exec -it ${CONTAINER_ID} apt-get update
-  	        sudo docker exec -it ${CONTAINER_ID} apt-get -y install wget
-        fi
-
-  fi
-
-sudo docker exec -it ${CONTAINER_ID} [ ! -d tasks ] && sudo docker exec -it ${CONTAINER_ID} mkdir tasks
-
 echo "Downloading  ${BLOCK_NAME} to ${CONTAINER_ID}:tasks" >> ~/depl-steps.txt
-sudo docker exec -it ${CONTAINER_ID} [ ! -f tasks/${BLOCK_NAME} ] && sudo docker exec -it ${CONTAINER_ID} wget -O tasks/${BLOCK_NAME} ${BLOCK_URL}
+#sudo docker exec -it ${CONTAINER_ID} [ ! -d tasks ] && sudo docker exec -it ${CONTAINER_ID} mkdir tasks
+if [[ ! -f ~/${blueprint}/tasks/${BLOCK_NAME} ]]; then
+    ctx logger info "download the block"
+    wget -O ~/${blueprint}/tasks/${BLOCK_NAME} ${BLOCK_URL}
+else 
+    ctx logger info "task already exists"
+fi
+
+
+#sudo docker exec -it ${CONTAINER_ID} [ ! -f tasks/${BLOCK_NAME} ] && sudo docker exec -it ${CONTAINER_ID} wget -O tasks/${BLOCK_NAME} ${BLOCK_URL}
 
 # End timestamp
 ENDTIME=`date +%s.%N`
@@ -55,7 +39,8 @@ STARTTIME=`date +%s.%N`
 echo "Executing  ${BLOCK_NAME} on ${CONTAINER_ID}" >> ~/depl-steps.txt
 
 ctx logger info "Execute the block"
-sudo docker exec -it ${CONTAINER_ID} java -jar tasks/${BLOCK_NAME} ${blueprint} ${block} ${Input_file}
+sudo docker exec -it ${CONTAINER_ID} chmod 777 /root/${blueprint}/tasks/${BLOCK_NAME}
+sudo docker exec -it ${CONTAINER_ID} java -jar /root/${blueprint}/tasks/${BLOCK_NAME} ${blueprint} ${block} ${Input_file}
 sudo docker ps -s >> ~/docker.csv
 # End timestamp
 ENDTIME=`date +%s.%N`
