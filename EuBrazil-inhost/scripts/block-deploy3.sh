@@ -11,19 +11,16 @@ Input_file=$4
 # Start Timestamp
 STARTTIME=`date +%s.%N`
 
-ctx logger info "Deploying ${block} on ${CONTAINER_ID}"
+#ctx logger info "Deploying ${block} on ${CONTAINER_ID}"
 
 echo "Downloading  ${BLOCK_NAME} to ${CONTAINER_ID}:tasks" >> ~/depl-steps.txt
-#sudo docker exec -it ${CONTAINER_ID} [ ! -d tasks ] && sudo docker exec -it ${CONTAINER_ID} mkdir tasks
 if [[ ! -f ~/${blueprint}/tasks/${BLOCK_NAME} ]]; then
-    ctx logger info "download the block"
+    ctx logger info "download ${block} block"
     wget -O ~/${blueprint}/tasks/${BLOCK_NAME} ${BLOCK_URL}
 else 
     ctx logger info "task already exists"
 fi
 
-
-#sudo docker exec -it ${CONTAINER_ID} [ ! -f tasks/${BLOCK_NAME} ] && sudo docker exec -it ${CONTAINER_ID} wget -O tasks/${BLOCK_NAME} ${BLOCK_URL}
 
 # End timestamp
 ENDTIME=`date +%s.%N`

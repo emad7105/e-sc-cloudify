@@ -12,12 +12,9 @@ STARTTIME=`date +%s.%N`
 size="$(du -ch ${input_dir}/${inputFile} | grep total)"
 echo "copy the input file ${input_dir}/${inputFile}:${size} to ${CONTAINER_ID}:root/${blueprint}/${file}" >> ~/depl-steps.txt
 
-sudo docker exec -it ${CONTAINER_ID} [ ! -d root/${blueprint} ] && sudo docker exec -it ${CONTAINER_ID} mkdir root/${blueprint}
-
 
 ctx logger info "copy the input ${input_dir}/${inputFile}"
-
-cat ${input_dir}/${inputFile} | sudo docker exec -i ${CONTAINER_ID} sh -c 'cat > /root/'${blueprint}/${file}
+cp ${input_dir}/${inputFile} ~/${blueprint}/${inputFile}
 
 # End timestamp
 ENDTIME=`date +%s.%N`

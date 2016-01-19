@@ -9,13 +9,13 @@ LIB_DIR=$4
 # Start Timestamp
 STARTTIME=`date +%s.%N`
 echo "Creating the Dir ${CONTAINER_ID}:tasks" >> ~/depl-steps.txt
-#sudo docker exec -it ${CONTAINER_ID} [ ! -d /root/tasks ] && sudo docker exec -it ${CONTAINER_ID} mkdir tasks
-#if [[ ! -f ~/${blueprint}/tasks/${BLOCK_NAME} ]]; then
- #   ctx logger info "download the task"
-  #  wget -O ~/${blueprint}/tasks/${BLOCK_NAME} ${BLOCK_URL}
-#fi
+ctx logger info " downloading ${BLOCK_NAME}"
+if [ ! -f ~/${blueprint}/tasks/${BLOCK_NAME} ]; then
+    ctx logger info "download ${BLOCK_NAME} task"
+    wget -O ~/${blueprint}/tasks/${BLOCK_NAME} ${BLOCK_URL}
+fi
 
-sudo docker exec -it ${CONTAINER_ID} [ ! -f /root/${blueprint}/tasks/${BLOCK_NAME} ] && sudo docker exec -it ${CONTAINER_ID} wget -O root/${blueprint}/tasks/${BLOCK_NAME} ${BLOCK_URL}
+#sudo docker exec -it ${CONTAINER_ID} [ ! -f /root/${blueprint}/tasks/${BLOCK_NAME} ] && sudo docker exec -it ${CONTAINER_ID} wget -O root/${blueprint}/tasks/${BLOCK_NAME} ${BLOCK_URL}
 
 # End timestamp
 ENDTIME=`date +%s.%N`
