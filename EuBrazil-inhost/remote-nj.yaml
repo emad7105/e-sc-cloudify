@@ -9,26 +9,25 @@ imports:
 
 inputs:
 
-  host_ip:
+  input-dir:
       description: >
-        The ip of the host the application will be deployed on  
-      default: 127.0.0.1
+        The dir path of the input files  
+      default: '~/input'
 
-  agent_user:
+  input-file1:
       description: >
-        User name used when SSH-ing into the started machine
-      default: ubuntu
+        input file for importFile1
+      default: file1.txt
 
-  agent_private_key_path:
+  input-file2:
       description: >
-        Path to a private key that resided on the management machine.
-        SSH-ing into agent machines will be done with this key.
-      default: ~/.ssh/agent_key.pem
+        input file for importFile2
+      default: file2.txt
 
-  install_agent: 
+  docker-image: 
       description: > 
-        When running in local mode set this to false
-      default: false
+        Docker image to be used for container building
+      default: 'rawa/nj'
 
 node_types:
 
@@ -37,7 +36,7 @@ node_types:
     properties:
       image_name:
         type: string
-        default: complete-wf1 #  
+        default: { get_input: docker-image } 
       container_ID:
         type: string
         default: container1
@@ -47,11 +46,8 @@ node_templates:
   host:
     type: cloudify.nodes.Compute
     properties:
-      install_agent: { get_input: install_agent }
-      ip: { get_input: host_ip }
-      cloudify_agent:
-        user: { get_input: agent_user }
-        key: { get_input: agent_private_key_path }
+      ip: localhost
+      install_agent: false
 
   starterBlock:
     type: cloudify.nodes.ApplicationModule
@@ -113,12 +109,12 @@ node_templates:
           implementation: scripts/get-input.sh
           inputs:
             process:
-             args: [remote-nj, container1]
+             args: [remote-nj, container1, { get_input: input-dir }, { get_input: input-file1 }]
         start: 
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [remote-nj, container1, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/ImportFile1.jar']
+             args: [remote-nj, container1, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/ImportFile1.jar', { get_input: input-file1 }]
     relationships:
       - type: cloudify.relationships.contained_in
         target: container1
@@ -171,12 +167,12 @@ node_templates:
           implementation: scripts/get-input.sh
           inputs:
             process:
-             args: [remote-nj, container1]
+             args: [remote-nj, container1, { get_input: input-dir }, { get_input: input-file2 }]
         start: 
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [remote-nj, container2, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/ImportFile1.jar']
+             args: [remote-nj, container2, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/ImportFile1.jar', { get_input: input-file2 }]
     relationships:
       - type: cloudify.relationships.contained_in
         target: container2
@@ -273,7 +269,7 @@ node_templates:
             task_name: container
             task_properties:
               container_name: container4
-              image: rawa/nj:01
+              image: rawa/nj
               blueprint: remote-nj
             fabric_env:
               host_string: 192.168.56.101

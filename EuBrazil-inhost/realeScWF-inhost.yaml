@@ -364,7 +364,7 @@ node_templates:
           implementation: scripts/clustalw-install.sh
           inputs:
             process:
-              args: [container5, 'http://www.clustal.org/download/current/clustalw-2.1-linux-x86_64-libcppstatic.tar.gz']
+              args: [container5, reaseScWF-inhost]
     relationships:
       - type: cloudify.relationships.depends_on
         target: Java4

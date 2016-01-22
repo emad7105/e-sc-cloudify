@@ -8,7 +8,7 @@ Lib_URL=$2
 
 echo "Installing Mega-CC library in ${CONTAINER_NAME}" >> ~/depl-steps.txt
 
-#ctx logger info "Installing MegaCC lib on ${CONTAINER_NAME}"
+ctx logger info "Installing MegaCC lib on ${CONTAINER_NAME}"
 # Start Timestamp
 STARTTIME=`date +%s.%N`
 

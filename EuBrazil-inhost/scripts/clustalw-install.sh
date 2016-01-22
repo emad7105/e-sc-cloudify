@@ -3,24 +3,19 @@
 set -e
 
 CONTAINER_NAME=$1
-Lib_URL=$2
-#LIBRARY_NAME=$(ctx node properties lib_name)
+Lib_URL=$(ctx node properties lib_URL)
+blueprint=$3
+LIBRARY_NAME=$(ctx node properties lib_name)
 echo "Installing ClustalW-library on ${CONTAINER_ID}" >> ~/depl-steps.txt
 
-#ctx logger info "Installing ClustalW lib on ${CONTAINER_NAME}"
+ctx logger info "Installing ClustalW lib on ${CONTAINER_NAME}"
 # Start Timestamp
 STARTTIME=`date +%s.%N`
 
-        set +e
-	  Wget=$(sudo docker exec -it ${CONTAINER_NAME} which wget)
-        set -e
-	if [[ -z ${Wget} ]]; then
-         	sudo docker exec -it ${CONTAINER_NAME} apt-get update
-  	        sudo docker exec -it ${CONTAINER_NAME} apt-get -y install wget
-        fi
-if [[ ! -d "work" ]]; then
-    sudo docker exec -it ${CONTAINER_NAME} wget ${Lib_URL}
-    sudo docker exec -it ${CONTAINER_NAME} tar -zxvf clustalw-2.1-linux-x86_64-libcppstatic.tar.gz
+ 
+if [[ ! -f ~/${blueprint}/${LIBRARY_NAME}.tar.gz ]]; then
+    wget -O ~/${blueprint}/${LIBRARY_NAME}.tar.gz ${Lib_URL}
+    sudo docker exec -it ${CONTAINER_NAME} tar -zxvf /root/${blueprint}/${LIBRARY_NAME}.tar.gz
 fi
 
 # End timestamp
