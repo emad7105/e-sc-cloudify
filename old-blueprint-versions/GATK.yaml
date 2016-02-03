@@ -1,0 +1,527 @@
+#eSc workflow with 3 real block def deployed on 3 containers
+
+tosca_definitions_version: cloudify_dsl_1_0
+
+imports:
+  - http://www.getcloudify.org/spec/cloudify/3.1/types.yaml
+  - https://raw.githubusercontent.com/cloudify-cosmo/cloudify-docker-plugin/1.1/plugin.yaml
+  - https://raw.githubusercontent.com/rawaqasha/e-sc-cloudify/master/esc_nodetypes.yaml
+
+inputs:
+
+  host_ip:
+      description: >
+        The ip of the host the application will be deployed on  
+      default: 127.0.0.1
+
+  agent_user:
+      description: >
+        User name used when SSH-ing into the started machine
+      default: ubuntu
+
+  agent_private_key_path:
+      description: >
+        Path to a private key that resided on the management machine.
+        SSH-ing into agent machines will be done with this key.
+      default: ~/.ssh/agent_key.pem
+
+  install_agent: 
+      description: > 
+        When running in local mode set this to false
+      default: false
+
+node_types:
+
+  docker_container:
+    derived_from: cloudify.nodes.Root
+    properties:
+      image_name:
+        type: string
+        default: rawa/mybase:01
+      container_ID:
+        type: string
+        default: container1
+#############################################
+node_templates:
+
+  host:
+    type: cloudify.nodes.Compute
+    properties:
+      install_agent: { get_input: install_agent }
+      ip: { get_input: host_ip }
+      cloudify_agent:
+        user: { get_input: agent_user }
+        key: { get_input: agent_private_key_path }
+
+  starterBlock:
+    type: cloudify.nodes.ApplicationModule
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/starter.sh
+          inputs:
+            process:
+              args: [GATK]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host
+
+  container1:
+    type: docker_container
+    properties:
+      container_ID: container1
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/docker-pull.sh
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host
+      - type: cloudify.relationships.depends_on
+        target: starterBlock
+
+  Java:
+    type: spec_library
+    properties:
+      lib_name: default-jdk
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/java-install2.sh
+          inputs:
+            process:
+              args: [container1]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container1
+
+  importFile:
+    type: importfile
+    properties:
+      block_description: import file
+      block_name: importfile.jar
+      block_category: File Management
+      service_type: block
+      Source: file1.txt
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create: 
+          implementation: scripts/block-deploy3.sh
+          inputs:
+            process:
+             args: [GATK, importFile, container1, 'https://github.com/rawaqasha/eSc-blocks/raw/master/importfile.jar']
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container1
+      - type: cloudify.relationships.depends_on
+        target: Java
+
+  container2:
+    type: docker_container
+    properties:
+      container_ID: container2
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/docker-pull.sh
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host
+      - type: cloudify.relationships.depends_on
+        target: importFile
+
+  Java1:
+    type: spec_library
+    properties:
+      lib_name: default-jdk
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/java-install2.sh
+          inputs:
+            process:
+              args: [container2]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container2
+
+  GATK-Lib:
+    type: GATK-lib
+    properties:
+      lib_name: GATK-2.7-4
+      lib_URL: 
+   interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/get-GATKlib.sh
+          inputs:
+            process:
+              args: [container2, GATK]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container2
+
+  GATK-Variant:
+    type: GATK-Variant
+    properties:
+      block_description: Create a Gaussian mixture model by looking at the annotations values over a high quality subset of the input call set and then evaluate all input variants
+      block_name: GATK-Variant.jar
+      block_category: e-Genome.GATK
+      service_type: block
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create: 
+          implementation: scripts/block-deploy3.sh
+          inputs:
+            process:
+             args: [GATK, container2, ]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container2
+      - type: cloudify.relationships.depends_on
+        target: Java1
+      - type: cloudify.relationships.depends_on
+        target: GATK-Lib
+      - type: block_link
+        target: importFile
+        source_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            preconfigure:
+              implementation: scripts/preconfigure.sh
+              inputs:
+                process:
+                  args: [GATK/importFile/output-1, GATK-Variant/variant-files, out, container2, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
+
+  container3:
+    type: docker_container
+    properties:
+      container_ID: container3
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/docker-pull.sh
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host
+      - type: cloudify.relationships.depends_on
+        target: GATK-Variant
+
+  Java2:
+    type: spec_library
+    properties:
+      lib_name: default-jdk
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/java-install2.sh
+          inputs:
+            process:
+              args: [container3]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container3
+
+  GATK-Lib1:
+    type: GATK-lib
+    properties:
+      lib_name: GATK-2.7-4
+   interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/get-GATKlib.sh
+          inputs:
+            process:
+              args: [container3]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container3
+
+  GATK-Apply:
+    type: GATK-Apply
+    properties:
+      block_description: Applies cuts to the input vcf file (by adding filter lines) to achieve the desired novel truth sensitivity levels which were specified during VariantRecalibration.
+      block_name: GATK-Apply.jar
+      block_category: e-Genome.GATK
+      service_type: block
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container3
+      - type: block_link
+        target: importFile
+        source_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            preconfigure:
+              implementation: scripts/preconfigure.sh
+              inputs:
+                process:
+                  args: [GATK/importFile/output-1, GATK-Apply/variant-files, out, container3, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
+      - type: block_link
+        target: GATK-Variant
+        source_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            preconfigure:
+              implementation: scripts/preconfigure.sh
+              inputs:
+                process:
+                  args: [GATK/GATK-Variant/recal-file, GATK-Apply/recal-file, out, container3, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
+      - type: block_link
+        target: GATK-Variant
+        source_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            preconfigure:
+              implementation: scripts/preconfigure.sh
+              inputs:
+                process:
+                  args: [GATK/GATK-Variant/tranches-file, GATK-Apply/tranches-file, out, container3, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
+      - type: cloudify.relationships.depends_on
+        target: Java2
+      - type: cloudify.relationships.depends_on
+        target: GATK-Lib1
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          implementation: scripts/block-deploy3.sh
+          inputs:
+            process:
+             args: [GATK, container3, 'https://github.com/rawaqasha/eSc-blocks/raw/master/FileJoin.jar']
+
+  container4:
+    type: docker_container
+    properties:
+      container_ID: container4
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/docker-pull.sh
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host
+      - type: cloudify.relationships.depends_on
+        target: GATK-Apply
+
+  Java3:
+    type: spec_library
+    properties:
+      lib_name: default-jdk
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/java-install2.sh
+          inputs:
+            process:
+              args: [container4]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container4
+
+  GATK-Lib2:
+    type: GATK-lib
+    properties:
+      lib_name: GATK-2.7-4
+   interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/get-GATKlib.sh
+          inputs:
+            process:
+              args: [container4]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container4
+
+  GATK-Variant1:
+    type: GATK-Variant
+    properties:
+      block_description: Create a Gaussian mixture model by looking at the annotations values over a high quality subset of the input call set and then evaluate all input variants
+      block_name: GATK-Variant.jar
+      block_category: e-Genome.GATK
+      service_type: block
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create: 
+          implementation: scripts/block-deploy3.sh
+          inputs:
+            process:
+             args: [GATK, container4, ]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container4
+      - type: cloudify.relationships.depends_on
+        target: Java3
+      - type: cloudify.relationships.depends_on
+        target: GATK-Lib2
+      - type: block_link
+        target: importFile
+        source_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            preconfigure:
+              implementation: scripts/preconfigure.sh
+              inputs:
+                process:
+                  args: [GATK/importFile/output-1, GATK-Variant1/variant-files, out, container4, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
+
+  container5:
+    type: docker_container
+    properties:
+      container_ID: container5
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/docker-pull.sh
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host
+      - type: cloudify.relationships.depends_on
+        target: GATK-Variant1
+
+  Java4:
+    type: spec_library
+    properties:
+      lib_name: default-jdk
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/java-install2.sh
+          inputs:
+            process:
+              args: [container5]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container5
+
+  GATK-Lib3:
+    type: GATK-lib
+    properties:
+      lib_name: GATK-2.7-4
+   interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/get-GATKlib.sh
+          inputs:
+            process:
+              args: [container5]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container5
+
+  GATK-Apply1:
+    type: GATK-Apply
+    properties:
+      block_description: Applies cuts to the input vcf file (by adding filter lines) to achieve the desired novel truth sensitivity levels which were specified during VariantRecalibration.
+      block_name: GATK-Apply.jar
+      block_category: e-Genome.GATK
+      service_type: block
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container5
+      - type: block_link
+        target: GATK-Apply
+        source_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            preconfigure:
+              implementation: scripts/preconfigure.sh
+              inputs:
+                process:
+                  args: [GATK/GATK-Apply/recalibrated-variants, GATK-Apply1/variant-files, out, container5, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
+      - type: block_link
+        target: GATK-Variant1
+        source_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            preconfigure:
+              implementation: scripts/preconfigure.sh
+              inputs:
+                process:
+                  args: [GATK/GATK-Variant1/recal-file, GATK-Apply1/recal-file, out, container5, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
+      - type: block_link
+        target: GATK-Variant1
+        source_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            preconfigure:
+              implementation: scripts/preconfigure.sh
+              inputs:
+                process:
+                  args: [GATK/GATK-Variant1/tranches-file, GATK-Apply1/tranches-file, out, container5, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
+      - type: cloudify.relationships.depends_on
+        target: Java4
+      - type: cloudify.relationships.depends_on
+        target: GATK-Lib3
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          implementation: scripts/block-deploy3.sh
+          inputs:
+            process:
+             args: [GATK, container5, 'https://github.com/rawaqasha/eSc-blocks/raw/master/FileJoin.jar']
+
+  container6:
+    type: docker_container
+    properties:
+      container_ID: container7
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/docker-pull.sh
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host
+      - type: cloudify.relationships.depends_on
+        target: GATK-Apply1
+
+  Java5:
+    type: spec_library
+    properties:
+      lib_name: default-jdk
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/java-install2.sh
+          inputs:
+            process:
+              args: [container6]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container6
+
+  ExportFiles:
+    type: exportfiles
+    properties:
+      block_description: export files
+      block_name: ExportFiles.jar
+      block_category: File Management
+      service_type: block
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container6
+      - type: block_link
+        target: GATK-Apply1
+        source_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            preconfigure:
+              implementation: scripts/preconfigure.sh
+              inputs:
+                process:
+                  args: [GATK/GATK-Apply1/recalibrated-variants, ExportFiles/file-list, out, container6, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
+      - type: cloudify.relationships.depends_on
+        target: Java5
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start: 
+          implementation: scripts/block-deploy3.sh
+          inputs:
+            process:
+             args: [GATK, container6, 'https://github.com/rawaqasha/eSc-blocks/raw/master/ExportFiles.jar']
+
+  finalBlock:
+    type: cloudify.nodes.ApplicationModule
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/final.sh
+          inputs:
+            process:
+              args: [GATK]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host
+      - type: cloudify.relationships.depends_on
+        target: ExportFiles

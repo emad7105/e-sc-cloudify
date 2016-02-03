@@ -9,26 +9,25 @@ imports:
 
 inputs:
 
-  host_ip:
+  input-dir:
       description: >
-        The ip of the host the application will be deployed on  
-      default: 127.0.0.1
+        The dir path of the input files  
+      default: '~/input'
 
-  agent_user:
+  input-file1:
       description: >
-        User name used when SSH-ing into the started machine
-      default: ubuntu
+        input file for importFile1
+      default: file1.txt
 
-  agent_private_key_path:
+  input-file2:
       description: >
-        Path to a private key that resided on the management machine.
-        SSH-ing into agent machines will be done with this key.
-      default: ~/.ssh/agent_key.pem
+        input file for importFile2
+      default: file2.txt
 
-  install_agent: 
+  docker-image: 
       description: > 
-        When running in local mode set this to false
-      default: false
+        Docker image to be used for container building
+      default: 'rawa/nj'
 
 node_types:
 
@@ -37,7 +36,7 @@ node_types:
     properties:
       image_name:
         type: string
-        default: complete-wf1 #  
+        default: { get_input: docker-image } 
       container_ID:
         type: string
         default: container1

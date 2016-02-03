@@ -1,0 +1,365 @@
+#eSc workflow with 3 real block def deployed in 1 container/ 
+
+tosca_definitions_version: cloudify_dsl_1_0
+
+imports:
+  - http://www.getcloudify.org/spec/cloudify/3.1/types.yaml
+  - https://raw.githubusercontent.com/cloudify-cosmo/cloudify-docker-plugin/1.1/plugin.yaml
+  - https://raw.githubusercontent.com/rawaqasha/e-sc-cloudify/master/esc_nodetypes.yaml
+  
+inputs:
+
+  host_ip:
+      description: >
+        The ip of the host the application will be deployed on  
+      default: 127.0.0.1
+
+  agent_user:
+      description: >
+        User name used when SSH-ing into the started machine
+      default: ubuntu
+
+  agent_private_key_path:
+      description: >
+        Path to a private key that resided on the management machine.
+        SSH-ing into agent machines will be done with this key.
+      default: ~/.ssh/agent_key.pem
+
+  install_agent: 
+      description: > 
+        When running in local mode set this to false
+      default: false
+
+  input-file: 
+      description: > 
+        The CSV input file for the first block
+      default: " "
+
+node_types:
+
+  docker_container:
+    derived_from: cloudify.nodes.Root
+    properties:
+      image_name:
+        type: string
+        default: java
+      container_ID:
+        type: string
+        default: container1
+
+node_templates:
+
+  host:
+    type: cloudify.nodes.Compute
+    properties:
+      install_agent: { get_input: install_agent }
+      ip: { get_input: host_ip }
+      cloudify_agent:
+        user: { get_input: agent_user }
+        key: { get_input: agent_private_key_path }
+
+  starterBlock:
+    type: cloudify.nodes.ApplicationModule
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/starter.sh
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host
+
+  container1:
+    type: docker_container
+    properties:
+      container_ID: container1
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/docker-pull.sh
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host
+      - type: cloudify.relationships.depends_on
+        target: starterBlock
+
+  Java:
+    type: spec_library
+    properties:
+      lib_name: default-jdk
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/java-install2.sh
+          inputs:
+            process:
+              args: [container1]
+    relationships:
+      - type: cloudify.relationships.depends_on
+        target: container1
+      - type: cloudify.relationships.contained_in
+        target: container1
+
+  ImportDir:
+    type: Import-Dir
+    properties:
+      block_description: import Dir of Files
+      block_name: ImportDir.jar
+      block_category: File Management
+      service_type: block
+      SourceFolder: ~/input
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create: 
+          implementation: scripts/block-deploy3.sh
+          inputs:
+            process:
+             args: [container1, 'https://github.com/rawaqasha/eSc-blocks/raw/master/CSVimport.jar']
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container1
+      - type: cloudify.relationships.depends_on
+        target: Java
+
+  container2:
+    type: docker_container
+    properties:
+      container_ID: container2
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/docker-pull.sh
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host
+      - type: cloudify.relationships.depends_on
+        target: starterBlock
+
+  Java1:
+    type: spec_library
+    properties:
+      lib_name: default-jdk
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/java-install2.sh
+          inputs:
+            process:
+              args: [container2]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container2
+
+  GZip:
+    type: gZip
+    properties:
+      block_description: 
+      block_name: Gzip.jar
+      block_category: File Management
+      service_type: block
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create: 
+          implementation: scripts/block-deploy3.sh
+          inputs:
+            process:
+             args: [container2, 'https://github.com/rawaqasha/eSc-blocks/raw/master/Col-invert.jar']
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container2
+      - type: cloudify.relationships.depends_on
+        target: Java1
+      - type: block_link
+        target: Import-Dir
+        source_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            preconfigure:
+              implementation: scripts/preconfigure.sh
+              inputs:
+                process:
+                  args: [ImportDir/inputed-files, input-files, out, container2, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
+
+  container3:
+    type: docker_container
+    properties:
+      container_ID: container3
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/docker-pull.sh
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host
+      - type: cloudify.relationships.depends_on
+        target: starterBlock
+
+  Java2:
+    type: spec_library
+    properties:
+      lib_name: default-jdk
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/java-install2.sh
+          inputs:
+            process:
+              args: [container3]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container3
+
+  BWA-Mem:
+    type: BWA-mem
+    properties:
+      block_description: 
+      block_name: BWA-Mem.jar
+      block_category: File Management
+      service_type: block
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create: 
+          implementation: scripts/block-deploy3.sh
+          inputs:
+            process:
+             args: [container3, 'https://github.com/rawaqasha/eSc-blocks/raw/master/Col-invert.jar']
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container3
+      - type: cloudify.relationships.depends_on
+        target: Java2
+      - type: block_link
+        target: GZip
+        source_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            preconfigure:
+              implementation: scripts/preconfigure.sh
+              inputs:
+                process:
+                  args: [GZip/output-files, sequences-fastq, out, container3, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
+
+  container4:
+    type: docker_container
+    properties:
+      container_ID: container4
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/docker-pull.sh
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host
+      - type: cloudify.relationships.depends_on
+        target: starterBlock
+
+  Java3:
+    type: spec_library
+    properties:
+      lib_name: default-jdk
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/java-install2.sh
+          inputs:
+            process:
+              args: [container4]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container4
+
+  SAMTools:
+    type: SAMTools
+    properties:
+      block_description: 
+      block_name: SAMTools.jar
+      block_category: File Management
+      service_type: block
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create: 
+          implementation: scripts/block-deploy3.sh
+          inputs:
+            process:
+             args: [container4, 'https://github.com/rawaqasha/eSc-blocks/raw/master/Col-invert.jar']
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container4
+      - type: cloudify.relationships.depends_on
+        target: Java3
+      - type: block_link
+        target: BWA-Mem
+        source_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            preconfigure:
+              implementation: scripts/preconfigure.sh
+              inputs:
+                process:
+                  args: [BWA-Mem/alignment-output, input-files, out, container4, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
+
+  container5:
+    type: docker_container
+    properties:
+      container_ID: container5
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/docker-pull.sh
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host
+      - type: cloudify.relationships.depends_on
+        target: starterBlock
+
+  Java4:
+    type: spec_library
+    properties:
+      lib_name: default-jdk
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/java-install2.sh
+          inputs:
+            process:
+              args: [container5]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container4
+
+  ExportFiles:
+    type: exportfiles
+    properties:
+      block_description: export files
+      block_name: ExportFiles.jar
+      block_category: File Management
+      service_type: block
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container5
+      - type: block_link
+        target: SAMTools
+        source_interfaces:
+          cloudify.interfaces.relationship_lifecycle:
+            preconfigure:
+              implementation: scripts/preconfigure.sh
+              inputs:
+                process:
+                  args: [SAMTools/converted-files, ExportFiles/file-list, out, container5, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
+      - type: cloudify.relationships.depends_on
+        target: Java4
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start: 
+          implementation: scripts/block-deploy3.sh
+          inputs:
+            process:
+             args: [container3, 'https://github.com/rawaqasha/eSc-blocks/raw/master/ExportFiles.jar']
+
+  finalBlock:
+    type: cloudify.nodes.ApplicationModule
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/final.sh
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host
+      - type: cloudify.relationships.depends_on
+        target: ExportFiles

@@ -1,32 +1,34 @@
-#eSc workflow of 11 tasks deployed on 11 containers
+#eSc workflow with 3 real block def deployed on 3 containers
 
 tosca_definitions_version: cloudify_dsl_1_0
 
 imports:
   - http://www.getcloudify.org/spec/cloudify/3.1/types.yaml
+  - https://raw.githubusercontent.com/cloudify-cosmo/cloudify-docker-plugin/1.1/plugin.yaml
   - https://raw.githubusercontent.com/rawaqasha/e-sc-cloudify/master/esc_nodetypes.yaml
 
 inputs:
 
-  input-dir:
+  host_ip:
       description: >
-        The dir path of the input files  
-      default: '~/input'
+        The ip of the host the application will be deployed on  
+      default: 127.0.0.1
 
-  input-file1:
+  agent_user:
       description: >
-        input file for importFile1
-      default: file1.txt
+        User name used when SSH-ing into the started machine
+      default: ubuntu
 
-  input-file2:
+  agent_private_key_path:
       description: >
-        input file for importFile2
-      default: file2.txt
+        Path to a private key that resided on the management machine.
+        SSH-ing into agent machines will be done with this key.
+      default: ~/.ssh/agent_key.pem
 
-  docker-image: 
+  install_agent: 
       description: > 
-        Docker image to be used for container building
-      default: 'rawa/nj'
+        When running in local mode set this to false
+      default: false
 
 node_types:
 
@@ -35,31 +37,31 @@ node_types:
     properties:
       image_name:
         type: string
-        default: { get_input: docker-image } 
+        default: rawa/mybase:01
       container_ID:
         type: string
         default: container1
-      capabilities:
-        default:
-          tools: java
 
 node_templates:
 
   host:
     type: cloudify.nodes.Compute
     properties:
-      ip: localhost
-      install_agent: false
+      install_agent: { get_input: install_agent }
+      ip: { get_input: host_ip }
+      cloudify_agent:
+        user: { get_input: agent_user }
+        key: { get_input: agent_private_key_path }
 
   starterBlock:
     type: cloudify.nodes.ApplicationModule
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: scripts/start-inhost.sh
+          implementation: scripts/starter.sh
           inputs:
             process:
-              args: [realeScWF-inhost]
+              args: [realeScWF-v2]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -67,15 +69,11 @@ node_templates:
   container1:
     type: docker_container
     properties:
-      #image_name: ubuntu:14.04
       container_ID: container1
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: scripts/container.sh
-          inputs:
-            process:
-              args: [realeScWF-inhost]
+          implementation: scripts/docker-pull.sh
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -101,22 +99,17 @@ node_templates:
     type: importfile
     properties:
       block_description: import file
-      block_name: ImportFile1.jar
+      block_name: importfile.jar
       block_category: File Management
       service_type: block
       Source: file1.txt
     interfaces:
       cloudify.interfaces.lifecycle:
-        configure:
-          implementation: scripts/get-input.sh
-          inputs:
-            process:
-             args: [realeScWF-inhost, container1, { get_input: input-dir }, { get_input: input-file1 }] 
-        start: 
+        create: 
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [realeScWF-inhost, container1, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/ImportFile1.jar', { get_input: input-file1 }]
+             args: [realeScWF-v2, container1, 'https://github.com/rawaqasha/eSc-blocks/raw/master/importfile.jar']
     relationships:
       - type: cloudify.relationships.contained_in
         target: container1
@@ -128,12 +121,14 @@ node_templates:
     properties:
       container_ID: container2
     interfaces:
-      cloudify.interfaces.lifecycle:        
-        start:
-          implementation: scripts/container.sh
+      cloudify.interfaces.lifecycle:
+        configure:
+          implementation: scripts/container-config.sh
           inputs:
             process:
-              args: [realeScWF-inhost]
+              args: [container1]
+        start:
+          implementation: scripts/docker-pull.sh
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -159,22 +154,17 @@ node_templates:
     type: importfile
     properties:
       block_description: import file
-      block_name: ImportFile1.jar
+      block_name: importfile.jar
       block_category: File Management
       service_type: block
       Source: file2.txt
     interfaces:
       cloudify.interfaces.lifecycle:
-        configure:
-          implementation: scripts/get-input.sh
-          inputs:
-            process:
-             args: [realeScWF-inhost, container2, { get_input: input-dir }, { get_input: input-file2 }]
-        start: 
+        create: 
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [realeScWF-inhost, container2, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/ImportFile1.jar', { get_input: input-file2 }]
+             args: [realeScWF-v2, container2, 'https://github.com/rawaqasha/eSc-blocks/raw/master/importfile.jar']
     relationships:
       - type: cloudify.relationships.contained_in
         target: container2
@@ -187,11 +177,13 @@ node_templates:
       container_ID: container3
     interfaces:
       cloudify.interfaces.lifecycle:
-        start:
-          implementation: scripts/container.sh
+        configure:
+          implementation: scripts/container-config.sh
           inputs:
             process:
-              args: [realeScWF-inhost]
+              args: [container2]
+        start:
+          implementation: scripts/docker-pull.sh
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -217,7 +209,7 @@ node_templates:
     type: fileJoin
     properties:
       block_description: concatenate 2 files
-      block_name: FileJoin1.jar
+      block_name: FileJoin.jar
       block_category: File Management
       service_type: block
       file-1: importFile1/output-1
@@ -230,33 +222,28 @@ node_templates:
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
             preconfigure:
-              implementation: scripts/datacopy.sh
+              implementation: scripts/preconfigure.sh
               inputs:
                 process:
-                  args: [importFile1/output-1, FileJoin/file-1, realeScWF-inhost, container3]
+                  args: [realeScWF-v2/importFile1/output-1, FileJoin/file-1, out, container3, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
       - type: block_link
         target: importFile2
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
             preconfigure:
-              implementation: scripts/datacopy.sh
+              implementation: scripts/preconfigure.sh
               inputs:
                 process:
-                  args: [importFile2/output-1, FileJoin/file-2, realeScWF-inhost, container3]
+                  args: [realeScWF-v2/importFile2/output-1, FileJoin/file-2, out, container3, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
       - type: cloudify.relationships.depends_on
         target: Java2
     interfaces:
       cloudify.interfaces.lifecycle:
-        configure:
-          implementation: scripts/containers-clean.sh
-          inputs:
-            process:
-             args: [container1, container2]
         start:
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [realeScWF-inhost, container3, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/FileJoin1.jar']
+             args: [realeScWF-v2, container3, 'https://github.com/rawaqasha/eSc-blocks/raw/master/FileJoin.jar']
 
   container4:
     type: docker_container
@@ -264,11 +251,13 @@ node_templates:
       container_ID: container4
     interfaces:
       cloudify.interfaces.lifecycle:
-        start:
-          implementation: scripts/container.sh
+        configure:
+          implementation: scripts/container-config.sh
           inputs:
             process:
-              args: [realeScWF-inhost]
+              args: [container3]
+        start:
+          implementation: scripts/docker-pull.sh
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -307,22 +296,17 @@ node_templates:
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
             preconfigure:
-              implementation: scripts/datacopy.sh
+              implementation: scripts/preconfigure.sh
               inputs:
                 process:
-                  args: [FileJoin/file-3, FilterDupl/fasta-files, realeScWF-inhost, container4]
+                  args: [realeScWF-v2/FileJoin/file-3, FilterDupl/fasta-files, out, container4, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
     interfaces:
       cloudify.interfaces.lifecycle:
-        configure:
-          implementation: scripts/containers-clean.sh
-          inputs:
-            process:
-             args: [container3]
         start:
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-              args: [realeScWF-inhost, container4, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/FilterDuplicates1.jar']
+              args: [realeScWF-v2, container4, 'https://github.com/rawaqasha/eSc-blocks/raw/master/FilterDuplicates.jar']
 
   container5:
     type: docker_container
@@ -330,11 +314,13 @@ node_templates:
       container_ID: container5
     interfaces:
       cloudify.interfaces.lifecycle:
-        start:
-          implementation: scripts/container.sh
+        configure:
+          implementation: scripts/container-config.sh
           inputs:
             process:
-              args: [realeScWF-inhost]
+              args: [container4]
+        start:
+          implementation: scripts/docker-pull.sh
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -378,7 +364,7 @@ node_templates:
     type: clustalW
     properties:
       block_description: I don't know
-      block_name: ClustalW1.jar
+      block_name: ClustalW.jar
       block_category: File Management
       service_type: block
       Align: true
@@ -393,35 +379,31 @@ node_templates:
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
             preconfigure:
-              implementation: scripts/datacopy.sh
+              implementation: scripts/preconfigure.sh
               inputs:
                 process:
-                  args: [FilterDupl/filtered-fasta-files, ClustalW/input-sequences, realeScWF-inhost, container5]        
+                  args: [realeScWF-v2/FilterDupl/filtered-fasta-files, ClustalW/input-sequences, out, container5, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']        
     interfaces:
       cloudify.interfaces.lifecycle:
-        configure:
-          implementation: scripts/containers-clean.sh
-          inputs:
-            process:
-             args: [container4]
         start:
           implementation: scripts/special-deploy.sh
           inputs:
             process:
-              args: [realeScWF-inhost, container5, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/ClustalW1.jar',  get_property: [ClustalW_Lib, lib_name]]
+              args: [realeScWF-v2, container5, 'https://github.com/rawaqasha/eSc-blocks/raw/master/ClustalW.jar',  get_property: [ClustalW_Lib, lib_name]]
 
   container6:
     type: docker_container
     properties:
-      #image_name: rawa/mybase:01
       container_ID: container6
     interfaces:
       cloudify.interfaces.lifecycle:
-        start:
-          implementation: scripts/container.sh
+        configure:
+          implementation: scripts/container-config.sh
           inputs:
             process:
-              args: [realeScWF-inhost]
+              args: [container5]
+        start:
+          implementation: scripts/docker-pull.sh
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -481,7 +463,7 @@ node_templates:
     type: mega-nj
     properties:
       block_description: I don't know
-      block_name: Mega-NJ1.jar
+      block_name: Mega-NJ.jar
       block_category: File Management
       service_type: block 
       test_of_phylogeny: Bootstrap method
@@ -504,22 +486,17 @@ node_templates:
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
             preconfigure:
-              implementation: scripts/datacopy.sh
+              implementation: scripts/preconfigure.sh
               inputs:
                 process:
-                  args: [ClustalW/aligned-sequences, Mega-NJ/input-data, realeScWF-inhost, container6]        
+                  args: [realeScWF-v2/ClustalW/aligned-sequences, Mega-NJ/input-data, out, container6, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']        
     interfaces:
       cloudify.interfaces.lifecycle:
-        configure:
-          implementation: scripts/containers-clean.sh
-          inputs:
-            process:
-             args: [container5]
         start:
           implementation: scripts/special-deploy.sh
           inputs:
             process:
-              args: [realeScWF-inhost, container6, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/Mega-NJ1.jar',  get_property: [Mega-CC, lib_path]]
+              args: [realeScWF-v2, container6, 'https://github.com/rawaqasha/eSc-blocks/raw/master/Mega-NJ.jar',  get_property: [Mega-CC, lib_path]]
 
   container7:
     type: docker_container
@@ -527,11 +504,13 @@ node_templates:
       container_ID: container7
     interfaces:
       cloudify.interfaces.lifecycle:
-        start:
-          implementation: scripts/container.sh
+        configure:
+          implementation: scripts/container-config.sh
           inputs:
             process:
-              args: [realeScWF-inhost]
+              args: [container6]
+        start:
+          implementation: scripts/docker-pull.sh
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -557,7 +536,7 @@ node_templates:
     type: exportfiles
     properties:
       block_description: export files
-      block_name: ExportFiles1.jar
+      block_name: ExportFiles.jar
       block_category: File Management
       service_type: block
     relationships:
@@ -568,24 +547,19 @@ node_templates:
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
             preconfigure:
-              implementation: scripts/datacopy.sh
+              implementation: scripts/preconfigure.sh
               inputs:
                 process:
-                  args: [Mega-NJ/analysis-output, ExportFiles1/file-list, realeScWF-inhost, container7]
+                  args: [realeScWF-v2/Mega-NJ/analysis-output, ExportFiles1/file-list, out, container7, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
       - type: cloudify.relationships.depends_on
         target: Java6
     interfaces:
       cloudify.interfaces.lifecycle:
-        configure:
-          implementation: scripts/containers-clean.sh
-          inputs:
-            process:
-             args: [container6]
         start: 
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [realeScWF-inhost, container7, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/ExportFiles1.jar']
+             args: [realeScWF-v2, container7, 'https://github.com/rawaqasha/eSc-blocks/raw/master/ExportFiles.jar']
 
   container8:
     type: docker_container
@@ -593,11 +567,13 @@ node_templates:
       container_ID: container8
     interfaces:
       cloudify.interfaces.lifecycle:
-        start:
-          implementation: scripts/container.sh
+        configure:
+          implementation: scripts/container-config.sh
           inputs:
             process:
-              args: [realeScWF-inhost]
+              args: [container7]
+        start:
+          implementation: scripts/docker-pull.sh
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -623,7 +599,7 @@ node_templates:
     type: exportfiles
     properties:
       block_description: export files
-      block_name: ExportFiles1.jar
+      block_name: ExportFiles.jar
       block_category: File Management
       service_type: block
     relationships:
@@ -634,10 +610,10 @@ node_templates:
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
             preconfigure:
-              implementation: scripts/datacopy.sh
+              implementation: scripts/preconfigure.sh
               inputs:
                 process:
-                  args: [Mega-NJ/consensus-output, ExportFiles2/file-list, realeScWF-inhost, container8]
+                  args: [realeScWF-v2/Mega-NJ/consensus-output, ExportFiles2/file-list, out, container8, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
       - type: cloudify.relationships.depends_on
         target: Java7
     interfaces:
@@ -646,7 +622,7 @@ node_templates:
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [realeScWF-inhost, container8, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/ExportFiles1.jar']
+             args: [realeScWF-v2, container8, 'https://github.com/rawaqasha/eSc-blocks/raw/master/ExportFiles.jar']
 
   container9:
     type: docker_container
@@ -654,11 +630,13 @@ node_templates:
       container_ID: container9
     interfaces:
       cloudify.interfaces.lifecycle:
-        start:
-          implementation: scripts/container.sh
+        configure:
+          implementation: scripts/container-config.sh
           inputs:
             process:
-              args: [realeScWF-inhost]
+              args: [container8]
+        start:
+          implementation: scripts/docker-pull.sh
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -684,7 +662,7 @@ node_templates:
     type: exportfiles
     properties:
       block_description: export files
-      block_name: ExportFiles1.jar
+      block_name: ExportFiles.jar
       block_category: File Management
       service_type: block
     relationships:
@@ -695,10 +673,10 @@ node_templates:
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
             preconfigure:
-              implementation: scripts/datacopy.sh
+              implementation: scripts/preconfigure.sh
               inputs:
                 process:
-                  args: [Mega-NJ/summary-info, ExportFiles3/file-list, realeScWF-inhost, container9]
+                  args: [realeScWF-v2/Mega-NJ/summary-info, ExportFiles3/file-list, out, container9, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
       - type: cloudify.relationships.depends_on
         target: Java8
     interfaces:
@@ -707,7 +685,7 @@ node_templates:
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [realeScWF-inhost, container9, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/ExportFiles1.jar']
+             args: [realeScWF-v2, container9, 'https://github.com/rawaqasha/eSc-blocks/raw/master/ExportFiles.jar']
 
   container10:
     type: docker_container
@@ -716,10 +694,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
          start:
-          implementation: scripts/container.sh
-          inputs:
-            process:
-              args: [realeScWF-inhost]
+          implementation: scripts/docker-pull.sh
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -745,7 +720,7 @@ node_templates:
     type: csvexport
     properties:
       block_description: export csv file
-      block_name: CSVexport1.jar
+      block_name: CSVexport.jar
       block_category: File Management
       FileName: out1.csv
       service_type: block
@@ -757,10 +732,10 @@ node_templates:
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
             preconfigure:
-              implementation: scripts/datacopy.sh
+              implementation: scripts/preconfigure.sh
               inputs:
                 process:
-                  args: [FilterDupl/sequence-map, CSV_export1/input-data, realeScWF-inhost, container10, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
+                  args: [realeScWF-v2/FilterDupl/sequence-map, CSV_export1/input-data, out, container10, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
       - type: cloudify.relationships.depends_on
         target: Java9
     interfaces:
@@ -769,7 +744,7 @@ node_templates:
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [realeScWF-inhost, container10, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/CSVexport1.jar']
+             args: [realeScWF-v2, container10, 'https://github.com/rawaqasha/eSc-blocks/raw/master/CSVexport.jar']
 
   container11:
     type: docker_container
@@ -778,10 +753,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         start:
-          implementation: scripts/container.sh
-          inputs:
-            process:
-              args: [realeScWF-inhost]
+          implementation: scripts/docker-pull.sh
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -807,7 +779,7 @@ node_templates:
     type: csvexport
     properties:
       block_description: export csv file
-      block_name: CSVexport1.jar
+      block_name: CSVexport.jar
       block_category: File Management
       FileName: out2.csv
       service_type: block
@@ -819,10 +791,10 @@ node_templates:
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
             preconfigure:
-              implementation: scripts/datacopy.sh
+              implementation: scripts/preconfigure.sh
               inputs:
                 process:
-                  args: [FilterDupl/sequence-map, CSV_export2/input-data, realeScWF-inhost, container11]
+                  args: [realeScWF-v2/FilterDupl/sequence-map, CSV_export2/input-data, out, container11, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
       - type: cloudify.relationships.depends_on
         target: Java10
     interfaces:
@@ -831,22 +803,22 @@ node_templates:
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [realeScWF-inhost, container11, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/CSVexport1.jar']
+             args: [realeScWF-v2, container11, 'https://github.com/rawaqasha/eSc-blocks/raw/master/CSVexport.jar']
 
   finalBlock:
     type: cloudify.nodes.ApplicationModule
     interfaces:
       cloudify.interfaces.lifecycle:
         configure:
-          implementation: scripts/containers-clean.sh
+          implementation: scripts/container-config.sh
           inputs:
             process:
-              args: [container7, container8, container9, container10, container11]
+              args: [container11]
         start:
-          implementation: scripts/final-inhost.sh
+          implementation: scripts/final.sh
           inputs:
             process:
-              args: [realeScWF-inhost]
+              args: [realeScWF-v2]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
