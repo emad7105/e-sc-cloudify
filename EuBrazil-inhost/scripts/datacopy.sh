@@ -9,10 +9,7 @@ container=$4
 # Start Timestamp
 STARTTIME=`date +%s.%N`
 
-sourceDir=$(dirname "$sourcefile")
-filename=$(basename "$sourcefile")
 destDir=$(dirname "$dest")
-destfile=$(basename "$dest")
 
 #-----------------------------------------#
 #--------------- Data copy ---------------#

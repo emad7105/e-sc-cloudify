@@ -14,12 +14,10 @@ STARTTIME=`date +%s.%N`
 ctx logger info "Deploying ${block} on ${CONTAINER_ID}"
 #-----------------------------------------#
 #----------- download the task -----------#
-if [[ ! -f ~/${blueprint}/tasks/${BLOCK_NAME} ]]; then
-    ctx logger info "download ${block} block"
-    wget -O ~/${blueprint}/tasks/${BLOCK_NAME} ${BLOCK_URL}
-else 
-    ctx logger info "task already exists"
-fi
+ctx logger info "download ${block} block"
+
+[ ! -f ~/${blueprint}/tasks/${BLOCK_NAME} ] && wget -O ~/${blueprint}/tasks/${BLOCK_NAME}  ${BLOCK_URL} || ctx logger info "task already exists"
+
 #----------- download the task -----------#
 #-----------------------------------------#
 

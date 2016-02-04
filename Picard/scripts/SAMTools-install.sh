@@ -10,19 +10,19 @@ Lib_name=$(ctx node properties lib_name)
 STARTTIME=`date +%s.%N`
 
 set +e
-  Wget=$(sudo docker exec -it ${CONTAINER_ID} which wget)
+  Wget=$(which wget)
 set -e
 
 	if [[ -z ${Wget} ]]; then
-         	sudo docker exec -it ${CONTAINER_ID} apt-get update
-  	        sudo docker exec -it ${CONTAINER_ID} apt-get -y install wget
+         	sudo apt-get update
+  	        sudo apt-get -y install wget
         fi
 
-sudo docker exec -it ${CONTAINER_ID} [ ! -d ${Lib_Path} ] && sudo docker exec -it ${CONTAINER_ID} mkdir ${Lib_Path}
+[ ! -d ~/Picard/${Lib_Path} ] && mkdir ~/Picard/${Lib_Path}
+[ ! -f ~/Picard/${Lib_Path}/${Lib_name} ] && wget -O ~/Picard/${Lib_Path}/${Lib_name} ${Lib_URL}
 
-sudo docker exec -it ${CONTAINER_ID} wget -O ${Lib_Path}/${Lib_name} ${Lib_URL}
-
-sudo docker exec -it ${CONTAINER_ID} chmod -R 777 ${Lib_Path}/${Lib_name}
+sudo docker exec -it ${CONTAINER_ID} chmod -R 777 root/Picard/${Lib_Path}/${Lib_name}
+sudo docker exec -it ${CONTAINER_ID} cp -r root/Picard/${Lib_Path} .
 
 # End timestamp
 ENDTIME=`date +%s.%N`

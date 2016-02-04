@@ -37,7 +37,7 @@ node_types:
     properties:
       image_name:
         type: string
-        default: rawa/mybase:01 #complete:v2 
+        default: rawa/ubuntu14
       container_ID:
         type: string
         default: container1
@@ -484,7 +484,7 @@ node_templates:
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-              args: [Picard, container6, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/SAMTools.jar',  get_property: [SAMTools-Lib, lib_path]]
+              args: [Picard, container6, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/SAMTools.jar']
 
   container7:
     type: docker_container
