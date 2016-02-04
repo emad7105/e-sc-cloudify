@@ -8,6 +8,8 @@ STARTTIME=`date +%s.%N`
 
 ctx logger info "cleaning"
 
+#-----------------------------------------#
+#---------------- cleaning ---------------#
 for dir in ~/${blueprint}/*/
 do
     d=${dir%*/}
@@ -15,8 +17,8 @@ do
 done
 
 rm ~/${blueprint}/${blueprint}.yaml
-ctx logger info "Deleting ${container}"
-
+#---------------- cleaning ---------------#
+#-----------------------------------------#
 
 # End timestamp
 ENDTIME=`date +%s.%N`

@@ -8,13 +8,16 @@ LIB_DIR=$4
 
 # Start Timestamp
 STARTTIME=`date +%s.%N`
-echo "Creating the Dir ${CONTAINER_ID}:tasks" >> ~/depl-steps.txt
 
+#-----------------------------------------#
+#----------- download the task -----------#
 ctx logger info " downloading ${BLOCK_NAME}"
 if [ ! -f ~/${blueprint}/tasks/${BLOCK_NAME} ]; then
     ctx logger info "download ${BLOCK_NAME} task"
     wget -O ~/${blueprint}/tasks/${BLOCK_NAME} ${BLOCK_URL}
 fi
+#----------- download the task -----------#
+#-----------------------------------------#
 
 # End timestamp
 ENDTIME=`date +%s.%N`
@@ -27,15 +30,17 @@ echo "download $block in $CONTAINER_ID: $TIMEDIFF" * | sed 's/[ \t]/, /g' >> ~/l
 # Start Timestamp
 STARTTIME=`date +%s.%N`
 
-echo "Executing  ${BLOCK_NAME} on ${CONTAINER_ID}" >> ~/depl-steps.txt
 
 ctx logger info "Execute the block"
+#-----------------------------------------#
+#----------- Execute the task ------------#
 if [ $block = "Mega-NJ" ]; then
    sudo docker exec -it ${CONTAINER_ID} jar xf /root/${blueprint}/tasks/${BLOCK_NAME} M6CC.mao
 fi
 
 sudo docker exec -it ${CONTAINER_ID} java -jar /root/${blueprint}/tasks/${BLOCK_NAME} ${blueprint} ${block} ${LIB_DIR}
-
+#------------ Execute the task -----------#
+#-----------------------------------------#
 # End timestamp
 ENDTIME=`date +%s.%N`
 

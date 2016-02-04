@@ -11,16 +11,17 @@ Input_file=$4
 # Start Timestamp
 STARTTIME=`date +%s.%N`
 
-#ctx logger info "Deploying ${block} on ${CONTAINER_ID}"
-
-echo "Downloading  ${BLOCK_NAME} to ${CONTAINER_ID}:tasks" >> ~/depl-steps.txt
+ctx logger info "Deploying ${block} on ${CONTAINER_ID}"
+#-----------------------------------------#
+#----------- download the task -----------#
 if [[ ! -f ~/${blueprint}/tasks/${BLOCK_NAME} ]]; then
     ctx logger info "download ${block} block"
     wget -O ~/${blueprint}/tasks/${BLOCK_NAME} ${BLOCK_URL}
 else 
     ctx logger info "task already exists"
 fi
-
+#----------- download the task -----------#
+#-----------------------------------------#
 
 # End timestamp
 ENDTIME=`date +%s.%N`
@@ -33,11 +34,14 @@ echo "download $block in $CONTAINER_ID: $TIMEDIFF" * | sed 's/[ \t]/, /g' >> ~/l
 # Start Timestamp
 STARTTIME=`date +%s.%N`
 
-echo "Executing  ${BLOCK_NAME} on ${CONTAINER_ID}" >> ~/depl-steps.txt
-
+#-----------------------------------------#
+#----------- Execute the task ------------#
 ctx logger info "Execute the block"
 sudo docker exec -it ${CONTAINER_ID} chmod 777 /root/${blueprint}/tasks/${BLOCK_NAME}
 sudo docker exec -it ${CONTAINER_ID} java -jar /root/${blueprint}/tasks/${BLOCK_NAME} ${blueprint} ${block} ${Input_file}
+#------------ Execute the task -----------#
+#-----------------------------------------#
+
 sudo docker ps -s >> ~/docker.csv
 # End timestamp
 ENDTIME=`date +%s.%N`

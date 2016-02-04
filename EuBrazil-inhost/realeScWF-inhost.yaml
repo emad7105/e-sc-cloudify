@@ -26,7 +26,7 @@ inputs:
   docker-image: 
       description: > 
         Docker image to be used for container building
-      default: 'rawa/nj'
+      default: 'rawa/ubuntu14'
 
 node_types:
 
@@ -364,7 +364,7 @@ node_templates:
           implementation: scripts/clustalw-install.sh
           inputs:
             process:
-              args: [container5, reaseScWF-inhost]
+              args: [container5, realeScWF-inhost]
     relationships:
       - type: cloudify.relationships.depends_on
         target: Java4
@@ -467,7 +467,7 @@ node_templates:
           implementation: scripts/megaCC-install.sh
           inputs:
             process:
-              args: [container6, 'https://github.com/rawaqasha/work.git']
+              args: [container6, 'https://github.com/rawaqasha/work.git', realeScWF-inhost]
     relationships:
       - type: cloudify.relationships.depends_on
         target: Wine

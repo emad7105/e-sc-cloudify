@@ -5,17 +5,20 @@ container1=$1
 
 container2=$2
 	
-#ctx logger info "Deleting ${container}"
 # Start Timestamp
 STARTTIME=`date +%s.%N`
 
+#--------------------------------------------------------------#
+#--------- Image construction & container destroying ----------#
 a=${@}
 
 for var in "$@"
 do
-  sudo docker commit -m "new ${var} image" -a "rawa" ${var} myimage/${var}
+  #sudo docker commit -m "new ${var} image" -a "rawa" ${var} myimage/${var}
   sudo docker rm -f "${var}"
 done
+#--------- Image construction & container destroying ----------#
+#--------------------------------------------------------------#
 
 # End timestamp
 ENDTIME=`date +%s.%N`

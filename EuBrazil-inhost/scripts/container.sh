@@ -8,9 +8,14 @@ IMAGE_NAME=$(ctx node properties image_name)
 ctx logger info "Creating ${CONTAINER_NAME}"
 # Start Timestamp
 STARTTIME=`date +%s.%N`
-echo "Downloading container ${CONTAINER_NAME} using ${IMAGE_NAME} image" >> ~/depl-steps.txt 
+ 
+#-----------------------------------------#
+#----------- pull the image --------------#
 
 sudo docker pull ${IMAGE_NAME}
+
+#----------- pull the image --------------#
+#-----------------------------------------#
 
 # End timestamp
 ENDTIME=`date +%s.%N`
@@ -22,8 +27,14 @@ echo "downloading ${IMAGE_NAME} image : $TIMEDIFF" * | sed 's/[ \t]/, /g' >> ~/l
 
 # Start Timestamp
 STARTTIME=`date +%s.%N`
-echo "Creating container ${CONTAINER_NAME} using ${IMAGE_NAME} image" >> ~/depl-steps.txt 
+
+#-----------------------------------------#
+#---------- creat the container ----------#
+
 sudo docker run -P --name ${CONTAINER_NAME} -v ~/${blueprint}:/root/${blueprint} -it -d ${IMAGE_NAME} bin/bash
+
+#---------- creat the container ----------#
+#-----------------------------------------#
 
 # End timestamp
 ENDTIME=`date +%s.%N`

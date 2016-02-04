@@ -4,23 +4,31 @@ set -e
 
 CONTAINER_NAME=$1
 Lib_URL=$2
+blueprint=$3
 #LIBRARY_NAME=$(ctx node properties lib_name)
 
-echo "Installing Mega-CC library in ${CONTAINER_NAME}" >> ~/depl-steps.txt
-
-ctx logger info "Installing MegaCC lib on ${CONTAINER_NAME}"
 # Start Timestamp
 STARTTIME=`date +%s.%N`
 
+#ctx logger info "Installing MegaCC lib on ${CONTAINER_NAME}"
+#-------------------------------------------------#
+#---------------- download the lib ---------------#
         set +e
-	  git=$(sudo docker exec -it ${CONTAINER_NAME} which git)
+	  git=$(which git)
         set -e
 	if [[ -z ${git} ]]; then
-         	sudo docker exec -it ${CONTAINER_NAME} apt-get update
-  	        sudo docker exec -it ${CONTAINER_NAME} apt-get -y install git
+         	sudo apt-get update
+  	        sudo apt-get -y install git
         fi
 
-sudo docker exec -it ${CONTAINER_NAME} [ ! -d "work" ] &&sudo docker exec -it ${CONTAINER_NAME} git clone ${Lib_URL}
+if [[ ! -d ~/${blueprint}/work ]]; then
+   git clone ${Lib_URL} ~/${blueprint}/work
+fi
+sudo docker exec -it ${CONTAINER_NAME} [ ! -d "work" ] &&sudo docker exec -it ${CONTAINER_NAME} cp -r /root/${blueprint}/work work
+#---------------- download the lib ---------------#
+#-------------------------------------------------#
+
+
 # End timestamp
 ENDTIME=`date +%s.%N`
 

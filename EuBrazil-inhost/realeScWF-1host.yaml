@@ -290,7 +290,7 @@ node_templates:
           implementation: scripts/megaCC-install.sh
           inputs:
             process:
-              args: [container1, 'https://github.com/rawaqasha/work.git']
+              args: [container1, 'https://github.com/rawaqasha/work.git', realeScWF-1host]
     relationships:
       - type: cloudify.relationships.depends_on
         target: Wine
