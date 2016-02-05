@@ -16,8 +16,10 @@ ctx logger info "Deploying ${block} on ${CONTAINER_ID}"
 #----------- download the task -----------#
 ctx logger info "download ${block} block"
 
-[ ! -f ~/${blueprint}/tasks/${BLOCK_NAME} ] && wget -O ~/${blueprint}/tasks/${BLOCK_NAME}  ${BLOCK_URL} || ctx logger info "task already exists"
-
+if [[ ! -f ~/${blueprint}/tasks/${BLOCK_NAME} ]]; then
+   [ ! -f ~/.TDWF/${BLOCK_NAME} ] && wget -O ~/.TDWF/${BLOCK_NAME}  ${BLOCK_URL}
+   cp ~/.TDWF/${BLOCK_NAME} ~/${blueprint}/tasks/${BLOCK_NAME}
+fi
 #----------- download the task -----------#
 #-----------------------------------------#
 
@@ -40,7 +42,6 @@ sudo docker exec -it ${CONTAINER_ID} java -jar /root/${blueprint}/tasks/${BLOCK_
 #------------ Execute the task -----------#
 #-----------------------------------------#
 
-sudo docker ps -s >> ~/docker.csv
 # End timestamp
 ENDTIME=`date +%s.%N`
 
@@ -48,3 +49,9 @@ ENDTIME=`date +%s.%N`
 # crudely by taking first 3 decimal places
 TIMEDIFF=`echo "$ENDTIME - $STARTTIME" | bc | awk -F"." '{print $1"."substr($2,1,3)}'`
 echo "execute $block in $CONTAINER_ID: $TIMEDIFF" * | sed 's/[ \t]/, /g' >> ~/list.csv
+
+image=$(echo ${BLOCK_NAME} | cut -f 1 -d '.')
+ctx logger info "${image}"
+if [[ "$(docker images -q ${image} 2> /dev/null)" == "" ]]; then
+   sudo docker commit -m "new ${image} image" -a "rawa" ${CONTAINER_ID} ${image}
+fi

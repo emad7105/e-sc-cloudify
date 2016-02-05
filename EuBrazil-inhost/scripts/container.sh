@@ -4,16 +4,22 @@ set -e
 blueprint=$1
 CONTAINER_NAME=$(ctx node properties container_ID)
 IMAGE_NAME=$(ctx node properties image_name)
+BLOCK_NAME=$2
 
-ctx logger info "Creating ${CONTAINER_NAME}"
 # Start Timestamp
 STARTTIME=`date +%s.%N`
  
 #-----------------------------------------#
 #----------- pull the image --------------#
 
-sudo docker pull ${IMAGE_NAME}
-
+image=$(echo ${BLOCK_NAME} | cut -f 1 -d '.')
+if [[ "$(docker images -q ${image} 2> /dev/null)" != "" ]]; then
+ ctx logger info "using previous block image"
+ IMAGE_NAME=${image}
+else
+ ctx logger info "using new image"
+ sudo docker pull ${IMAGE_NAME}
+fi
 #----------- pull the image --------------#
 #-----------------------------------------#
 

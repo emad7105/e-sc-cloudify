@@ -14,7 +14,6 @@ a=${@}
 
 for var in "$@"
 do
-  #sudo docker commit -m "new ${var} image" -a "rawa" ${var} myimage/${var}
   sudo docker rm -f "${var}"
 done
 #--------- Image construction & container destroying ----------#

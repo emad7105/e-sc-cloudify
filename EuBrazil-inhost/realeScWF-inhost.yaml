@@ -72,7 +72,7 @@ node_templates:
           implementation: scripts/container.sh
           inputs:
             process:
-              args: [realeScWF-inhost]
+              args: [realeScWF-inhost, importfile1.jar]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -98,7 +98,7 @@ node_templates:
     type: importfile
     properties:
       block_description: import file
-      block_name: ImportFile1.jar
+      block_name: importfile1.jar
       block_category: File Management
       service_type: block
       Source: file1.txt
@@ -113,7 +113,7 @@ node_templates:
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [realeScWF-inhost, container1, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/ImportFile1.jar', { get_input: input-file1 }]
+             args: [realeScWF-inhost, container1, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/importfile1.jar', { get_input: input-file1 }]
     relationships:
       - type: cloudify.relationships.contained_in
         target: container1
@@ -130,7 +130,7 @@ node_templates:
           implementation: scripts/container.sh
           inputs:
             process:
-              args: [realeScWF-inhost]
+              args: [realeScWF-inhost, importfile1.jar]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -156,7 +156,7 @@ node_templates:
     type: importfile
     properties:
       block_description: import file
-      block_name: ImportFile1.jar
+      block_name: importfile1.jar
       block_category: File Management
       service_type: block
       Source: file2.txt
@@ -171,7 +171,7 @@ node_templates:
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [realeScWF-inhost, container2, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/ImportFile1.jar', { get_input: input-file2 }]
+             args: [realeScWF-inhost, container2, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/importfile1.jar', { get_input: input-file2 }]
     relationships:
       - type: cloudify.relationships.contained_in
         target: container2
@@ -188,7 +188,7 @@ node_templates:
           implementation: scripts/container.sh
           inputs:
             process:
-              args: [realeScWF-inhost]
+              args: [realeScWF-inhost, get_property: [FileJoin, block_name]]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -214,7 +214,7 @@ node_templates:
     type: fileJoin
     properties:
       block_description: concatenate 2 files
-      block_name: FileJoin1.jar
+      block_name: filejoin1.jar
       block_category: File Management
       service_type: block
       file-1: importFile1/output-1
@@ -253,7 +253,7 @@ node_templates:
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [realeScWF-inhost, container3, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/FileJoin1.jar']
+             args: [realeScWF-inhost, container3, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/filejoin1.jar']
 
   container4:
     type: docker_container
@@ -265,7 +265,7 @@ node_templates:
           implementation: scripts/container.sh
           inputs:
             process:
-              args: [realeScWF-inhost]
+              args: [realeScWF-inhost, get_property: [FilterDupl, block_name]]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -291,7 +291,7 @@ node_templates:
     type: filterDupl
     properties:
       block_description: I don't know
-      block_name: FilterDuplicates.jar
+      block_name: filterduplicates1.jar
       block_category: File Management
       service_type: block      
     relationships:
@@ -319,7 +319,7 @@ node_templates:
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-              args: [realeScWF-inhost, container4, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/FilterDuplicates1.jar']
+              args: [realeScWF-inhost, container4, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/filterduplicates1.jar']
 
   container5:
     type: docker_container
@@ -331,7 +331,7 @@ node_templates:
           implementation: scripts/container.sh
           inputs:
             process:
-              args: [realeScWF-inhost]
+              args: [realeScWF-inhost, get_property: [ClustalW, block_name]]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -375,7 +375,7 @@ node_templates:
     type: clustalW
     properties:
       block_description: I don't know
-      block_name: ClustalW1.jar
+      block_name: clustalw1.jar
       block_category: File Management
       service_type: block
       Align: true
@@ -405,12 +405,12 @@ node_templates:
           implementation: scripts/special-deploy.sh
           inputs:
             process:
-              args: [realeScWF-inhost, container5, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/ClustalW1.jar',  get_property: [ClustalW_Lib, lib_name]]
+              args: [realeScWF-inhost, container5, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/clustalw1.jar',  get_property: [ClustalW_Lib, lib_name]]
 
   container6:
     type: docker_container
     properties:
-      #image_name: rawa/mybase:01
+      image_name: rawa/mega-cc
       container_ID: container6
     interfaces:
       cloudify.interfaces.lifecycle:
@@ -418,7 +418,7 @@ node_templates:
           implementation: scripts/container.sh
           inputs:
             process:
-              args: [realeScWF-inhost]
+              args: [realeScWF-inhost, get_property: [Mega-NJ, block_name]]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -478,7 +478,7 @@ node_templates:
     type: mega-nj
     properties:
       block_description: I don't know
-      block_name: Mega-NJ1.jar
+      block_name: mega-nj1.jar
       block_category: File Management
       service_type: block 
       test_of_phylogeny: Bootstrap method
@@ -516,7 +516,7 @@ node_templates:
           implementation: scripts/special-deploy.sh
           inputs:
             process:
-              args: [realeScWF-inhost, container6, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/Mega-NJ1.jar',  get_property: [Mega-CC, lib_path]]
+              args: [realeScWF-inhost, container6, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/mega-nj1.jar',  get_property: [Mega-CC, lib_path]]
 
   container7:
     type: docker_container
@@ -528,7 +528,7 @@ node_templates:
           implementation: scripts/container.sh
           inputs:
             process:
-              args: [realeScWF-inhost]
+              args: [realeScWF-inhost, get_property: [ExportFiles3, block_name]]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -554,7 +554,7 @@ node_templates:
     type: exportfiles
     properties:
       block_description: export files
-      block_name: ExportFiles1.jar
+      block_name: exportfiles1.jar
       block_category: File Management
       service_type: block
     relationships:
@@ -582,7 +582,7 @@ node_templates:
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [realeScWF-inhost, container7, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/ExportFiles1.jar']
+             args: [realeScWF-inhost, container7, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/exportfiles1.jar']
 
   container8:
     type: docker_container
@@ -594,7 +594,7 @@ node_templates:
           implementation: scripts/container.sh
           inputs:
             process:
-              args: [realeScWF-inhost]
+              args: [realeScWF-inhost, get_property: [ExportFiles2, block_name]]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -620,7 +620,7 @@ node_templates:
     type: exportfiles
     properties:
       block_description: export files
-      block_name: ExportFiles1.jar
+      block_name: exportfiles1.jar
       block_category: File Management
       service_type: block
     relationships:
@@ -643,7 +643,7 @@ node_templates:
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [realeScWF-inhost, container8, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/ExportFiles1.jar']
+             args: [realeScWF-inhost, container8, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/exportfiles1.jar']
 
   container9:
     type: docker_container
@@ -655,7 +655,7 @@ node_templates:
           implementation: scripts/container.sh
           inputs:
             process:
-              args: [realeScWF-inhost]
+              args: [realeScWF-inhost, get_property: [ExportFiles3, block_name]]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -681,7 +681,7 @@ node_templates:
     type: exportfiles
     properties:
       block_description: export files
-      block_name: ExportFiles1.jar
+      block_name: exportfiles1.jar
       block_category: File Management
       service_type: block
     relationships:
@@ -704,7 +704,7 @@ node_templates:
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [realeScWF-inhost, container9, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/ExportFiles1.jar']
+             args: [realeScWF-inhost, container9, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/exportfiles1.jar']
 
   container10:
     type: docker_container
@@ -716,7 +716,7 @@ node_templates:
           implementation: scripts/container.sh
           inputs:
             process:
-              args: [realeScWF-inhost]
+              args: [realeScWF-inhost, get_property: [CSV_export1, block_name]]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -742,7 +742,7 @@ node_templates:
     type: csvexport
     properties:
       block_description: export csv file
-      block_name: CSVexport1.jar
+      block_name: csvexport1.jar
       block_category: File Management
       FileName: out1.csv
       service_type: block
@@ -766,7 +766,7 @@ node_templates:
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [realeScWF-inhost, container10, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/CSVexport1.jar']
+             args: [realeScWF-inhost, container10, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/csvexport1.jar']
 
   container11:
     type: docker_container
@@ -778,7 +778,7 @@ node_templates:
           implementation: scripts/container.sh
           inputs:
             process:
-              args: [realeScWF-inhost]
+              args: [realeScWF-inhost, get_property: [CSV_export2, block_name]]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -804,7 +804,7 @@ node_templates:
     type: csvexport
     properties:
       block_description: export csv file
-      block_name: CSVexport1.jar
+      block_name: csvexport1.jar
       block_category: File Management
       FileName: out2.csv
       service_type: block
@@ -828,7 +828,7 @@ node_templates:
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [realeScWF-inhost, container11, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/CSVexport1.jar']
+             args: [realeScWF-inhost, container11, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/csvexport1.jar']
 
   finalBlock:
     type: cloudify.nodes.ApplicationModule
