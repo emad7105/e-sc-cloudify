@@ -410,7 +410,7 @@ node_templates:
   container6:
     type: docker_container
     properties:
-      image_name: rawa/mega-cc
+      #image_name: rawa/mega-cc
       container_ID: container6
     interfaces:
       cloudify.interfaces.lifecycle:
@@ -599,7 +599,7 @@ node_templates:
       - type: cloudify.relationships.contained_in
         target: host
       - type: cloudify.relationships.depends_on
-        target: Mega-NJ
+        target: ExportFiles1
 
   Java7:
     type: spec_library
@@ -660,7 +660,7 @@ node_templates:
       - type: cloudify.relationships.contained_in
         target: host
       - type: cloudify.relationships.depends_on
-        target: Mega-NJ
+        target: ExportFiles3
 
   Java8:
     type: spec_library
@@ -783,7 +783,7 @@ node_templates:
       - type: cloudify.relationships.contained_in
         target: host
       - type: cloudify.relationships.depends_on
-        target: FilterDupl
+        target: CSV_export1
 
   Java10:
     type: spec_library

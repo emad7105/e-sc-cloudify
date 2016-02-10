@@ -16,10 +16,12 @@ ctx logger info "Deploying ${block} on ${CONTAINER_ID}"
 #----------- download the task -----------#
 ctx logger info "download ${block} block"
 
-if [[ ! -f ~/${blueprint}/tasks/${BLOCK_NAME} ]]; then
-   [ ! -f ~/.TDWF/${BLOCK_NAME} ] && wget -O ~/.TDWF/${BLOCK_NAME}  ${BLOCK_URL}
-   cp ~/.TDWF/${BLOCK_NAME} ~/${blueprint}/tasks/${BLOCK_NAME}
-fi
+[ ! -f ~/.TDWF/${BLOCK_NAME} ] && wget -O ~/.TDWF/${BLOCK_NAME}  ${BLOCK_URL}
+
+sudo docker exec -it ${CONTAINER_ID} [ ! -d tasks ] && sudo docker exec -it ${CONTAINER_ID} mkdir tasks
+
+cat ~/.TDWF/${BLOCK_NAME} | sudo docker exec -i ${CONTAINER_ID} sh -c 'cat > tasks/'${BLOCK_NAME}
+
 #----------- download the task -----------#
 #-----------------------------------------#
 
@@ -37,8 +39,8 @@ STARTTIME=`date +%s.%N`
 #-----------------------------------------#
 #----------- Execute the task ------------#
 ctx logger info "Execute the block"
-sudo docker exec -it ${CONTAINER_ID} chmod 777 /root/${blueprint}/tasks/${BLOCK_NAME}
-sudo docker exec -it ${CONTAINER_ID} java -jar /root/${blueprint}/tasks/${BLOCK_NAME} ${blueprint} ${block} ${Input_file}
+#sudo docker exec -it ${CONTAINER_ID} chmod 777 /root/${blueprint}/tasks/${BLOCK_NAME}
+sudo docker exec -it ${CONTAINER_ID} java -jar tasks/${BLOCK_NAME} ${blueprint} ${block} ${Input_file}
 #------------ Execute the task -----------#
 #-----------------------------------------#
 

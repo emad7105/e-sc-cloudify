@@ -15,10 +15,10 @@ STARTTIME=`date +%s.%N`
 #----------- download the task -----------#
 ctx logger info " downloading ${BLOCK_NAME}"
 
-if [[ ! -f ~/${blueprint}/tasks/${BLOCK_NAME} ]]; then
-   [ ! -f ~/.TDWF/${BLOCK_NAME} ] && wget -O ~/.TDWF/${BLOCK_NAME} ${BLOCK_URL}
-   cp ~/.TDWF/${BLOCK_NAME} ~/${blueprint}/tasks/${BLOCK_NAME}
-fi
+[ ! -f ~/.TDWF/${BLOCK_NAME} ] && wget -O ~/.TDWF/${BLOCK_NAME}  ${BLOCK_URL}
+sudo docker exec -it ${BLOCK_NAME} [ ! -d tasks ] && sudo docker exec -it ${CONTAINER_ID} mkdir tasks
+cat ~/.TDWF/${BLOCK_NAME} | sudo docker exec -i ${CONTAINER_ID} sh -c 'cat > tasks/'${BLOCK_NAME}
+
 #----------- download the task -----------#
 #-----------------------------------------#
 
@@ -38,10 +38,10 @@ ctx logger info "Execute the block"
 #--------------------------------------------------------------------------------------------------------#
 #-------------------------------------- Execute the task ------------------------------------------------#
 if [[ $block = "Mega-NJ" ]]; then
-   sudo docker exec -it ${CONTAINER_ID} jar xf /root/${blueprint}/tasks/${BLOCK_NAME} M6CC.mao
+   sudo docker exec -it ${CONTAINER_ID} jar xf tasks/${BLOCK_NAME} M6CC.mao
 fi
 
-sudo docker exec -it ${CONTAINER_ID} java -jar /root/${blueprint}/tasks/${BLOCK_NAME} ${blueprint} ${block} ${LIB_DIR}
+sudo docker exec -it ${CONTAINER_ID} java -jar tasks/${BLOCK_NAME} ${blueprint} ${block} ${LIB_DIR}
 #-------------------------------------- Execute the task ------------------------------------------------#
 #--------------------------------------------------------------------------------------------------------#
 
