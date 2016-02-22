@@ -10,6 +10,7 @@ inputFile=$4
 STARTTIME=`date +%s.%N`
 
 
+
 ctx logger info "copy the input ${input_dir}/${inputFile}"
 #-----------------------------------------------------#
 #---------------------- get input --------------------#
@@ -20,7 +21,6 @@ cp ${input_dir}/${inputFile} ~/${blueprint}/${inputFile}
 # End timestamp
 ENDTIME=`date +%s.%N`
 
-# Convert nanoseconds to milliseconds
-# crudely by taking first 3 decimal places
+# Convert nanoseconds to milliseconds crudely by taking first 3 decimal places
 TIMEDIFF=`echo "$ENDTIME - $STARTTIME" | bc | awk -F"." '{print $1"."substr($2,1,3)}'`
-echo "get input to $CONTAINER_ID: $TIMEDIFF" * | sed 's/[ \t]/, /g' >> ~/list.csv 
+echo "Getting Inputs to ${CONTAINER_ID} $TIMEDIFF" | sed 's/[ \t]/, /g' >> ~/list.csv

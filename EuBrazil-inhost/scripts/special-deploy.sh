@@ -16,7 +16,7 @@ STARTTIME=`date +%s.%N`
 ctx logger info " downloading ${BLOCK_NAME}"
 
 [ ! -f ~/.TDWF/${BLOCK_NAME} ] && wget -O ~/.TDWF/${BLOCK_NAME}  ${BLOCK_URL}
-sudo docker exec -it ${BLOCK_NAME} [ ! -d tasks ] && sudo docker exec -it ${CONTAINER_ID} mkdir tasks
+sudo docker exec -it ${CONTAINER_ID} [ ! -d tasks ] && sudo docker exec -it ${CONTAINER_ID} mkdir tasks
 cat ~/.TDWF/${BLOCK_NAME} | sudo docker exec -i ${CONTAINER_ID} sh -c 'cat > tasks/'${BLOCK_NAME}
 
 #----------- download the task -----------#
@@ -25,14 +25,12 @@ cat ~/.TDWF/${BLOCK_NAME} | sudo docker exec -i ${CONTAINER_ID} sh -c 'cat > tas
 # End timestamp
 ENDTIME=`date +%s.%N`
 
-# Convert nanoseconds to milliseconds
-# crudely by taking first 3 decimal places
+# Convert nanoseconds to milliseconds crudely by taking first 3 decimal places
 TIMEDIFF=`echo "$ENDTIME - $STARTTIME" | bc | awk -F"." '{print $1"."substr($2,1,3)}'`
-echo "download $block in $CONTAINER_ID: $TIMEDIFF" * | sed 's/[ \t]/, /g' >> ~/list.csv
-
+echo "Downloading ${BLOCK_NAME} task : $TIMEDIFF" | sed 's/[ \t]/, /g' >> ~/list.csv
+#--------------------------------------------------------------------------------------------------------#
 # Start Timestamp
 STARTTIME=`date +%s.%N`
-
 
 ctx logger info "Execute the block"
 #--------------------------------------------------------------------------------------------------------#
@@ -48,22 +46,25 @@ sudo docker exec -it ${CONTAINER_ID} java -jar tasks/${BLOCK_NAME} ${blueprint} 
 # End timestamp
 ENDTIME=`date +%s.%N`
 
-# Convert nanoseconds to milliseconds
-# crudely by taking first 3 decimal places
+# Convert nanoseconds to milliseconds crudely by taking first 3 decimal places
 TIMEDIFF=`echo "$ENDTIME - $STARTTIME" | bc | awk -F"." '{print $1"."substr($2,1,3)}'`
-echo "execute $block in $CONTAINER_ID: $TIMEDIFF" * | sed 's/[ \t]/, /g' >> ~/list.csv
+echo "Executing ${BLOCK_NAME} task : $TIMEDIFF" | sed 's/[ \t]/, /g' >> ~/list.csv
 
 #--------------------------------------------------------------------------------#
 #------------------------------ creating Image ----------------------------------#
-if [[ "$(docker images -q ${CONTAINER_ID} 2> /dev/null)" != "" ]]; then
-   sudo docker commit -m "new ${var} image" -a "rawa" ${CONTAINER_ID} ${CONTAINER_ID}
-fi
-#------------------------------ creating Image ----------------------------------#
-#--------------------------------------------------------------------------------#
 
+# Start Timestamp
+STARTTIME=`date +%s.%N`
 
 image=$(echo ${BLOCK_NAME} | cut -f 1 -d '.')
 ctx logger info "${image}"
 if [[ "$(docker images -q ${image} 2> /dev/null)" == "" ]]; then
    sudo docker commit -m "new ${image} image" -a "rawa" ${CONTAINER_ID} ${image}
 fi
+
+# End timestamp
+ENDTIME=`date +%s.%N`
+
+# Convert nanoseconds to milliseconds crudely by taking first 3 decimal places
+TIMEDIFF=`echo "$ENDTIME - $STARTTIME" | bc | awk -F"." '{print $1"."substr($2,1,3)}'`
+echo "Creating ${image} image : $TIMEDIFF" | sed 's/[ \t]/, /g' >> ~/list.csv

@@ -26,7 +26,7 @@ inputs:
   docker-image: 
       description: > 
         Docker image to be used for container building
-      default: 'rawa/ubuntu14'
+      default: 'dtdwd/nj'
 
 node_types:
 
@@ -452,6 +452,8 @@ node_templates:
             process:
               args: [container6]
     relationships:
+      - type: cloudify.relationships.depends_on
+        target: Java5
       - type: cloudify.relationships.contained_in
         target: container6
 
@@ -660,7 +662,7 @@ node_templates:
       - type: cloudify.relationships.contained_in
         target: host
       - type: cloudify.relationships.depends_on
-        target: ExportFiles3
+        target: ExportFiles2
 
   Java8:
     type: spec_library

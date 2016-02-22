@@ -4,6 +4,9 @@ set -e
 
 blueprint=$1
 
+# Start Timestamp
+STARTTIME=`date +%s.%N`
+
 #----------------------------------------------------------#
 #---------------- initiate blueprint folder ---------------#
 if [ ! -d ~/${blueprint} ]; then
@@ -18,3 +21,10 @@ ctx logger info "copy ${blueprint}.yaml to ~/${blueprint}"
 cp ${blueprint}.yaml ~/${blueprint}
 #---------------- initiate blueprint folder ---------------#
 #----------------------------------------------------------#
+
+# End timestamp
+ENDTIME=`date +%s.%N`
+
+# Convert nanoseconds to milliseconds crudely by taking first 3 decimal places
+TIMEDIFF=`echo "$ENDTIME - $STARTTIME" | bc | awk -F"." '{print $1"."substr($2,1,3)}'`
+echo "Creating WF folder : $TIMEDIFF" | sed 's/[ \t]/, /g' >> ~/list.csv

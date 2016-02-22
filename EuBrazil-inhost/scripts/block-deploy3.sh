@@ -28,32 +28,45 @@ cat ~/.TDWF/${BLOCK_NAME} | sudo docker exec -i ${CONTAINER_ID} sh -c 'cat > tas
 # End timestamp
 ENDTIME=`date +%s.%N`
 
-# Convert nanoseconds to milliseconds
-# crudely by taking first 3 decimal places
+# Convert nanoseconds to milliseconds crudely by taking first 3 decimal places
 TIMEDIFF=`echo "$ENDTIME - $STARTTIME" | bc | awk -F"." '{print $1"."substr($2,1,3)}'`
-echo "download $block in $CONTAINER_ID: $TIMEDIFF" * | sed 's/[ \t]/, /g' >> ~/list.csv
-
+echo "downloading ${BLOCK_NAME} task : $TIMEDIFF" | sed 's/[ \t]/, /g' >> ~/list.csv
+#------------------------------------------------------------------------------------------------------#
 # Start Timestamp
 STARTTIME=`date +%s.%N`
 
 #-----------------------------------------#
 #----------- Execute the task ------------#
+
 ctx logger info "Execute the block"
 #sudo docker exec -it ${CONTAINER_ID} chmod 777 /root/${blueprint}/tasks/${BLOCK_NAME}
 sudo docker exec -it ${CONTAINER_ID} java -jar tasks/${BLOCK_NAME} ${blueprint} ${block} ${Input_file}
+
 #------------ Execute the task -----------#
 #-----------------------------------------#
 
 # End timestamp
 ENDTIME=`date +%s.%N`
 
-# Convert nanoseconds to milliseconds
-# crudely by taking first 3 decimal places
+# Convert nanoseconds to milliseconds crudely by taking first 3 decimal places
 TIMEDIFF=`echo "$ENDTIME - $STARTTIME" | bc | awk -F"." '{print $1"."substr($2,1,3)}'`
-echo "execute $block in $CONTAINER_ID: $TIMEDIFF" * | sed 's/[ \t]/, /g' >> ~/list.csv
+echo "Execting ${BLOCK_NAME} task : $TIMEDIFF" | sed 's/[ \t]/, /g' >> ~/list.csv
+
+#-----------------------------------------------------------------------------------------------------#
+#----------------------------------- Creating the task image -----------------------------------------#
+
+# Start Timestamp
+STARTTIME=`date +%s.%N`
 
 image=$(echo ${BLOCK_NAME} | cut -f 1 -d '.')
 ctx logger info "${image}"
-if [[ "$(docker images -q ${image} 2> /dev/null)" == "" ]]; then
+if [[ "$(docker images -q ${image} 2> /dev/null)" = "" ]]; then
    sudo docker commit -m "new ${image} image" -a "rawa" ${CONTAINER_ID} ${image}
 fi
+
+# End timestamp
+ENDTIME=`date +%s.%N`
+
+# Convert nanoseconds to milliseconds crudely by taking first 3 decimal places
+TIMEDIFF=`echo "$ENDTIME - $STARTTIME" | bc | awk -F"." '{print $1"."substr($2,1,3)}'`
+echo "Creating ${Image} image : $TIMEDIFF" | sed 's/[ \t]/, /g' >> ~/list.csv

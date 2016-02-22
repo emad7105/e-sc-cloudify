@@ -5,9 +5,9 @@ set -e
 CONTAINER_ID=$1
 LIBRARY_NAME=$(ctx node properties lib_name)
 
-#ctx logger info "Installing wine on"
 # Start Timestamp
 STARTTIME=`date +%s.%N`
+
 
 #-------------------------------------------------#
 #------------------- install wine ----------------#
@@ -28,7 +28,6 @@ fi
 # End timestamp
 ENDTIME=`date +%s.%N`
 
-# Convert nanoseconds to milliseconds
-# crudely by taking first 3 decimal places
+# Convert nanoseconds to milliseconds crudely by taking first 3 decimal places
 TIMEDIFF=`echo "$ENDTIME - $STARTTIME" | bc | awk -F"." '{print $1"."substr($2,1,3)}'`
-echo "wine installation in $CONTAINER_ID: $TIMEDIFF" * | sed 's/[ \t]/, /g' >> ~/list.csv
+echo "installing Wine tool : $TIMEDIFF" | sed 's/[ \t]/, /g' >> ~/list.csv
