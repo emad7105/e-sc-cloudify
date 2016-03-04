@@ -26,7 +26,7 @@ inputs:
   docker-image: 
       description: > 
         Docker image to be used for container building
-      default: 'docker.illumina.com/dtdwd/nj'
+      default: 'dtdwd/nj'
 
 node_types:
 

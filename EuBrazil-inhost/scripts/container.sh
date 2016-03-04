@@ -14,20 +14,22 @@ STARTTIME=`date +%s.%N`
 
 Image=''
 task_image=$(echo ${BLOCK_NAME} | cut -f 1 -d '.')
-if [[ "$(docker images -q ${task_image} 2> /dev/null)" != "" ]]; then
-   echo "task image ${task_image}"   
-   Image=${task_image}
+if [[ "$(docker images -q dtdwd/${task_image} 2> /dev/null)" != "" ]]; then
+   echo "task image dtdwd/${task_image}"   
+   Image=dtdwd/${task_image}
 else
   if [[ "$(docker images -q ${IMAGE_NAME} 2> /dev/null)" = "" && "$(docker images -q docker.illumina.com/${IMAGE_NAME} 2> /dev/null)" = "" ]]; then
       b=$(basename $IMAGE_NAME)
       if ssh remote@192.168.56.102 stat DTDWD/$b.tar.gz \> /dev/null 2\>\&1
             then
-                    echo "from local repo."
-                    scp -P 22 remote@192.168.56.102:DTDWD/$b.tar.gz $b.tar.gz
-                    zcat --fast nj.tar.gz | docker load
-                    Image=${IMAGE_NAME}
-                    rm $b.tar
-            else
+                    set +e
+                      #echo "from local repo."
+                      scp -P 22 remote@192.168.56.102:DTDWD/$b.tar.gz $b.tar.gz
+                      zcat --fast nj.tar.gz | docker load
+                      Image=${IMAGE_NAME}
+                      rm $b.tar.gz
+                    set -e
+      else
                     set +e
                       echo "a repo. image docker.illumina.com/${IMAGE_NAME}"
                       sudo docker pull docker.illumina.com/${IMAGE_NAME} &>/dev/null
@@ -50,8 +52,8 @@ else
        fi  
    fi
    if [[ "$(docker images -q ${IMAGE_NAME} 2> /dev/null)" = "" && ${Image} = ${IMAGE_NAME} ]]; then
-      sudo docker pull rawa/ubuntu14 &>/dev/null
-      Image=rawa/ubuntu14
+      sudo docker pull rawa/nj &>/dev/null
+      Image=rawa/nj
    fi
 fi
 #----------- pull the image --------------#

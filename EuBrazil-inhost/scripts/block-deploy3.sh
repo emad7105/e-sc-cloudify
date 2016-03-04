@@ -31,6 +31,27 @@ ENDTIME=`date +%s.%N`
 # Convert nanoseconds to milliseconds crudely by taking first 3 decimal places
 TIMEDIFF=`echo "$ENDTIME - $STARTTIME" | bc | awk -F"." '{print $1"."substr($2,1,3)}'`
 echo "downloading ${BLOCK_NAME} task : $TIMEDIFF" | sed 's/[ \t]/, /g' >> ~/list.csv
+
+#-----------------------------------------------------------------------------------------------------#
+#----------------------------------- Creating the task image -----------------------------------------#
+
+# Start Timestamp
+STARTTIME=`date +%s.%N`
+
+image=$(echo ${BLOCK_NAME} | cut -f 1 -d '.')
+ctx logger info "${image}"
+if [[ "$(docker images -q ${image} 2> /dev/null)" = "" ]]; then
+   sudo docker commit -m "new ${image} image" -a "rawa" ${CONTAINER_ID} dtdwd/${image}
+fi
+
+# End timestamp
+ENDTIME=`date +%s.%N`
+
+# Convert nanoseconds to milliseconds crudely by taking first 3 decimal places
+TIMEDIFF=`echo "$ENDTIME - $STARTTIME" | bc | awk -F"." '{print $1"."substr($2,1,3)}'`
+echo "Creating ${Image} image : $TIMEDIFF" | sed 's/[ \t]/, /g' >> ~/list.csv
+
+#----------------------------------- Creating the task image -----------------------------------------#
 #------------------------------------------------------------------------------------------------------#
 # Start Timestamp
 STARTTIME=`date +%s.%N`
@@ -51,22 +72,3 @@ ENDTIME=`date +%s.%N`
 # Convert nanoseconds to milliseconds crudely by taking first 3 decimal places
 TIMEDIFF=`echo "$ENDTIME - $STARTTIME" | bc | awk -F"." '{print $1"."substr($2,1,3)}'`
 echo "Execting ${BLOCK_NAME} task : $TIMEDIFF" | sed 's/[ \t]/, /g' >> ~/list.csv
-
-#-----------------------------------------------------------------------------------------------------#
-#----------------------------------- Creating the task image -----------------------------------------#
-
-# Start Timestamp
-STARTTIME=`date +%s.%N`
-
-image=$(echo ${BLOCK_NAME} | cut -f 1 -d '.')
-ctx logger info "${image}"
-if [[ "$(docker images -q ${image} 2> /dev/null)" = "" ]]; then
-   sudo docker commit -m "new ${image} image" -a "rawa" ${CONTAINER_ID} ${image}
-fi
-
-# End timestamp
-ENDTIME=`date +%s.%N`
-
-# Convert nanoseconds to milliseconds crudely by taking first 3 decimal places
-TIMEDIFF=`echo "$ENDTIME - $STARTTIME" | bc | awk -F"." '{print $1"."substr($2,1,3)}'`
-echo "Creating ${Image} image : $TIMEDIFF" | sed 's/[ \t]/, /g' >> ~/list.csv
