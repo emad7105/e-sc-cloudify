@@ -14,35 +14,45 @@ STARTTIME=`date +%s.%N`
 
 Image=''
 task_image=$(echo ${BLOCK_NAME} | cut -f 1 -d '.')
-# Search for task image
 if [[ "$(docker images -q ${task_image} 2> /dev/null)" != "" ]]; then
-   ctx logger info "task image ${task_image}"   
+   echo "task image ${task_image}"   
    Image=${task_image}
 else
-  # Search in local repo. for an input specified image
-  #ctx logger info "private repo. image"
-  #set +e
-   # docker pull docker.illumina.com/${IMAGE_NAME}
-   # Image=docker.illumina.com/${IMAGE_NAME}
-  #set -e
-  
-#fi
-# Search in docker.hub repo. for an input specified image
-#if [[ "$(docker images -q docker.illumina.com/${IMAGE_NAME} 2> /dev/null)" = "" && ${Image} != ${task_image} ]]; then
-   if [[ "$(docker images -q ${IMAGE_NAME} 2> /dev/null)" = "" ]]; then
+  if [[ "$(docker images -q ${IMAGE_NAME} 2> /dev/null)" = "" && "$(docker images -q docker.illumina.com/${IMAGE_NAME} 2> /dev/null)" = "" ]]; then
       b=$(basename $IMAGE_NAME)
-      if ssh remote@192.168.56.102 stat DTDWD/$b.tar \> /dev/null 2\>\&1
+      if ssh remote@192.168.56.102 stat DTDWD/$b.tar.gz \> /dev/null 2\>\&1
             then
-                    ctx logger info "from local repo."
-                    scp -P 22 remote@192.168.56.102:DTDWD/$b.tar $b.tar
-                    docker load -i $b.tar
+                    echo "from local repo."
+                    scp -P 22 remote@192.168.56.102:DTDWD/$b.tar.gz $b.tar.gz
+                    zcat --fast nj.tar.gz | docker load
+                    Image=${IMAGE_NAME}
                     rm $b.tar
             else
-                    ctx logger info "Public repo. image"
-                    docker pull ${IMAGE_NAME}
+                    set +e
+                      echo "a repo. image docker.illumina.com/${IMAGE_NAME}"
+                      sudo docker pull docker.illumina.com/${IMAGE_NAME} &>/dev/null
+                      Image=docker.illumina.com/${IMAGE_NAME}
+                    set -e
+                    if [[ "$(docker images -q docker.illumina.com/${IMAGE_NAME} 2> /dev/null)" = "" ]]; then
+                       set +e
+                          echo "public repo. image"
+                          sudo docker pull ${IMAGE_NAME} &>/dev/null
+                       set -e
+                       Image=${IMAGE_NAME}
+                    fi
+            
        fi
+   else
+       if [[ "$(docker images -q ${IMAGE_NAME} 2> /dev/null)" != "" ]]; then
+          Image=${IMAGE_NAME}
+       else
+          Image=docker.illumina.com/${IMAGE_NAME}
+       fi  
    fi
-   Image=${IMAGE_NAME}
+   if [[ "$(docker images -q ${IMAGE_NAME} 2> /dev/null)" = "" && ${Image} = ${IMAGE_NAME} ]]; then
+      sudo docker pull rawa/ubuntu14 &>/dev/null
+      Image=rawa/ubuntu14
+   fi
 fi
 #----------- pull the image --------------#
 #-----------------------------------------#
