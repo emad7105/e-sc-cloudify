@@ -2,27 +2,18 @@
 
 set -e
 blueprint=$1
-#block=$(ctx node name)
+#file=$(ctx node properties Source)
 CONTAINER_ID=$2
-sourcefile=${HOME}/input/file.jpg
-#$(ctx node properties Source)
-
-# Start Timestamp
-STARTTIME=`date +%s.%N`
-
-sudo docker exec -it ${CONTAINER_ID} [ ! -d ${blueprint} ] && sudo docker exec -it ${CONTAINER_ID} mkdir ${blueprint}
+input_dir=$3
+inputFile=$4
 
 
-ctx logger info "copy the input"
 
-filename=$(basename "$sourcefile")
-#tar -cf -  ${filename} | docker exec -i ${CONTAINER_ID} /bin/tar -C root/${blueprint} -xf –
-cat ${sourcefile} | docker exec -i ${CONTAINER_ID} sh -c 'cat > /root/'${blueprint}/${filename}
+sudo docker exec -it ${CONTAINER_ID} [ ! -d root/${blueprint} ] && sudo docker exec -it ${CONTAINER_ID} mkdir root/${blueprint}
 
-# End timestamp
-ENDTIME=`date +%s.%N`
 
-# Convert nanoseconds to milliseconds
-# crudely by taking first 3 decimal places
-TIMEDIFF=`echo "$ENDTIME - $STARTTIME" | bc | awk -F"." '{print $1"."substr($2,1,3)}'`
-echo "get data to $CONTAINER_ID: $TIMEDIFF" * | sed 's/[ \t]/, /g' >> ~/list.csv
+ctx logger info "copy the input ${input_dir}/${inputFile}"
+
+cat ${input_dir}/${inputFile} | sudo docker exec -i ${CONTAINER_ID} sh -c 'cat > /root/'${blueprint}/${inputFile}
+
+

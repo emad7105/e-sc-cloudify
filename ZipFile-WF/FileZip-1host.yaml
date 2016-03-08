@@ -1,39 +1,31 @@
-#eSc workflow with 3 real block def deployed in 3 containers to zip a file/ 
+#eSc workflow with 3 real block def deployed in 1 container to zip a file 
 
 tosca_definitions_version: cloudify_dsl_1_0
 
 imports:
   - http://www.getcloudify.org/spec/cloudify/3.1/types.yaml
   - https://raw.githubusercontent.com/cloudify-cosmo/cloudify-docker-plugin/1.1/plugin.yaml
-  - https://raw.githubusercontent.com/rawaqasha/e-sc-cloudify/master/esc_nodetypes.yaml
+  - https://github.com/WorkflowCenter-Repositories/Node-Relationship-Types/raw/master/esc_nodetypes.yaml
+  - https://github.com/WorkflowCenter-Repositories/Node-Relationship-Types/raw/master/ExportFiles-nodetype.yaml
+  - https://github.com/WorkflowCenter-Repositories/Node-Relationship-Types/raw/master/ImportFile_nodetype.yaml
+  - https://github.com/WorkflowCenter-Repositories/Node-Relationship-Types/raw/master/FileZip_nodetype.yaml
   
 inputs:
 
-  host_ip:
+  input-dir:
       description: >
-        The ip of the host the application will be deployed on  
-      default: 127.0.0.1
+        The dir path of the input files  
+      default: '~/input'
 
-  agent_user:
+  input-file:
       description: >
-        User name used when SSH-ing into the started machine
-      default: ubuntu
+        input file for importFile1
+      default: file.jpg
 
-  agent_private_key_path:
-      description: >
-        Path to a private key that resided on the management machine.
-        SSH-ing into agent machines will be done with this key.
-      default: ~/.ssh/agent_key.pem
-
-  install_agent: 
+  docker-image: 
       description: > 
-        When running in local mode set this to false
-      default: false
-
-  input-file: 
-      description: > 
-        The CSV input file for the first block
-      default: " "
+        Docker image to be used for container building
+      default: 'dtdwd/filezip1'
 
 node_types:
 
@@ -42,21 +34,18 @@ node_types:
     properties:
       image_name:
         type: string
-        default: complete-wf4 
+        default: { get_input: docker-image } 
       container_ID:
         type: string
-        default: container1
+        default: container
 
 node_templates:
 
   host:
     type: cloudify.nodes.Compute
     properties:
-      install_agent: { get_input: install_agent }
-      ip: { get_input: host_ip }
-      cloudify_agent:
-        user: { get_input: agent_user }
-        key: { get_input: agent_private_key_path }
+      ip: localhost
+      install_agent: false
 
   starterBlock:
     type: cloudify.nodes.ApplicationModule
@@ -71,10 +60,10 @@ node_templates:
       - type: cloudify.relationships.contained_in
         target: host
 
-  container1:
+  container:
     type: docker_container
     properties:
-      container_ID: container1
+      container_ID: container
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
@@ -98,36 +87,36 @@ node_templates:
           implementation: scripts/java-install2.sh
           inputs:
             process:
-              args: [container1]
+              args: [container]
     relationships:
       - type: cloudify.relationships.depends_on
-        target: container1
+        target: container
       - type: cloudify.relationships.contained_in
-        target: container1
+        target: container
 
   ImportFile:
     type: importfile
     properties:
       block_description: import file
-      block_name: ImportFile1.jar
+      block_name: importfile1.jar
       block_category: File Management
       service_type: block
-      Source: ~/input/file.jpg
+      Source: file.jpg
     interfaces:
       cloudify.interfaces.lifecycle:
         configure:
           implementation: scripts/get-input.sh
           inputs:
             process:
-             args: [FileZip-1host, container1]
+             args: [FileZip-1host, container, { get_input: input-dir }, { get_input: input-file }]
         start: 
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [FileZip-1host, container1, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/ImportFile1.jar']
+             args: [FileZip-1host, container, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/importfile1.jar', { get_input: input-file }]
     relationships:
       - type: cloudify.relationships.contained_in
-        target: container1
+        target: container
       - type: cloudify.relationships.depends_on
         target: Java
 
@@ -135,7 +124,7 @@ node_templates:
     type: zipFile
     properties:
       block_description: invert the column of csv file
-      block_name: ZipFile.jar
+      block_name: filezip2.jar
       block_category: File Management
       service_type: block
     interfaces:
@@ -144,12 +133,10 @@ node_templates:
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [FileZip-1host, container1, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/ZipFile.jar']
+             args: [FileZip-1host, container, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/filezip2.jar', rawa1975]
     relationships:
       - type: cloudify.relationships.contained_in
-        target: container1
-      - type: cloudify.relationships.depends_on
-        target: Java
+        target: container
       - type: block_link
         target: ImportFile
         source_interfaces:
@@ -158,18 +145,18 @@ node_templates:
               implementation: scripts/datacopy.sh
               inputs:
                 process:
-                  args: [ImportFile/output-1, ZipFile/input-1, FileZip-1host, container1]
+                  args: [ImportFile/output-1, ZipFile/input-1, FileZip-1host, container]
         
   ExportFiles:
     type: exportfiles
     properties:
       block_description: export files
-      block_name: ExportFiles1.jar
+      block_name: exportfiles1.jar
       block_category: File Management
       service_type: block
     relationships:
       - type: cloudify.relationships.contained_in
-        target: container1
+        target: container
       - type: block_link
         target: ZipFile
         source_interfaces:
@@ -178,26 +165,29 @@ node_templates:
               implementation: scripts/datacopy.sh
               inputs:
                 process:
-                  args: [ZipFile/output-1, ExportFiles/file-list, FileZip-1host, container1]
-      - type: cloudify.relationships.depends_on
-        target: Java
+                  args: [ZipFile/output-1, ExportFiles/file-list, FileZip-1host, container]
     interfaces:
       cloudify.interfaces.lifecycle:
         start: 
           implementation: scripts/block-deploy3.sh
           inputs:
             process:
-             args: [FileZip-1host, container1, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/ExportFiles1.jar']
+             args: [FileZip-1host, container, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/exportfiles1.jar']
 
   finalBlock:
     type: cloudify.nodes.ApplicationModule
     interfaces:
-      cloudify.interfaces.lifecycle:
-        create:
-          implementation: scripts/final.sh
+      cloudify.interfaces.lifecycle:        
+        configure:
+          implementation: scripts/containers-clean.sh
           inputs:
             process:
-              args: [FileZip-1host, container1]
+              args: []
+        create:
+          implementation: scripts/final-inhost.sh
+          inputs:
+            process:
+              args: [FileZip-1host]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
