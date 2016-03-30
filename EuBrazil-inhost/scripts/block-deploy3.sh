@@ -49,7 +49,7 @@ ENDTIME=`date +%s.%N`
 
 # Convert nanoseconds to milliseconds crudely by taking first 3 decimal places
 TIMEDIFF=`echo "$ENDTIME - $STARTTIME" | bc | awk -F"." '{print $1"."substr($2,1,3)}'`
-echo "Creating ${Image} image : $TIMEDIFF" | sed 's/[ \t]/, /g' >> ~/list.csv
+echo "Creating ${image} image : $TIMEDIFF" | sed 's/[ \t]/, /g' >> ~/list.csv
 
 #----------------------------------- Creating the task image -----------------------------------------#
 #------------------------------------------------------------------------------------------------------#
@@ -72,3 +72,4 @@ ENDTIME=`date +%s.%N`
 # Convert nanoseconds to milliseconds crudely by taking first 3 decimal places
 TIMEDIFF=`echo "$ENDTIME - $STARTTIME" | bc | awk -F"." '{print $1"."substr($2,1,3)}'`
 echo "Execting ${BLOCK_NAME} task : $TIMEDIFF" | sed 's/[ \t]/, /g' >> ~/list.csv
+exec ./scripts/caching-policy.sh ${image} ${CONTAINER_ID} &

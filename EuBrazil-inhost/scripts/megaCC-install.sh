@@ -13,6 +13,9 @@ STARTTIME=`date +%s.%N`
 #ctx logger info "Installing MegaCC lib on ${CONTAINER_NAME}"
 #-------------------------------------------------#
 #---------------- download the lib ---------------#
+sudo docker exec -it ${CONTAINER_NAME} [ ! -d "work" ] && flag=0
+if [[ $flag =  0 ]]; then
+	#echo "not exist"
         set +e
 	  git=$(which git)
         set -e
@@ -21,10 +24,11 @@ STARTTIME=`date +%s.%N`
   	        sudo apt-get -y install git
         fi
 
-if [[ ! -d ~/${blueprint}/work ]]; then
-   git clone ${Lib_URL} ~/${blueprint}/work
+        if [[ ! -d ~/${blueprint}/work ]]; then
+           git clone ${Lib_URL} ~/${blueprint}/work
+        fi
+        sudo docker exec -it ${CONTAINER_NAME} cp -r /root/${blueprint}/work work
 fi
-sudo docker exec -it ${CONTAINER_NAME} [ ! -d "work" ] &&sudo docker exec -it ${CONTAINER_NAME} cp -r /root/${blueprint}/work work
 #---------------- download the lib ---------------#
 #-------------------------------------------------#
 

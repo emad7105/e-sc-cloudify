@@ -14,9 +14,12 @@ ctx logger info "Installing ClustalW lib on ${CONTAINER_NAME}"
 
 #----------------------------------------#
 #----------- download the lib -----------#
-if [[ ! -f ~/${blueprint}/${LIBRARY_NAME}.tar.gz ]]; then
-    wget -O ~/${blueprint}/${LIBRARY_NAME}.tar.gz ${Lib_URL}
-    sudo docker exec -it ${CONTAINER_NAME} tar -zxvf /root/${blueprint}/${LIBRARY_NAME}.tar.gz
+sudo docker exec -it ${CONTAINER_NAME} [ ! -f "clustalw-2.1-linux-x86_64-libcppstatic" ] && flag=0
+if [[ $flag =  0 ]]; then
+   if [[ ! -f ~/${blueprint}/${LIBRARY_NAME}.tar.gz ]]; then
+     wget -O ~/${blueprint}/${LIBRARY_NAME}.tar.gz ${Lib_URL}
+     sudo docker exec -it ${CONTAINER_NAME} tar -zxvf /root/${blueprint}/${LIBRARY_NAME}.tar.gz
+   fi
 fi
 #---------- download the lib ------------#
 #----------------------------------------#
