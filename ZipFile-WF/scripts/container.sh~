@@ -55,7 +55,7 @@ else
                 set -e    
                 Image=dtdwd/${task_image}
              else                     
-                dock=$(sudo docker search dtdwd/${task_image})     #task image from public hub
+                dock=$(sudo docker search dtdwd/${task_image})
                 set +e
                    found=`echo $dock | grep -c dtdwd/${task_image}`                   
                 set -e

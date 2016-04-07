@@ -64,7 +64,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: scripts/container1.sh
+          implementation: scripts/container.sh
           inputs:
             process:
               args: [FileZip-WF, get_property: [ImportFile, block_name]]
@@ -124,7 +124,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         start:
-          implementation: scripts/container1.sh
+          implementation: scripts/container.sh
           inputs:
             process:
               args: [FileZip-WF, get_property: [ZipFile, block_name]]
@@ -190,7 +190,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         start:
-          implementation: scripts/container1.sh
+          implementation: scripts/container.sh
           inputs:
             process:
               args: [FileZip-WF, get_property: [ExportFiles, block_name]]

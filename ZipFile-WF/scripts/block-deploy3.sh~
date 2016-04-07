@@ -77,12 +77,12 @@ set -x
   #parallel -j0 bash : scripts/caching-policy.sh ${image} ${CONTAINER_ID}
  status=`ps -efww | grep -w "[c]aching-policy.sh" | awk -vpid=$$ '$2 != pid { print $2 }'`
   ctx logger info "$status"
- #if [ -z "$status" ]; then
+ if [ -z "$status" ]; then
     ctx logger info "start caching"
     nohup scripts/caching-policy.sh ${image} ${CONTAINER_ID} > log.out 2> log.err < /dev/null &
-  #else
-  # ctx logger info "waiting for previous caching"
-  # sleep 5
-  #fi
+  else
+   ctx logger info "waiting for previous caching"
+   sleep 5
+  fi
    
 set +x
