@@ -709,7 +709,7 @@ relationships:
     source_interfaces:
       cloudify.interfaces.relationship_lifecycle:
           preconfigure:
-              implementation: scripts/datacopy.sh
+              implementation: Core-LifecycleScripts/datacopy.sh
 
   DataWrapperLink:
     derived_from: block_link
