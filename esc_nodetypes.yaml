@@ -12,6 +12,9 @@ node_types:
         type: string
       service_type:
         type: string
+      block_Url:
+        type: string
+        default: ''
 # eSc blocks
   importfile:
     derived_from: workflow_service
