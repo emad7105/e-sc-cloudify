@@ -11,7 +11,7 @@ STARTTIME=`date +%s.%N`
  
 #-----------------------------------------#
 #----------- pull the image --------------#
-
+# searching based on specified image
 
 Image=''
 task_image=$(echo ${BLOCK_NAME} | cut -f 1 -d '.')

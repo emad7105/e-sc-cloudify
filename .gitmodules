@@ -1,0 +1,6 @@
+[submodule "EuBrazil-inhost/Core-LifecycleScripts"]
+	path = EuBrazil-inhost/Core-LifecycleScripts
+	url = https://github.com/WorkflowCenter-Repositories/Core-LifecycleScripts.git
+[submodule "ZipFile-WF/Core-LifecycleScripts"]
+	path = ZipFile-WF/Core-LifecycleScripts
+	url = https://github.com/WorkflowCenter-Repositories/Core-LifecycleScripts.git

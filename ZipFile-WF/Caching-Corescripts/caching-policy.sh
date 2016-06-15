@@ -26,7 +26,7 @@ if ! ssh remote@192.168.56.103 stat DTDWD/$task.tar.gz \> /dev/null 2\>\&1   #ch
 	      while [ $total -ge 3000000 ]; do                      #check if the sum exceed max cache size
 
 		   #Get the least used Image from cache
-		   Least_used=$(ssh remote@192.168.56.193 find DTDWD -type f -printf "%T@ %p\n" | sort -n -r | cut -d' ' -f 2 | tail -n 1)
+		   Least_used=$(ssh remote@192.168.56.103 find DTDWD -type f -printf "%T@ %p\n" | sort -n -r | cut -d' ' -f 2 | tail -n 1)
                    image=$(basename ${Least_used} .tar.gz)        #extract image tag
 		   
 		   

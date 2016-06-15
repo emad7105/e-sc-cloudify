@@ -1,5 +1,3 @@
-#eSc workflow with 3 real block def deployed in 3 containers to zip a file 
-
 tosca_definitions_version: cloudify_dsl_1_0
 
 imports:
@@ -39,7 +37,7 @@ node_types:
         default: { get_input: docker-image } 
       container_ID:
         type: string
-        default: container1
+        default: container
 
 node_templates:
 
@@ -57,22 +55,22 @@ node_templates:
           implementation: Caching-Corescripts/start-inhost.sh
           inputs:
             process:
-              args: [FileZip-WF]
+              args: [FileZip-1container]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
 
-  container1:
+  container:
     type: docker_container
     properties:
-      container_ID: container1
+      container_ID: container
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: Caching-Corescripts/container.sh
+          implementation: Caching-Corescripts/container-WF.sh
           inputs:
             process:
-              args: [FileZip-WF, get_property: [ImportFile, block_Url]]
+              args: [FileZip-1container]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -89,10 +87,12 @@ node_templates:
           implementation: scripts/java-install2.sh
           inputs:
             process:
-              args: [container1, FileZip-WF, '7']
+              args: [container, FileZip-1container, '7']
     relationships:
+      - type: cloudify.relationships.depends_on
+        target: container
       - type: cloudify.relationships.contained_in
-        target: container1
+        target: container
 
   ImportFile:
     type: importfile
@@ -106,129 +106,60 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: Caching-Corescripts/task-download-multi.sh
+          implementation: Caching-Corescripts/task-download-single.sh
           inputs:
             process:
-             args: [{ get_input: create_image }, container1, get_property: [ImportFile, block_Url]]
+             args: [FileZip-1container, container, get_property: [ImportFile, block_Url]]
         configure:
           implementation: scripts/get-input.sh
           inputs:
             process:
-             args: [FileZip-WF, container1, { get_input: input-dir }, { get_input: input-file }]
+             args: [FileZip-1container, container, { get_input: input-dir }, { get_input: input-file }]
         start: 
           implementation: Caching-Corescripts/task-deploy.sh
           inputs:
             process:
-             args: [FileZip-WF, container1, { get_input: input-file }]
+             args: [FileZip-1container, container, { get_input: input-file }]
     relationships:
       - type: cloudify.relationships.contained_in
-        target: container1
+        target: container
       - type: cloudify.relationships.depends_on
         target: Java
-
-  container2:
-    type: docker_container
-    properties:
-      container_ID: container2
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        start:
-          implementation: Caching-Corescripts/container.sh
-          inputs:
-            process:
-              args: [FileZip-WF, get_property: [ZipFile, block_Url]]
-    relationships:
-      - type: cloudify.relationships.contained_in
-        target: host
-      - type: cloudify.relationships.depends_on
-        target: ImportFile
-
-  Java2:
-    type: spec_library
-    properties:
-      lib_name: default-jdk
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        create:
-          implementation: scripts/java-install2.sh
-          inputs:
-            process:
-              args: [container2, FileZip-WF, '7']
-    relationships:
-      - type: cloudify.relationships.contained_in
-        target: container2
 
   ZipFile:
     type: zipFile
     properties:
       block_description: invert the column of csv file
-      block_name: filezip1.jar
+      block_name: filezip2.jar
       block_category: File Management
-      service_type: block
       block_Url: https://github.com/WorkflowCenter-Repositories/ZipFile-Task/raw/v1.0/filezip1.jar
+      service_type: block
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: Caching-Corescripts/task-download-multi.sh
+          implementation: Caching-Corescripts/task-download-single.sh
           inputs:
             process:
-             args: [{ get_input: create_image }, container2, get_property: [ZipFile, block_Url]]
-        configure:
-          implementation: Caching-Corescripts/containers-clean.sh
-          inputs:
-            process:
-             args: [container1]
+             args: [FileZip-1container, container, get_property: [ZipFile, block_Url]]
         start: 
           implementation: Caching-Corescripts/task-deploy.sh
           inputs:
             process:
-             args: [FileZip-WF, container2]
+             args: [FileZip-1container, container, rawa1975]
     relationships:
       - type: cloudify.relationships.contained_in
-        target: container2
+        target: container
       - type: cloudify.relationships.depends_on
-        target: Java2
+        target: Java
       - type: block_link
         target: ImportFile
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
             preconfigure:
-              implementation: scripts/datacopy.sh
+              implementation: Caching-Corescripts/datacopy.sh
               inputs:
                 process:
-                  args: [ImportFile/output-1, ZipFile/input-1, FileZip-WF, container2]
-
-  container3:
-    type: docker_container
-    properties:
-      container_ID: container3
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        start:
-          implementation: Caching-Corescripts/container.sh
-          inputs:
-            process:
-              args: [FileZip-WF, get_property: [ExportFiles, block_name]]
-    relationships:
-      - type: cloudify.relationships.contained_in
-        target: host
-      - type: cloudify.relationships.depends_on
-        target: ZipFile
-
-  Java3:
-    type: spec_library
-    properties:
-      lib_name: default-jdk
-    interfaces:
-      cloudify.interfaces.lifecycle:
-        create:
-          implementation: scripts/java-install2.sh
-          inputs:
-            process:
-              args: [container3, FileZip-WF, '7']
-    relationships:
-      - type: cloudify.relationships.contained_in
-        target: container3
+                  args: [ImportFile/output-1, ZipFile/input-1, FileZip-1container, container]
         
   ExportFiles:
     type: exportfiles
@@ -236,54 +167,52 @@ node_templates:
       block_description: export files
       block_name: exportfiles1.jar
       block_category: File Management
-      service_type: block
       block_Url: 'https://github.com/WorkflowCenter-Repositories/ExportFiles-Task/raw/v1.0/exportfiles1.jar'
+      service_type: block
     relationships:
       - type: cloudify.relationships.contained_in
-        target: container3
+        target: container
       - type: block_link
         target: ZipFile
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
             preconfigure:
-              implementation: scripts/datacopy.sh
+              implementation: Caching-Corescripts/datacopy.sh
               inputs:
                 process:
-                  args: [ZipFile/output-1, ExportFiles/file-list, FileZip-WF, container3]
-      - type: cloudify.relationships.depends_on
-        target: Java3
+                  args: [ZipFile/output-1, ExportFiles/file-list, FileZip-1container, container]
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: Caching-Corescripts/task-download-multi.sh
+          implementation: Caching-Corescripts/task-download-single.sh
           inputs:
             process:
-             args: [{ get_input: create_image }, container3, get_property: [ExportFiles, block_Url]]
-        configure:
-          implementation: Caching-Corescripts/containers-clean.sh
-          inputs:
-            process:
-             args: [container2]
+             args: [FileZip-1container, container, get_property: [ExportFiles, block_Url]]
         start: 
-          implementation: Caching-Corescripts//task-deploy.sh
+          implementation: Caching-Corescripts/task-deploy.sh
           inputs:
             process:
-             args: [FileZip-WF, container3]
+             args: [FileZip-1container, container]
 
   finalBlock:
     type: cloudify.nodes.ApplicationModule
     interfaces:
-      cloudify.interfaces.lifecycle:        
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: Caching-Corescripts/image_create.sh
+          inputs:
+            process:
+             args: [container, { get_input: create_image }]       
         configure:
           implementation: Caching-Corescripts/containers-clean.sh
           inputs:
             process:
-              args: [container3]
-        create:
+              args: [container]
+        start:
           implementation: Caching-Corescripts/final-inhost.sh
           inputs:
             process:
-              args: [FileZip-WF]
+              args: [FileZip-1container]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host

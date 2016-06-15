@@ -1,5 +1,5 @@
 #!/bin/bash
-
+# mixing task-based and specified based
 set -e
 blueprint=$1
 CONTAINER_NAME=$(ctx node properties container_ID)

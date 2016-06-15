@@ -4,17 +4,26 @@ set -e
 blueprint=$1
 CONTAINER_NAME=$(ctx node properties container_ID)
 IMAGE_NAME=$(ctx node properties image_name)
-BLOCK_NAME=$2
+BLOCK_Url=$2
 
 # Start Timestamp
 STARTTIME=`date +%s.%N`
  
 #-----------------------------------------#
 #----------- pull the image --------------#
-
+set +e
 Image=''
-task_image=$(echo ${BLOCK_NAME} | cut -f 1 -d '.')
-#ctx logger info "image is ${BLOCK_NAME}"
+# getting block info
+path=${BLOCK_Url%/*}   
+ver=$(echo ${path##*/})                                      #get task version
+block=$(echo ${BLOCK_Url##*/})                               #get task name
+name=$(echo ${block%.*})                                     #get task name without extension
+
+base=${IMAGE_NAME//['/:']/_}
+
+task_image="$base.$name-$ver"
+ctx logger info "image is ${task_image}"
+set -e
 
 if [[ "$(docker images -q dtdwd/${task_image} 2> /dev/null)" != "" ]]; then
  ctx logger info "local task image"

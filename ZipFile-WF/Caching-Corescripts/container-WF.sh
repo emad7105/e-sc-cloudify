@@ -4,41 +4,51 @@ set -e
 blueprint=$1
 CONTAINER_NAME=$(ctx node properties container_ID)
 IMAGE_NAME=$(ctx node properties image_name)
-BLOCK_NAME=$2
+
 
 # Start Timestamp
 STARTTIME=`date +%s.%N`
  
 #-----------------------------------------#
 #----------- pull the image --------------#
+set +e
+   Image=''
+   base=${IMAGE_NAME//['/:']/_}
+   tag=$(git describe --exact-match --tags $(git log -n1 --pretty='%h'))
+   branch=$(git rev-parse --abbrev-ref HEAD)         
+   wf=${PWD##*/}    # get WF name
+   if [[ -z $tag ]]; then
+     image=$base-$wf-$branch
+   else 
+     image=$base-$wf-$branch:$tag
+   fi 
+   image=${image,,}
+ctx logger info "image is ${image}"
+set -e
 
-Image=''
-task_image=$(echo ${BLOCK_NAME} | cut -f 1 -d '.')
-#ctx logger info "image is ${BLOCK_NAME}"
-
-if [[ "$(docker images -q dtdwd/${task_image} 2> /dev/null)" != "" ]]; then
+if [[ "$(docker images -q dtdwd/${image} 2> /dev/null)" != "" ]]; then
  ctx logger info "local task image"
- Image=dtdwd/${task_image}
+ Image=dtdwd/${image}
 else 
-   ssh remote@192.168.56.103 test -f "DTDWD/${task_image}.tar.gz" && flag=1
+   ssh remote@192.168.56.103 test -f "DTDWD/${image}.tar.gz" && flag=1
    #ctx logger info "$flag"
    if [[  $flag = 1  ]]; then
       ctx logger info "cached task image"
       set +e           
-          scp -P 22 remote@192.168.56.103:DTDWD/${task_image}.tar.gz ${task_image}.tar.gz
-          zcat --fast ${task_image}.tar.gz | docker load
-          rm ${task_image}.tar.gz
+          scp -P 22 remote@192.168.56.103:DTDWD/${image}.tar.gz ${image}.tar.gz
+          zcat --fast ${image}.tar.gz | docker load
+          rm ${image}.tar.gz
       set -e    
-      Image=dtdwd/${task_image}
+      Image=dtdwd/${image}
   else
-      dock=$(sudo docker search dtdwd/${task_image})     #task image from public hub
+      dock=$(sudo docker search dtdwd/${image})     #task image from public hub
       set +e
-        found=`echo $dock | grep -c dtdwd/${task_image}`                   
+        found=`echo $dock | grep -c dtdwd/${image}`                   
       set -e
       if [[ $found = 1 ]]; then
          ctx logger info "task image from public hub"
-         sudo docker pull dtdwd/${task_image} &>/dev/null
-         Image=dtdwd/${task_image}
+         sudo docker pull dtdwd/${image} &>/dev/null
+         Image=dtdwd/${image}
       else
           if [[ "$(docker images -q ${IMAGE_NAME} 2> /dev/null)" != "" ]]; then
              sudo docker pull ${IMAGE_NAME}

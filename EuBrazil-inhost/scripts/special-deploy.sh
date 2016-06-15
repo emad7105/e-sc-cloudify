@@ -71,4 +71,6 @@ ENDTIME=`date +%s.%N`
 TIMEDIFF=`echo "$ENDTIME - $STARTTIME" | bc | awk -F"." '{print $1"."substr($2,1,3)}'`
 echo "Executing ${BLOCK_NAME} task : $TIMEDIFF" | sed 's/[ \t]/, /g' >> ~/list.csv
 
-
+#caching the created image
+exec ./scripts/caching-policy.sh ${image} ${CONTAINER_ID} &
+exec ./scripts/caching-public.sh ${image} &

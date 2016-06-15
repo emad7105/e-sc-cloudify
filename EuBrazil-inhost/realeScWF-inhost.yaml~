@@ -18,10 +18,15 @@ inputs:
         input file for importFile1
       default: file1.txt
 
+  input-file2:
+      description: >
+        input file for importFile2
+      default: file2.txt
+
   docker-image: 
       description: > 
         Docker image to be used for container building
-      default: 'dtdwd/filezip1'
+      default: 'dtdwd/nj'
 
 node_types:
 

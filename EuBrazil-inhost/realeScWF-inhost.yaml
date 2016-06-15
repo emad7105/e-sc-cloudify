@@ -69,7 +69,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: scripts/container.sh
+          implementation: scripts/container1.sh
           inputs:
             process:
               args: [realeScWF-inhost, importfile1.jar]
@@ -127,7 +127,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:        
         start:
-          implementation: scripts/container.sh
+          implementation: scripts/container1.sh
           inputs:
             process:
               args: [realeScWF-inhost, importfile1.jar]
@@ -186,7 +186,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         start:
-          implementation: scripts/container.sh
+          implementation: scripts/container1.sh
           inputs:
             process:
               args: [realeScWF-inhost, get_property: [FileJoin, block_name]]
@@ -264,7 +264,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         start:
-          implementation: scripts/container.sh
+          implementation: scripts/container1.sh
           inputs:
             process:
               args: [realeScWF-inhost, get_property: [FilterDupl, block_name]]
@@ -331,7 +331,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         start:
-          implementation: scripts/container.sh
+          implementation: scripts/container1.sh
           inputs:
             process:
               args: [realeScWF-inhost, get_property: [ClustalW, block_name]]
@@ -418,7 +418,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         start:
-          implementation: scripts/container.sh
+          implementation: scripts/container1.sh
           inputs:
             process:
               args: [realeScWF-inhost, get_property: [Mega-NJ, block_name]]
@@ -531,7 +531,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         start:
-          implementation: scripts/container.sh
+          implementation: scripts/container1.sh
           inputs:
             process:
               args: [realeScWF-inhost, get_property: [ExportFiles3, block_name]]
@@ -597,7 +597,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         start:
-          implementation: scripts/container.sh
+          implementation: scripts/container1.sh
           inputs:
             process:
               args: [realeScWF-inhost, get_property: [ExportFiles2, block_name]]
@@ -658,7 +658,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         start:
-          implementation: scripts/container.sh
+          implementation: scripts/container1.sh
           inputs:
             process:
               args: [realeScWF-inhost, get_property: [ExportFiles3, block_name]]
@@ -720,7 +720,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
          start:
-          implementation: scripts/container.sh
+          implementation: scripts/container1.sh
           inputs:
             process:
               args: [realeScWF-inhost, get_property: [CSV_export1, block_name]]
@@ -782,7 +782,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         start:
-          implementation: scripts/container.sh
+          implementation: scripts/container1.sh
           inputs:
             process:
               args: [realeScWF-inhost, get_property: [CSV_export2, block_name]]
