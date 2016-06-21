@@ -4,7 +4,6 @@ set -e
 blueprint=$1
 
 
-
 ctx logger info "cleaning"
 
 for dir in ~/${blueprint}/*/

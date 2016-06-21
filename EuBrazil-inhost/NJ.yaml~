@@ -26,7 +26,12 @@ inputs:
   docker-image: 
       description: > 
         Docker image to be used for container building
-      default: 'rawa/ubuntu14'
+      default: 'ubuntu:14.04'
+
+  create_image:
+      description: > 
+        an option to create Docker images
+      default: 'True'
 
 node_types:
 
@@ -53,10 +58,10 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: scripts/start-inhost.sh
+          implementation: Core-LifecycleScripts/start-inhost.sh
           inputs:
             process:
-              args: [realeScWF-mixed]
+              args: [NJ]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -64,15 +69,15 @@ node_templates:
   container1:
     type: docker_container
     properties:
-      #image_name: ubuntu:14.04
+      #image_name: dtdwd/importfile1
       container_ID: container1
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: scripts/container.sh
+          implementation: Caching-Corescripts/container.sh
           inputs:
             process:
-              args: [realeScWF-mixed]
+              args: [NJ, get_property: [importFile1, block_Url]]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -89,7 +94,7 @@ node_templates:
           implementation: scripts/java-install2.sh
           inputs:
             process:
-              args: [container1]
+              args: [container1, NJ, '7']
     relationships:
       - type: cloudify.relationships.contained_in
         target: container1
@@ -98,65 +103,110 @@ node_templates:
     type: importfile
     properties:
       block_description: import file
-      block_name: ImportFile1.jar
+      block_name: importfile1.jar
       block_category: File Management
       service_type: block
+      block_Url: 'https://github.com/WorkflowCenter-Repositories/ImportFile-Task/raw/v1.0/importfile1.jar'
       Source: file1.txt
     interfaces:
       cloudify.interfaces.lifecycle:
+        create:
+          implementation: Caching-Corescripts/task-download-multi.sh
+          inputs:
+            process:
+             args: [{ get_input: create_image }, container1, get_property: [importFile1, block_Url]]
         configure:
           implementation: scripts/get-input.sh
           inputs:
             process:
-             args: [realeScWF-mixed, container1, { get_input: input-dir }, { get_input: input-file1 }] 
+             args: [NJ, container1, { get_input: input-dir }, { get_input: input-file1 }]
         start: 
-          implementation: scripts/block-deploy3.sh
+          implementation: Caching-Corescripts/task-deploy.sh
           inputs:
             process:
-             args: [realeScWF-mixed, container1, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/ImportFile1.jar']
+             args: [NJ, container1, { get_input: input-file1 }]
     relationships:
       - type: cloudify.relationships.contained_in
         target: container1
       - type: cloudify.relationships.depends_on
         target: Java
+
+  container2:
+    type: docker_container
+    properties:
+      container_ID: container2
+    interfaces:
+      cloudify.interfaces.lifecycle:        
+        start:
+          implementation: Caching-Corescripts/container.sh
+          inputs:
+            process:
+              args: [NJ, get_property: [importFile2, block_Url]]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host
+      - type: cloudify.relationships.depends_on
+        target: importFile1
+
+  Java1:
+    type: spec_library
+    properties:
+      lib_name: default-jdk
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/java-install2.sh
+          inputs:
+            process:
+              args: [container2, NJ, '7']
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container2
 
   importFile2:
     type: importfile
     properties:
       block_description: import file
-      block_name: ImportFile1.jar
+      block_name: importfile1.jar
       block_category: File Management
       service_type: block
+      block_Url: 'https://github.com/WorkflowCenter-Repositories/ImportFile-Task/raw/v1.0/importfile1.jar'
       Source: file2.txt
     interfaces:
       cloudify.interfaces.lifecycle:
+        create:
+          implementation: Caching-Corescripts/task-download-multi.sh
+          inputs:
+            process:
+             args: [{ get_input: create_image }, container2, get_property: [importFile2, block_Url]]
         configure:
           implementation: scripts/get-input.sh
           inputs:
             process:
-             args: [realeScWF-mixed, container1, { get_input: input-dir }, { get_input: input-file2 }]
+             args: [NJ, container2, { get_input: input-dir }, { get_input: input-file2 }]
         start: 
-          implementation: scripts/block-deploy3.sh
+          implementation: Caching-Corescripts/task-deploy.sh
           inputs:
             process:
-             args: [realeScWF-mixed, container1, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/ImportFile1.jar']
+             args: [NJ, container2, { get_input: input-file2 }]
     relationships:
       - type: cloudify.relationships.contained_in
-        target: container1
+        target: container2
       - type: cloudify.relationships.depends_on
-        target: Java
+        target: Java1
 
   container3:
     type: docker_container
     properties:
+      #image_name: dtdwd/filejoin1
       container_ID: container3
     interfaces:
       cloudify.interfaces.lifecycle:
         start:
-          implementation: scripts/container.sh
+          implementation: Caching-Corescripts/container.sh
           inputs:
             process:
-              args: [realeScWF-mixed]
+              args: [NJ, get_property: [FileJoin, block_Url]]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -173,7 +223,7 @@ node_templates:
           implementation: scripts/java-install2.sh
           inputs:
             process:
-              args: [container3]
+              args: [container3, NJ, '7']
     relationships:
       - type: cloudify.relationships.contained_in
         target: container3
@@ -182,9 +232,10 @@ node_templates:
     type: fileJoin
     properties:
       block_description: concatenate 2 files
-      block_name: FileJoin1.jar
+      block_name: filejoin1.jar
       block_category: File Management
       service_type: block
+      block_Url: 'https://github.com/WorkflowCenter-Repositories/File-Join-Task/raw/v1.0/filejoin1.jar'
       file-1: importFile1/output-1
       file-2: importFile2/output-1
     relationships:
@@ -195,45 +246,51 @@ node_templates:
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
             preconfigure:
-              implementation: scripts/datacopy.sh
+              implementation: Core-LifecycleScripts/datacopy.sh
               inputs:
                 process:
-                  args: [importFile1/output-1, FileJoin/file-1, realeScWF-mixed, container3]
+                  args: [importFile1/output-1, FileJoin/file-1, NJ, container3]
       - type: block_link
         target: importFile2
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
             preconfigure:
-              implementation: scripts/datacopy.sh
+              implementation: Core-LifecycleScripts/datacopy.sh
               inputs:
                 process:
-                  args: [importFile2/output-1, FileJoin/file-2, realeScWF-mixed, container3]
+                  args: [importFile2/output-1, FileJoin/file-2, NJ, container3]
       - type: cloudify.relationships.depends_on
         target: Java2
     interfaces:
       cloudify.interfaces.lifecycle:
+        create:
+          implementation: Caching-Corescripts/task-download-multi.sh
+          inputs:
+            process:
+             args: [{ get_input: create_image }, container3, get_property: [FileJoin, block_Url]]
         configure:
-          implementation: scripts/containers-clean.sh
+          implementation: Core-LifecycleScripts/containers-clean.sh
           inputs:
             process:
-             args: [container1]
+             args: [container1, container2]
         start:
-          implementation: scripts/block-deploy3.sh
+          implementation: Caching-Corescripts/task-deploy.sh
           inputs:
             process:
-             args: [realeScWF-mixed, container3, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/FileJoin1.jar']
+              args: [NJ, container3]
 
   container4:
     type: docker_container
     properties:
+      #image_name: dtdwd/filterduplicates1
       container_ID: container4
     interfaces:
       cloudify.interfaces.lifecycle:
         start:
-          implementation: scripts/container.sh
+          implementation: Caching-Corescripts/container.sh
           inputs:
             process:
-              args: [realeScWF-mixed]
+              args: [NJ, get_property: [FilterDupl, block_Url]]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -250,7 +307,7 @@ node_templates:
           implementation: scripts/java-install2.sh
           inputs:
             process:
-              args: [container4]
+              args: [container4, NJ, '7']
     relationships:
       - type: cloudify.relationships.contained_in
         target: container4
@@ -259,9 +316,10 @@ node_templates:
     type: filterDupl
     properties:
       block_description: I don't know
-      block_name: FilterDuplicates.jar
+      block_name: filterduplicates1.jar
       block_category: File Management
-      service_type: block      
+      service_type: block
+      block_Url: https://github.com/WorkflowCenter-Repositories/Filter-Duplicate-Task/raw/v1.0/filterduplicates1.jar
     relationships:
       - type: cloudify.relationships.contained_in
         target: container4
@@ -272,35 +330,40 @@ node_templates:
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
             preconfigure:
-              implementation: scripts/datacopy.sh
+              implementation: Core-LifecycleScripts/datacopy.sh
               inputs:
                 process:
-                  args: [FileJoin/file-3, FilterDupl/fasta-files, realeScWF-mixed, container4]
+                  args: [FileJoin/file-3, FilterDupl/fasta-files, NJ, container4]
     interfaces:
       cloudify.interfaces.lifecycle:
+        create:
+          implementation: Caching-Corescripts/task-download-multi.sh
+          inputs:
+            process:
+             args: [{ get_input: create_image }, container4, get_property: [FilterDupl, block_Url]]
         configure:
-          implementation: scripts/containers-clean.sh
+          implementation: Core-LifecycleScripts/containers-clean.sh
           inputs:
             process:
              args: [container3]
         start:
-          implementation: scripts/block-deploy3.sh
+          implementation: Caching-Corescripts/task-deploy.sh
           inputs:
             process:
-              args: [realeScWF-mixed, container4, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/FilterDuplicates1.jar']
+              args: [NJ, container4]
 
   container5:
     type: docker_container
     properties:
-      image_name: rawa/clustalw
+      #image_name: dtdwd/clustalw1
       container_ID: container5
     interfaces:
       cloudify.interfaces.lifecycle:
         start:
-          implementation: scripts/container.sh
+          implementation: Caching-Corescripts/container.sh
           inputs:
             process:
-              args: [realeScWF-mixed]
+              args: [NJ, get_property: [ClustalW, block_Url]]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -317,7 +380,7 @@ node_templates:
           implementation: scripts/java-install2.sh
           inputs:
             process:
-              args: [container5]
+              args: [container5, NJ, '7']
     relationships:
       - type: cloudify.relationships.contained_in
         target: container5
@@ -325,15 +388,17 @@ node_templates:
   ClustalW_Lib:
     type: clustalw_lib
     properties:
-      lib_name: clustalw-2.1-linux-x86_64-libcppstatic
+      lib_name: clustalw2
       lib_URL: http://www.clustal.org/download/current/clustalw-2.1-linux-x86_64-libcppstatic.tar.gz
+      lib_path: clustalw-2.1-linux-x86_64-libcppstatic
+      version: 2.1
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: scripts/clustalw-install.sh
+          implementation: Core-LifecycleScripts/Lib-install.sh
           inputs:
             process:
-              args: [container5, 'http://www.clustal.org/download/current/clustalw-2.1-linux-x86_64-libcppstatic.tar.gz']
+              args: [container5, get_property: [ClustalW_Lib, lib_URL]]
     relationships:
       - type: cloudify.relationships.depends_on
         target: Java4
@@ -344,11 +409,12 @@ node_templates:
     type: clustalW
     properties:
       block_description: I don't know
-      block_name: ClustalW1.jar
+      block_name: clustalw1.jar
       block_category: File Management
       service_type: block
       Align: true
       Output-Type: CLUSTAL
+      block_Url: 'https://github.com/WorkflowCenter-Repositories/ClustalW-Task/raw/v1.0/clustalw1.jar'
     relationships:
       - type: cloudify.relationships.contained_in
         target: container5
@@ -359,35 +425,40 @@ node_templates:
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
             preconfigure:
-              implementation: scripts/datacopy.sh
+              implementation: Core-LifecycleScripts/datacopy.sh
               inputs:
                 process:
-                  args: [FilterDupl/filtered-fasta-files, ClustalW/input-sequences, realeScWF-mixed, container5]        
+                  args: [FilterDupl/filtered-fasta-files, ClustalW/input-sequences, NJ, container5]        
     interfaces:
       cloudify.interfaces.lifecycle:
+        create:
+          implementation: Caching-Corescripts/task-download-multi.sh
+          inputs:
+            process:
+             args: [{ get_input: create_image }, container5, get_property: [ClustalW, block_Url]]
         configure:
-          implementation: scripts/containers-clean.sh
+          implementation: Core-LifecycleScripts/containers-clean.sh
           inputs:
             process:
              args: [container4]
         start:
-          implementation: scripts/special-deploy.sh
+          implementation: Caching-Corescripts/task-deploy.sh
           inputs:
             process:
-              args: [realeScWF-mixed, container5, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/ClustalW1.jar',  get_property: [ClustalW_Lib, lib_name]]
+              args: [NJ, container5,  get_property: [ClustalW_Lib, lib_path]]
 
   container6:
     type: docker_container
     properties:
-      image_name: rawa/mega-cc
+      #image_name: dtdwd/mega-nj1
       container_ID: container6
     interfaces:
       cloudify.interfaces.lifecycle:
         start:
-          implementation: scripts/container.sh
+          implementation: Caching-Corescripts/container.sh
           inputs:
             process:
-              args: [realeScWF-mixed]
+              args: [NJ, get_property: [Mega-NJ, block_Url]]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -404,7 +475,7 @@ node_templates:
           implementation: scripts/java-install2.sh
           inputs:
             process:
-              args: [container6]
+              args: [container6, NJ, '7']
     relationships:
       - type: cloudify.relationships.contained_in
         target: container6
@@ -421,6 +492,8 @@ node_templates:
             process:
               args: [container6]
     relationships:
+      - type: cloudify.relationships.depends_on
+        target: Java5
       - type: cloudify.relationships.contained_in
         target: container6
 
@@ -429,14 +502,15 @@ node_templates:
     properties:
       lib_name: megacc.exe
       lib_URL: http://www.megasoftware.net/
-      lib_path: work
+      lib_path: Mega-CC
+      version: 6.0
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: scripts/megaCC-install.sh
+          implementation: Core-LifecycleScripts/Lib-install.sh
           inputs:
             process:
-              args: [container6, 'https://github.com/rawaqasha/work.git']
+              args: [container6, 'https://github.com/rawaqasha/Libs/raw/master/Mega-CC.tar.gz']
     relationships:
       - type: cloudify.relationships.depends_on
         target: Wine
@@ -447,7 +521,7 @@ node_templates:
     type: mega-nj
     properties:
       block_description: I don't know
-      block_name: Mega-NJ1.jar
+      block_name: mega-nj1.jar
       block_category: File Management
       service_type: block 
       test_of_phylogeny: Bootstrap method
@@ -458,6 +532,7 @@ node_templates:
       gamma_parameter: 1
       gaps/missing_data_treatment: 'Complete deletion'       
       site_coverage_cutoff(%): 95
+      block_Url: https://github.com/WorkflowCenter-Repositories/Mega-NJ-Task/raw/v1.0/mega-nj1.jar
     relationships:
       - type: cloudify.relationships.contained_in
         target: container6
@@ -470,14 +545,19 @@ node_templates:
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
             preconfigure:
-              implementation: scripts/datacopy.sh
+              implementation: Core-LifecycleScripts/datacopy.sh
               inputs:
                 process:
-                  args: [ClustalW/aligned-sequences, Mega-NJ/input-data, realeScWF-mixed, container6]        
+                  args: [ClustalW/aligned-sequences, Mega-NJ/input-data, NJ, container6]        
     interfaces:
       cloudify.interfaces.lifecycle:
+        create:
+          implementation: Caching-Corescripts/task-download-multi.sh
+          inputs:
+            process:
+             args: [{ get_input: create_image }, container6, get_property: [Mega-NJ, block_Url]]
         configure:
-          implementation: scripts/containers-clean.sh
+          implementation: Core-LifecycleScripts/containers-clean.sh
           inputs:
             process:
              args: [container5]
@@ -485,19 +565,20 @@ node_templates:
           implementation: scripts/special-deploy.sh
           inputs:
             process:
-              args: [realeScWF-mixed, container6, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/Mega-NJ1.jar',  get_property: [Mega-CC, lib_path]]
+              args: [NJ, container6, 'Mega-CC']
 
   container7:
     type: docker_container
     properties:
+      #image_name: dtdwd/exportfiles1
       container_ID: container7
     interfaces:
       cloudify.interfaces.lifecycle:
         start:
-          implementation: scripts/container.sh
+          implementation: Caching-Corescripts/container.sh
           inputs:
             process:
-              args: [realeScWF-mixed]
+              args: [NJ, get_property: [ExportFiles3, block_Url]]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -514,7 +595,7 @@ node_templates:
           implementation: scripts/java-install2.sh
           inputs:
             process:
-              args: [container7]
+              args: [container7, NJ, '7']
     relationships:
       - type: cloudify.relationships.contained_in
         target: container7
@@ -523,9 +604,10 @@ node_templates:
     type: exportfiles
     properties:
       block_description: export files
-      block_name: ExportFiles1.jar
+      block_name: exportfiles1.jar
       block_category: File Management
       service_type: block
+      block_Url: 'https://github.com/WorkflowCenter-Repositories/ExportFiles-Task/raw/v1.0/exportfiles1.jar'
     relationships:
       - type: cloudify.relationships.contained_in
         target: container7
@@ -534,94 +616,176 @@ node_templates:
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
             preconfigure:
-              implementation: scripts/datacopy.sh
+              implementation: Core-LifecycleScripts/datacopy.sh
               inputs:
                 process:
-                  args: [Mega-NJ/analysis-output, ExportFiles1/file-list, realeScWF-mixed, container7]
+                  args: [Mega-NJ/analysis-output, ExportFiles1/file-list, NJ, container7]
       - type: cloudify.relationships.depends_on
         target: Java6
     interfaces:
       cloudify.interfaces.lifecycle:
+        create:
+          implementation: Caching-Corescripts/task-download-multi.sh
+          inputs:
+            process:
+             args: [{ get_input: create_image }, container7, get_property: [ExportFiles1, block_Url]]
         configure:
-          implementation: scripts/containers-clean.sh
+          implementation: Core-LifecycleScripts/containers-clean.sh
           inputs:
             process:
              args: [container6]
         start: 
-          implementation: scripts/block-deploy3.sh
+          implementation: Caching-Corescripts/task-deploy.sh
           inputs:
             process:
-             args: [realeScWF-mixed, container7, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/ExportFiles1.jar']
+             args: [NJ, container7]
+
+  container8:
+    type: docker_container
+    properties:
+      container_ID: container8
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          implementation: Caching-Corescripts/container.sh
+          inputs:
+            process:
+              args: [NJ, get_property: [ExportFiles2, block_Url]]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host
+      - type: cloudify.relationships.depends_on
+        target: ExportFiles1
+
+  Java7:
+    type: spec_library
+    properties:
+      lib_name: default-jdk
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/java-install2.sh
+          inputs:
+            process:
+              args: [container8, NJ, '7']
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container8
 
   ExportFiles2:
     type: exportfiles
     properties:
       block_description: export files
-      block_name: ExportFiles1.jar
+      block_name: exportfiles1.jar
       block_category: File Management
       service_type: block
+      block_Url: 'https://github.com/WorkflowCenter-Repositories/ExportFiles-Task/raw/v1.0/exportfiles1.jar'
     relationships:
       - type: cloudify.relationships.contained_in
-        target: container7
+        target: container8
       - type: block_link
         target: Mega-NJ
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
             preconfigure:
-              implementation: scripts/datacopy.sh
+              implementation: Core-LifecycleScripts/datacopy.sh
               inputs:
                 process:
-                  args: [Mega-NJ/consensus-output, ExportFiles2/file-list, realeScWF-mixed, container7]
+                  args: [Mega-NJ/consensus-output, ExportFiles2/file-list, NJ, container8]
       - type: cloudify.relationships.depends_on
-        target: Java6
+        target: Java7
     interfaces:
       cloudify.interfaces.lifecycle:
-        start: 
-          implementation: scripts/block-deploy3.sh
+        create:
+          implementation: Caching-Corescripts/task-download-multi.sh
           inputs:
             process:
-             args: [realeScWF-mixed, container7, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/ExportFiles1.jar']
+             args: [{ get_input: create_image }, container8, get_property: [ExportFiles2, block_Url]]
+        start: 
+          implementation: Caching-Corescripts/task-deploy.sh
+          inputs:
+            process:
+             args: [NJ, container8]
+
+  container9:
+    type: docker_container
+    properties:
+      container_ID: container9
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          implementation: Caching-Corescripts/container.sh
+          inputs:
+            process:
+              args: [NJ, get_property: [ExportFiles3, block_Url]]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host
+      - type: cloudify.relationships.depends_on
+        target: ExportFiles2
+
+  Java8:
+    type: spec_library
+    properties:
+      lib_name: default-jdk
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/java-install2.sh
+          inputs:
+            process:
+              args: [container9, NJ, '7']
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container9
 
   ExportFiles3:
     type: exportfiles
     properties:
       block_description: export files
-      block_name: ExportFiles1.jar
+      block_name: exportfiles1.jar
       block_category: File Management
       service_type: block
+      block_Url: 'https://github.com/WorkflowCenter-Repositories/ExportFiles-Task/raw/v1.0/exportfiles1.jar'
     relationships:
       - type: cloudify.relationships.contained_in
-        target: container7
+        target: container9
       - type: block_link
         target: Mega-NJ
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
             preconfigure:
-              implementation: scripts/datacopy.sh
+              implementation: Core-LifecycleScripts/datacopy.sh
               inputs:
                 process:
-                  args: [Mega-NJ/summary-info, ExportFiles3/file-list, realeScWF-mixed, container7]
+                  args: [Mega-NJ/summary-info, ExportFiles3/file-list, NJ, container9]
       - type: cloudify.relationships.depends_on
-        target: Java6
+        target: Java8
     interfaces:
       cloudify.interfaces.lifecycle:
-        start: 
-          implementation: scripts/block-deploy3.sh
+        create:
+          implementation: Caching-Corescripts/task-download-multi.sh
           inputs:
             process:
-             args: [realeScWF-mixed, container7, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/ExportFiles1.jar']
+             args: [{ get_input: create_image }, container9, get_property: [ExportFiles3, block_Url]]
+        start: 
+          implementation: Caching-Corescripts/task-deploy.sh
+          inputs:
+            process:
+             args: [NJ, container9]
 
   container10:
     type: docker_container
     properties:
+      #image_name: dtdwd/csvexport1
       container_ID: container10
     interfaces:
       cloudify.interfaces.lifecycle:
          start:
-          implementation: scripts/container.sh
+          implementation: Caching-Corescripts/container.sh
           inputs:
             process:
-              args: [realeScWF-mixed]
+              args: [NJ, get_property: [CSV_export1, block_Url]]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -638,7 +802,7 @@ node_templates:
           implementation: scripts/java-install2.sh
           inputs:
             process:
-              args: [container10]
+              args: [container10, NJ, '7']
     relationships:
       - type: cloudify.relationships.contained_in
         target: container10
@@ -647,10 +811,11 @@ node_templates:
     type: csvexport
     properties:
       block_description: export csv file
-      block_name: CSVexport1.jar
+      block_name: csvexport1.jar
       block_category: File Management
       FileName: out1.csv
       service_type: block
+      block_Url: 'https://github.com/WorkflowCenter-Repositories/CSV-Export-Task/raw/v1.0/csvexport1.jar'
     relationships:
       - type: cloudify.relationships.contained_in
         target: container10
@@ -659,64 +824,107 @@ node_templates:
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
             preconfigure:
-              implementation: scripts/datacopy.sh
+              implementation: Core-LifecycleScripts/datacopy.sh
               inputs:
                 process:
-                  args: [FilterDupl/sequence-map, CSV_export1/input-data, realeScWF-mixed, container10, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
+                  args: [FilterDupl/sequence-map, CSV_export1/input-data, NJ, container10, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
       - type: cloudify.relationships.depends_on
         target: Java9
     interfaces:
       cloudify.interfaces.lifecycle:
-        start: 
-          implementation: scripts/block-deploy3.sh
+        create:
+          implementation: Caching-Corescripts/task-download-multi.sh
           inputs:
             process:
-             args: [realeScWF-mixed, container10, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/CSVexport1.jar']
+             args: [{ get_input: create_image }, container10, get_property: [CSV_export1, block_Url]]
+        start: 
+          implementation: Caching-Corescripts/task-deploy.sh
+          inputs:
+            process:
+             args: [NJ, container10]
+
+  container11:
+    type: docker_container
+    properties:
+      container_ID: container11
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        start:
+          implementation: Caching-Corescripts/container.sh
+          inputs:
+            process:
+              args: [NJ, get_property: [CSV_export2, block_Url]]
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: host
+      - type: cloudify.relationships.depends_on
+        target: CSV_export1
+
+  Java10:
+    type: spec_library
+    properties:
+      lib_name: default-jdk
+    interfaces:
+      cloudify.interfaces.lifecycle:
+        create:
+          implementation: scripts/java-install2.sh
+          inputs:
+            process:
+              args: [container11, NJ, '7']
+    relationships:
+      - type: cloudify.relationships.contained_in
+        target: container11
 
   CSV_export2:
     type: csvexport
     properties:
       block_description: export csv file
-      block_name: CSVexport1.jar
+      block_name: csvexport1.jar
       block_category: File Management
       FileName: out2.csv
       service_type: block
+      block_Url: 'https://github.com/WorkflowCenter-Repositories/CSV-Export-Task/raw/v1.0/csvexport1.jar'
     relationships:
       - type: cloudify.relationships.contained_in
-        target: container10
+        target: container11
       - type: block_link
         target: FilterDupl
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
             preconfigure:
-              implementation: scripts/datacopy.sh
+              implementation: Core-LifecycleScripts/datacopy.sh
               inputs:
                 process:
-                  args: [FilterDupl/sequence-map, CSV_export2/input-data, realeScWF-mixed, container10]
+                  args: [FilterDupl/sequence-map, CSV_export2/input-data, NJ, container11]
       - type: cloudify.relationships.depends_on
-        target: Java9
+        target: Java10
     interfaces:
       cloudify.interfaces.lifecycle:
-        start: 
-          implementation: scripts/block-deploy3.sh
+        create:
+          implementation: Caching-Corescripts/task-download-multi.sh
           inputs:
             process:
-             args: [realeScWF-mixed, container10, 'https://github.com/rawaqasha/eScBlocks-host/raw/master/CSVexport1.jar']
+             args: [{ get_input: create_image }, container11, get_property: [CSV_export2, block_Url]]
+        start: 
+          implementation: Caching-Corescripts/task-deploy.sh
+          inputs:
+            process:
+             args: [NJ, container11]
 
   finalBlock:
     type: cloudify.nodes.ApplicationModule
     interfaces:
       cloudify.interfaces.lifecycle:
         configure:
-          implementation: scripts/containers-clean.sh
+          implementation: Core-LifecycleScripts/containers-clean.sh
           inputs:
             process:
-              args: [container7, container10]
+              args: [container7, container8, container9, container10, container11]
         start:
-          implementation: scripts/final-inhost.sh
+          implementation: Core-LifecycleScripts/final-inhost.sh
           inputs:
             process:
-              args: [realeScWF-mixed]
+              args: [NJ]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host

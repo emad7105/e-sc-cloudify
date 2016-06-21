@@ -5,11 +5,8 @@ blueprint=$1
 block=$(ctx node name)
 CONTAINER_ID=$2
 BLOCK_NAME=$(ctx node properties block_name)
-BLOCK_URL=$(ctx node properties block_Url)
-LIB_DIR=$3
+BLOCK_URL=$3
 
-# Start Timestamp
-STARTTIME=`date +%s.%N`
 
 ###### get task version ######
    path=${BLOCK_URL%/*}   
@@ -18,14 +15,23 @@ STARTTIME=`date +%s.%N`
    var=${BLOCK_NAME%.*}
    image=${var,,}
    task="$image-$ver"
+
+ctx logger info "Dowload ${block} on ${CONTAINER_ID}"
+
 #-----------------------------------------#
 #----------- download the task -----------#
-ctx logger info " Executing $task.jar"
+ctx logger info "download ${block} block"
 
-sudo docker exec -it ${CONTAINER_ID} jar xf tasks/$task.jar M6CC.mao
-sudo docker exec -it ${CONTAINER_ID} java -jar tasks/$task.jar ${blueprint} ${block} ${LIB_DIR}
+[ ! -f ~/.TDWF/$task.jar ] && wget -O ~/.TDWF/$task.jar  ${BLOCK_URL}
+
+sudo docker exec -it ${CONTAINER_ID} [ ! -d tasks ] && sudo docker exec -it ${CONTAINER_ID} mkdir tasks
+
+cat ~/.TDWF/$task.jar | sudo docker exec -i ${CONTAINER_ID} sh -c 'cat > tasks/'$task.jar
 
 #----------- download the task -----------#
 #-----------------------------------------#
+
+ctx logger info "after download"
+
 
 

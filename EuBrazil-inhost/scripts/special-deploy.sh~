@@ -5,8 +5,8 @@ blueprint=$1
 block=$(ctx node name)
 CONTAINER_ID=$2
 BLOCK_NAME=$(ctx node properties block_name)
-BLOCK_URL=$(ctx node properties block_Url)
-LIB_DIR=$3
+BLOCK_URL=$3
+LIB_DIR=$4
 
 # Start Timestamp
 STARTTIME=`date +%s.%N`
