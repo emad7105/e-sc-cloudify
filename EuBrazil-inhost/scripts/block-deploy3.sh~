@@ -56,7 +56,7 @@ echo "Executing  ${BLOCK_NAME} on ${CONTAINER_ID}" >> ~/depl-steps.txt
 
 ctx logger info "Execute the block"
 sudo docker exec -it ${CONTAINER_ID} java -jar tasks/${BLOCK_NAME} ${blueprint} ${block} ${Input_file}
-#sudo docker ps -s >> ~/docker.csv
+sudo docker ps -s >> ~/docker.csv
 # End timestamp
 ENDTIME=`date +%s.%N`
 
