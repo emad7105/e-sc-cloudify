@@ -26,7 +26,7 @@ inputs:
   docker-image: 
       description: > 
         Docker image to be used for container building
-      default: 'rawa/nj'
+      default: 'ubuntu:14.04'
 
 node_types:
 
@@ -263,7 +263,7 @@ node_templates:
   container4:
     type: docker_container
     properties:
-      image_name: ubuntu:14.04
+      image_name: dtdwd/java7
       container_ID: container4
     interfaces:
       cloudify.interfaces.lifecycle:
@@ -528,7 +528,7 @@ node_templates:
   container7:
     type: docker_container
     properties:
-      image_name: dtdwd/java7
+      image_name: dtdwd/exportfiles1
       container_ID: container7
     interfaces:
       cloudify.interfaces.lifecycle:
@@ -657,7 +657,7 @@ node_templates:
   container9:
     type: docker_container
     properties:
-      image_name: dtdwd/java7
+      image_name: ubuntu:14.04
       container_ID: container9
     interfaces:
       cloudify.interfaces.lifecycle:

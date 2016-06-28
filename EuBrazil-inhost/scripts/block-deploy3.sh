@@ -50,6 +50,24 @@ TIMEDIFF=`echo "$ENDTIME - $STARTTIME" | bc | awk -F"." '{print $1"."substr($2,1
 echo "download $block in $CONTAINER_ID: $TIMEDIFF" * | sed 's/[ \t]/, /g' >> ~/list.csv
 
 # Start Timestamp
+STARTTIME=`date +%s.%N` 
+#ctx logger info "image creation"
+#task=${block%.*}
+#task=${task,,}
+#flag=$(sudo docker images | grep dtdwd/$task)
+ctx logger info "image creation"
+#if [[ $flag = "" ]]; then 
+ sudo docker commit -a "rawa" -m "task image" ${CONTAINER_ID} ${CONTAINER_ID}
+#fi
+# End timestamp
+ENDTIME=`date +%s.%N`
+
+# Convert nanoseconds to milliseconds
+# crudely by taking first 3 decimal places
+TIMEDIFF=`echo "$ENDTIME - $STARTTIME" | bc | awk -F"." '{print $1"."substr($2,1,3)}'`
+echo "create the image $task: $TIMEDIFF" * | sed 's/[ \t]/, /g' >> ~/list.csv
+
+# Start Timestamp
 STARTTIME=`date +%s.%N`
 
 echo "Executing  ${BLOCK_NAME} on ${CONTAINER_ID}" >> ~/depl-steps.txt
