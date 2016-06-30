@@ -74,7 +74,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: Caching-Corescripts/container.sh
+          implementation: scripts/container.sh
           inputs:
             process:
               args: [NJ, get_property: [importFile1, block_Url]]
@@ -91,7 +91,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: Caching-Corescripts/java-install2.sh
+          implementation: scripts/java-install2.sh
           inputs:
             process:
               args: [container1, NJ, '7']
@@ -138,7 +138,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:        
         start:
-          implementation: Caching-Corescripts/container.sh
+          implementation: scripts/container.sh
           inputs:
             process:
               args: [NJ, get_property: [importFile2, block_Url]]
@@ -155,7 +155,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: Caching-Corescripts/java-install2.sh
+          implementation: scripts/java-install2.sh
           inputs:
             process:
               args: [container2, NJ, '7']
@@ -203,7 +203,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         start:
-          implementation: Caching-Corescripts/container.sh
+          implementation: scripts/container.sh
           inputs:
             process:
               args: [NJ, get_property: [FileJoin, block_Url]]
@@ -220,7 +220,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: Caching-Corescripts/java-install2.sh
+          implementation: scripts/java-install2.sh
           inputs:
             process:
               args: [container3, NJ, '7']
@@ -287,7 +287,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         start:
-          implementation: Caching-Corescripts/container.sh
+          implementation: scripts/container.sh
           inputs:
             process:
               args: [NJ, get_property: [FilterDupl, block_Url]]
@@ -304,7 +304,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: Caching-Corescripts/java-install2.sh
+          implementation: scripts/java-install2.sh
           inputs:
             process:
               args: [container4, NJ, '7']
@@ -360,7 +360,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         start:
-          implementation: Caching-Corescripts/container.sh
+          implementation: scripts/container.sh
           inputs:
             process:
               args: [NJ, get_property: [ClustalW, block_Url]]
@@ -377,7 +377,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: Caching-Corescripts/java-install2.sh
+          implementation: scripts/java-install2.sh
           inputs:
             process:
               args: [container5, NJ, '7']
@@ -455,7 +455,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         start:
-          implementation: Caching-Corescripts/container.sh
+          implementation: scripts/container.sh
           inputs:
             process:
               args: [NJ, get_property: [Mega-NJ, block_Url]]
@@ -472,7 +472,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: Caching-Corescripts/java-install2.sh
+          implementation: scripts/java-install2.sh
           inputs:
             process:
               args: [container6, NJ, '7']
@@ -575,7 +575,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         start:
-          implementation: Caching-Corescripts/container.sh
+          implementation: scripts/container.sh
           inputs:
             process:
               args: [NJ, get_property: [ExportFiles3, block_Url]]
@@ -592,7 +592,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: Caching-Corescripts/java-install2.sh
+          implementation: scripts/java-install2.sh
           inputs:
             process:
               args: [container7, NJ, '7']
@@ -647,7 +647,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         start:
-          implementation: Caching-Corescripts/container.sh
+          implementation: scripts/container.sh
           inputs:
             process:
               args: [NJ, get_property: [ExportFiles2, block_Url]]
@@ -664,7 +664,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: Caching-Corescripts/java-install2.sh
+          implementation: scripts/java-install2.sh
           inputs:
             process:
               args: [container8, NJ, '7']
@@ -714,7 +714,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         start:
-          implementation: Caching-Corescripts/container.sh
+          implementation: scripts/container.sh
           inputs:
             process:
               args: [NJ, get_property: [ExportFiles3, block_Url]]
@@ -731,7 +731,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: Caching-Corescripts/java-install2.sh
+          implementation: scripts/java-install2.sh
           inputs:
             process:
               args: [container9, NJ, '7']
@@ -782,7 +782,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
          start:
-          implementation: Caching-Corescripts/container.sh
+          implementation: scripts/container.sh
           inputs:
             process:
               args: [NJ, get_property: [CSV_export1, block_Url]]
@@ -799,7 +799,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: Caching-Corescripts/java-install2.sh
+          implementation: scripts/java-install2.sh
           inputs:
             process:
               args: [container10, NJ, '7']
@@ -850,7 +850,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         start:
-          implementation: Caching-Corescripts/container.sh
+          implementation: scripts/container.sh
           inputs:
             process:
               args: [NJ, get_property: [CSV_export2, block_Url]]
@@ -867,7 +867,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: Caching-Corescripts/java-install2.sh
+          implementation: scripts/java-install2.sh
           inputs:
             process:
               args: [container11, NJ, '7']

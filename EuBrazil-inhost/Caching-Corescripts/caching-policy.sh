@@ -33,10 +33,7 @@ if ! ssh remote@192.168.56.103 stat DTDWD/$task.tar.gz \> /dev/null 2\>\&1   #ch
                    dock=$(sudo docker search dtdwd/$image)        #search for the selected image in remote rep.
                    found=`echo $dock | grep -c dtdwd/$image`
                    echo "found is $found"
-                   if [[ $found = 0 ]]; then
-                       #untar the image file and push it to remote repo
-                       #ssh remote@192.168.56.103 zcat --fast DTDWD/$Least_used | ssh remote@192.168.56.103 sudo docker load                                           
-                       #ssh remote@192.168.56.103 sudo docker push dtdwd/$image    
+                   if [[ $found = 0 ]]; then  
                        ssh remote@192.168.56.103 sudo docker rmi dtdwd/$image
                    fi
                    ssh remote@192.168.56.103 rm -f DTDWD/$Least_used    #delete the least used image

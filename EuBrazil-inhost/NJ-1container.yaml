@@ -58,7 +58,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: Core-LifecycleScripts/start-inhost.sh
+          implementation: scripts/start-inhost.sh
           inputs:
             process:
               args: [NJ-1container]
@@ -90,7 +90,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: scripts/java-install2.sh
+          implementation: Caching-Corescripts/java-install2.sh
           inputs:
             process:
               args: [container1,NJ-1container, '7']

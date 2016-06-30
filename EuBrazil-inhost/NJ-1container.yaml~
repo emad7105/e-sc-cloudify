@@ -58,7 +58,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: Core-LifecycleScripts/start-inhost.sh
+          implementation: scripts/start-inhost.sh
           inputs:
             process:
               args: [NJ-1container]
@@ -90,7 +90,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: scripts/java-install2.sh
+          implementation: Caching-Corescripts/java-install2.sh
           inputs:
             process:
               args: [container1,NJ-1container, '7']
@@ -203,7 +203,7 @@ node_templates:
           implementation: Caching-Corescripts/task-download-single.sh
           inputs:
             process:
-             args: [container1, get_property: [FileJoin, block_Url]]
+             args: [NJ-1container, container1, get_property: [FileJoin, block_Url]]
         start:
           implementation: Caching-Corescripts/task-deploy.sh
           inputs:
@@ -238,7 +238,7 @@ node_templates:
           implementation: Caching-Corescripts/task-download-single.sh
           inputs:
             process:
-             args: [container1, get_property: [FilterDupl, block_Url]]
+             args: [NJ-1container, container1, get_property: [FilterDupl, block_Url]]
         start:
           implementation: Caching-Corescripts/task-deploy.sh
           inputs:
@@ -295,7 +295,7 @@ node_templates:
           implementation: Caching-Corescripts/task-download-single.sh
           inputs:
             process:
-             args: [container1, get_property: [ClustalW, block_Url]]
+             args: [NJ-1container, container1, get_property: [ClustalW, block_Url]]
         start:
           implementation: Caching-Corescripts/task-deploy.sh
           inputs:
@@ -375,7 +375,7 @@ node_templates:
           implementation: Caching-Corescripts/task-download-single.sh
           inputs:
             process:
-             args: [container1, get_property: [Mega-NJ, block_Url]]
+             args: [NJ-1container, container1, get_property: [Mega-NJ, block_Url]]
         start:
           implementation: scripts/special-deploy.sh
           inputs:
@@ -410,7 +410,7 @@ node_templates:
           implementation: Caching-Corescripts/task-download-single.sh
           inputs:
             process:
-             args: [container1, get_property: [ExportFiles1, block_Url]]
+             args: [NJ-1container, container1, get_property: [ExportFiles1, block_Url]]
         start: 
           implementation: Caching-Corescripts/task-deploy.sh
           inputs:
@@ -445,7 +445,7 @@ node_templates:
           implementation: Caching-Corescripts/task-download-single.sh
           inputs:
             process:
-             args: [container1, get_property: [ExportFiles2, block_Url]]
+             args: [NJ-1container, container1, get_property: [ExportFiles2, block_Url]]
         start: 
           implementation: Caching-Corescripts/task-deploy.sh
           inputs:
@@ -480,7 +480,7 @@ node_templates:
           implementation: Caching-Corescripts/task-download-single.sh
           inputs:
             process:
-             args: [container1, get_property: [ExportFiles3, block_Url]]
+             args: [NJ-1container, container1, get_property: [ExportFiles3, block_Url]]
         start: 
           implementation: Caching-Corescripts/task-deploy.sh
           inputs:
@@ -516,7 +516,7 @@ node_templates:
           implementation: Caching-Corescripts/task-download-single.sh
           inputs:
             process:
-             args: [container1, get_property: [CSV_export1, block_Url]]
+             args: [NJ-1container, container1, get_property: [CSV_export1, block_Url]]
         start: 
           implementation: Caching-Corescripts/task-deploy.sh
           inputs:
@@ -552,7 +552,7 @@ node_templates:
           implementation: Caching-Corescripts/task-download-single.sh
           inputs:
             process:
-             args: [container1, get_property: [CSV_export2, block_Url]]
+             args: [NJ-1container, container1, get_property: [CSV_export2, block_Url]]
         start: 
           implementation: Caching-Corescripts/task-deploy.sh
           inputs:
