@@ -8,13 +8,11 @@ BLOCK_NAME=$(ctx node properties block_name)
 BLOCK_URL=$3
 
 
-###### get task version ######
-   path=${BLOCK_URL%/*}   
-   ver=$(echo ${path##*/})
-###### get task name without extension ######
-   var=${BLOCK_NAME%.*}
-   image=${var,,}
-   task="$image-$ver"
+###### get task ID ######
+   
+   source $PWD/Core-LifecycleScripts/get-task-ID.sh
+   var=$(func $BLOCK_URL)
+   task=${var,,}
 
 ctx logger info "Dowload ${block} on ${CONTAINER_ID}"
 

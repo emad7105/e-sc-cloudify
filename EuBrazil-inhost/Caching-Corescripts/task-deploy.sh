@@ -8,13 +8,22 @@ BLOCK_URL=$(ctx node properties block_Url)
 BLOCK_NAME=$(ctx node properties block_name)
 input=$3
 
-###### get task version ######
-   path=${BLOCK_URL%/*}   
-   ver=$(echo ${path##*/})
-###### get task name without extension ######
-   var=${BLOCK_NAME%.*}
-   image=${var,,}
-   task="$image-$ver"
+# Start Timestamp
+STARTTIME=`date +%s.%N`
+
+###### get task ID ######
+   
+   source $PWD/Core-LifecycleScripts/get-task-ID.sh
+   var=$(func $BLOCK_URL)
+   task=${var,,}
 
 ctx logger info "Execute the block ${task}.jar"
 sudo docker exec -it ${CONTAINER_ID} java -jar tasks/${task}.jar ${blueprint} ${block} ${input}
+
+ # End timestamp
+ENDTIME=`date +%s.%N`
+
+# Convert nanoseconds to milliseconds
+# crudely by taking first 3 decimal places
+TIMEDIFF=`echo "$ENDTIME - $STARTTIME" | bc | awk -F"." '{print $1"."substr($2,1,3)}'`
+echo "Execute task ${task}.jar : $TIMEDIFF" * | sed 's/[ \t]/, /g' >> ~/list.csv   

@@ -31,7 +31,7 @@ inputs:
   create_image:
       description: > 
         an option to create Docker images
-      default: 'True'
+      default: 'False'
 
 node_types:
 
@@ -91,7 +91,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: scripts/java-install2.sh
+          implementation: Caching-Corescripts/java-install2.sh
           inputs:
             process:
               args: [container1, NJ, '7']
@@ -155,7 +155,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: scripts/java-install2.sh
+          implementation: Caching-Corescripts/java-install2.sh
           inputs:
             process:
               args: [container2, NJ, '7']
@@ -220,7 +220,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: scripts/java-install2.sh
+          implementation: Caching-Corescripts/java-install2.sh
           inputs:
             process:
               args: [container3, NJ, '7']
@@ -304,7 +304,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: scripts/java-install2.sh
+          implementation: Caching-Corescripts/java-install2.sh
           inputs:
             process:
               args: [container4, NJ, '7']
@@ -377,7 +377,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: scripts/java-install2.sh
+          implementation: Caching-Corescripts/java-install2.sh
           inputs:
             process:
               args: [container5, NJ, '7']
@@ -472,7 +472,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: scripts/java-install2.sh
+          implementation: Caching-Corescripts/java-install2.sh
           inputs:
             process:
               args: [container6, NJ, '7']
@@ -592,7 +592,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: scripts/java-install2.sh
+          implementation: Caching-Corescripts/java-install2.sh
           inputs:
             process:
               args: [container7, NJ, '7']
@@ -664,7 +664,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: scripts/java-install2.sh
+          implementation: Caching-Corescripts/java-install2.sh
           inputs:
             process:
               args: [container8, NJ, '7']
@@ -731,7 +731,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: scripts/java-install2.sh
+          implementation: Caching-Corescripts/java-install2.sh
           inputs:
             process:
               args: [container9, NJ, '7']
@@ -799,7 +799,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: scripts/java-install2.sh
+          implementation: Caching-Corescripts/java-install2.sh
           inputs:
             process:
               args: [container10, NJ, '7']
@@ -867,7 +867,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: scripts/java-install2.sh
+          implementation: Caching-Corescripts/java-install2.sh
           inputs:
             process:
               args: [container11, NJ, '7']

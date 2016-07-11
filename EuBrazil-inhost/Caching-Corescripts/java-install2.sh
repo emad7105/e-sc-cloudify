@@ -3,25 +3,55 @@
 set -e
 
 CONTAINER_ID=$1
-LIBRARY_NAME=$(ctx node properties lib_name)
-
-ctx logger info "Installing java on"
+blueprint=$2
+version=$3
 
 # Start Timestamp
 STARTTIME=`date +%s.%N`
 
-           set +e
-            java=$(sudo docker exec -it ${CONTAINER_ID} which java)
-           set -e
-           if [[ -z ${java} ]]; then
-              sudo docker exec -it ${CONTAINER_ID} apt-get update
-              sudo docker exec -it ${CONTAINER_ID} apt-get -y install ${LIBRARY_NAME}
-           fi
-        
- # End timestamp
+#--------------------------------------------------------------------------------#
+#------------------------------------ Java installation -------------------------#
+#set +e
+  #java=$(sudo docker exec -it $CONTAINER_ID which java)
+#set -e
+
+if ! sudo docker exec -it $CONTAINER_ID which java >/dev/null; then
+   sudo docker exec -it $CONTAINER_ID [ ! -d opt/jdk ] && sudo docker exec -it $CONTAINER_ID mkdir opt/jdk
+   if [[ ! -d ~/$blueprint/libs ]]; then
+      mkdir ~/$blueprint/libs
+   fi
+
+   if [[ $version = '8' ]]; then
+    if [[ ! -f ~/.TDWF/libs/jdk-8u5-linux-x64.tar.gz ]]; then
+       #ctx logger info "download java 8"
+       wget -O ~/.TDWF/libs/jdk-8u5-linux-x64.tar.gz --header "Cookie: oraclelicense=accept-securebackup-cookie" http://download.oracle.com/otn-pub/java/jdk/8u5-b13/jdk-8u5-linux-x64.tar.gz
+    fi
+    #ctx logger info "installing java 8"
+    cp ~/.TDWF/libs/jdk-8u5-linux-x64.tar.gz ~/$blueprint/libs/jdk-8u5-linux-x64.tar.gz
+    sudo docker exec -it $CONTAINER_ID tar -zxf root/$blueprint/libs/jdk-8u5-linux-x64.tar.gz -C /opt/jdk
+    sudo docker exec -it $CONTAINER_ID update-alternatives --install /usr/bin/java java /opt/jdk/jdk1.8.0_05/bin/java 100
+    sudo docker exec -it $CONTAINER_ID update-alternatives --install /usr/bin/javac javac /opt/jdk/jdk1.8.0_05/bin/javac 100
+   else if [[ $version = '7' ]]; then
+        if [[ ! -f ~/.TDWF/libs/jdk-7u79-linux-x64.tar.gz ]]; then
+           #ctx logger info "download java 7"
+           wget -O ~/.TDWF/libs/jdk-7u79-linux-x64.tar.gz --no-cookies --no-check-certificate --header "Cookie: gpw_e24=http%3A%2F%2Fwww.oracle.com%2F; oraclelicense=accept-securebackup-cookie" "http://download.oracle.com/otn-pub/java/jdk/7u79-b15/jdk-7u79-linux-x64.tar.gz"
+        fi
+        #ctx logger info "installing java 7"
+        cp ~/.TDWF/libs/jdk-7u79-linux-x64.tar.gz ~/$blueprint/libs/jdk-7u79-linux-x64.tar.gz
+        sudo docker exec -it $CONTAINER_ID tar xzf root/$blueprint/libs/jdk-7u79-linux-x64.tar.gz -C /opt/jdk
+        sudo docker exec -it $CONTAINER_ID update-alternatives --install /usr/bin/java java /opt/jdk/jdk1.7.0_79/bin/java 100
+        sudo docker exec -it $CONTAINER_ID update-alternatives --install /usr/bin/javac javac /opt/jdk/jdk1.7.0_79/bin/javac 100
+        sudo docker exec -it $CONTAINER_ID update-alternatives --install /usr/bin/jar jar /opt/jdk/jdk1.7.0_79/bin/jar 100
+     fi
+  fi
+fi
+  
+#------------------------------------ Java installation -------------------------#
+#--------------------------------------------------------------------------------#
+
+# End timestamp
 ENDTIME=`date +%s.%N`
 
-# Convert nanoseconds to milliseconds
-# crudely by taking first 3 decimal places
+# Convert nanoseconds to milliseconds crudely by taking first 3 decimal places
 TIMEDIFF=`echo "$ENDTIME - $STARTTIME" | bc | awk -F"." '{print $1"."substr($2,1,3)}'`
-echo "install java for $CONTAINER_ID: $TIMEDIFF" * | sed 's/[ \t]/, /g' >> ~/list.csv   
+echo "Install Java in ${CONTAINER_ID} $TIMEDIFF" | sed 's/[ \t]/, /g' >> ~/list.csv

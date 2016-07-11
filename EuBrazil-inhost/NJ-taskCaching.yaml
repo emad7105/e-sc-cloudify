@@ -916,7 +916,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         configure:
-          implementation: Core-LifecycleScripts/containers-clean.sh
+          implementation: scripts/containers-clean.sh
           inputs:
             process:
               args: [container7, container8, container9, container10, container11]

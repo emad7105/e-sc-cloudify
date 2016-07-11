@@ -11,21 +11,19 @@ LIB_DIR=$3
 # Start Timestamp
 STARTTIME=`date +%s.%N`
 
-###### get task version ######
-   path=${BLOCK_URL%/*}   
-   ver=$(echo ${path##*/})
-###### get task name without extension ######
-   var=${BLOCK_NAME%.*}
-   image=${var,,}
-   task="$image-$ver"
+###### get task ID ######
+   
+   source $PWD/Core-LifecycleScripts/get-task-ID.sh
+   var=$(func $BLOCK_URL)
+   task=${var,,}
 #-----------------------------------------#
-#----------- download the task -----------#
+#----------- execute the task -----------#
 ctx logger info " Executing $task.jar"
 
 sudo docker exec -it ${CONTAINER_ID} jar xf tasks/$task.jar M6CC.mao
 sudo docker exec -it ${CONTAINER_ID} java -jar tasks/$task.jar ${blueprint} ${block} ${LIB_DIR}
 
-#----------- download the task -----------#
+#----------- execute the task -----------#
 #-----------------------------------------#
 
 
