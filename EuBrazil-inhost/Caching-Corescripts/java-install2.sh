@@ -11,9 +11,6 @@ STARTTIME=`date +%s.%N`
 
 #--------------------------------------------------------------------------------#
 #------------------------------------ Java installation -------------------------#
-#set +e
-  #java=$(sudo docker exec -it $CONTAINER_ID which java)
-#set -e
 
 if ! sudo docker exec -it $CONTAINER_ID which java >/dev/null; then
    sudo docker exec -it $CONTAINER_ID [ ! -d opt/jdk ] && sudo docker exec -it $CONTAINER_ID mkdir opt/jdk
@@ -54,4 +51,4 @@ ENDTIME=`date +%s.%N`
 
 # Convert nanoseconds to milliseconds crudely by taking first 3 decimal places
 TIMEDIFF=`echo "$ENDTIME - $STARTTIME" | bc | awk -F"." '{print $1"."substr($2,1,3)}'`
-echo "Install Java in ${CONTAINER_ID} $TIMEDIFF" | sed 's/[ \t]/, /g' >> ~/list.csv
+echo "Install Java in ${CONTAINER_ID} $TIMEDIFF" | sed 's/[ \t]/ /g' >> ~/list.csv

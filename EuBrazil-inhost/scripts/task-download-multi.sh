@@ -21,16 +21,19 @@ STARTTIME=`date +%s.%N`
 #-----------------------------------------#
 #----------- download the task -----------#
 ctx logger info "download ${block} block"
-flag=0
-sudo docker exec -it ${CONTAINER_ID} [ ! -f tasks/$task.jar ] && flag=1
 
-if [[ $flag = 1 ]]; then
-[ ! -f ~/.TDWF/$task.jar ] && wget -O ~/.TDWF/$task.jar  ${BLOCK_URL}
+set +e
+  wget=$(sudo docker exec -it ${CONTAINER_ID} which wget)
+set -e
+
+if [[ -z $wget ]]; then
+   sudo docker exec -it ${CONTAINER_ID} apt-get update
+   sudo docker exec -it ${CONTAINER_ID} apt-get -y install wget
+fi
 
 sudo docker exec -it ${CONTAINER_ID} [ ! -d tasks ] && sudo docker exec -it ${CONTAINER_ID} mkdir tasks
+sudo docker exec -it ${CONTAINER_ID} [ ! -f tasks/$task.jar ] && sudo docker exec -it ${CONTAINER_ID} wget -O tasks/$task.jar  ${BLOCK_URL}
 
-cat ~/.TDWF/$task.jar | sudo docker exec -i ${CONTAINER_ID} sh -c 'cat > tasks/'$task.jar
-fi
 #----------- download the task -----------#
 #-----------------------------------------#
 
@@ -65,9 +68,7 @@ if [[ $create_image = "True" ]]; then
       sudo docker commit -m "new ${image} image" -a "rawa" ${CONTAINER_ID} dtdwd/$image
    fi
    
-       ctx logger info "start local caching"
-      #./Caching-Corescripts/caching-policy.sh $image > log.out 2> log.err < /dev/null 2>&1 & 
-      #./Caching-Corescripts/caching-public.sh $image > /dev/null 2>&1 &    
+         
      
 fi
  # End timestamp
