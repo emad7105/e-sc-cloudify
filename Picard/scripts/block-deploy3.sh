@@ -16,7 +16,11 @@ ctx logger info "Deploying ${block} on ${CONTAINER_ID}"
 #----------- download the task -----------#
 ctx logger info "download ${block} block"
 
-[ ! -f ~/${blueprint}/tasks/${BLOCK_NAME} ] && wget -O ~/${blueprint}/tasks/${BLOCK_NAME}  ${BLOCK_URL} || ctx logger info "task already exists"
+[ ! -f ~/.TDWF/${BLOCK_NAME} ] && wget -O ~/.TDWF/${BLOCK_NAME}  ${BLOCK_URL}
+
+sudo docker exec -it ${CONTAINER_ID} [ ! -d tasks ] && sudo docker exec -it ${CONTAINER_ID} mkdir tasks
+
+cat ~/.TDWF/${BLOCK_NAME} | sudo docker exec -i ${CONTAINER_ID} sh -c 'cat > tasks/'${BLOCK_NAME}
 
 #----------- download the task -----------#
 #-----------------------------------------#
@@ -24,27 +28,51 @@ ctx logger info "download ${block} block"
 # End timestamp
 ENDTIME=`date +%s.%N`
 
-# Convert nanoseconds to milliseconds
-# crudely by taking first 3 decimal places
+# Convert nanoseconds to milliseconds crudely by taking first 3 decimal places
 TIMEDIFF=`echo "$ENDTIME - $STARTTIME" | bc | awk -F"." '{print $1"."substr($2,1,3)}'`
-echo "download $block in $CONTAINER_ID: $TIMEDIFF" * | sed 's/[ \t]/, /g' >> ~/list.csv
+echo "downloading ${BLOCK_NAME} task : $TIMEDIFF" | sed 's/[ \t]/, /g' >> ~/list.csv
 
+#-----------------------------------------------------------------------------------------------------#
+#----------------------------------- Creating the task image -----------------------------------------#
+
+# Start Timestamp
+STARTTIME=`date +%s.%N`
+
+image=$(echo ${BLOCK_NAME} | cut -f 1 -d '.')
+ctx logger info "${image}"
+if [[ "$(docker images -q ${image} 2> /dev/null)" = "" ]]; then
+   sudo docker commit -m "new ${image} image" -a "rawa" ${CONTAINER_ID} dtdwd/${image}
+fi
+
+# End timestamp
+ENDTIME=`date +%s.%N`
+
+# Convert nanoseconds to milliseconds crudely by taking first 3 decimal places
+TIMEDIFF=`echo "$ENDTIME - $STARTTIME" | bc | awk -F"." '{print $1"."substr($2,1,3)}'`
+echo "Creating ${image} image : $TIMEDIFF" | sed 's/[ \t]/, /g' >> ~/list.csv
+
+#----------------------------------- Creating the task image -----------------------------------------#
+#------------------------------------------------------------------------------------------------------#
 # Start Timestamp
 STARTTIME=`date +%s.%N`
 
 #-----------------------------------------#
 #----------- Execute the task ------------#
+
 ctx logger info "Execute the block"
-sudo docker exec -it ${CONTAINER_ID} chmod 777 /root/${blueprint}/tasks/${BLOCK_NAME}
-sudo docker exec -it ${CONTAINER_ID} java -jar /root/${blueprint}/tasks/${BLOCK_NAME} ${blueprint} ${block} ${Input_file}
+#sudo docker exec -it ${CONTAINER_ID} chmod 777 /root/${blueprint}/tasks/${BLOCK_NAME}
+sudo docker exec -it ${CONTAINER_ID} java -jar tasks/${BLOCK_NAME} ${blueprint} ${block} ${Input_file}
+
 #------------ Execute the task -----------#
 #-----------------------------------------#
 
-sudo docker ps -s >> ~/docker.csv
 # End timestamp
 ENDTIME=`date +%s.%N`
 
-# Convert nanoseconds to milliseconds
-# crudely by taking first 3 decimal places
+# Convert nanoseconds to milliseconds crudely by taking first 3 decimal places
 TIMEDIFF=`echo "$ENDTIME - $STARTTIME" | bc | awk -F"." '{print $1"."substr($2,1,3)}'`
-echo "execute $block in $CONTAINER_ID: $TIMEDIFF" * | sed 's/[ \t]/, /g' >> ~/list.csv
+echo "Execting ${BLOCK_NAME} task : $TIMEDIFF" | sed 's/[ \t]/, /g' >> ~/list.csv
+
+#caching the created image
+exec ./scripts/caching-policy.sh ${image} ${CONTAINER_ID} &
+exec ./scripts/caching-public.sh ${image} &

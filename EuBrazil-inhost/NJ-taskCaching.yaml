@@ -26,7 +26,7 @@ inputs:
   docker-image: 
       description: > 
         Docker image to be used for container building
-      default: 'ubuntu:14.04'
+      default: 'dtdwd/nj-depend'
 
   create_image:
       description: > 
@@ -61,7 +61,7 @@ node_templates:
           implementation: Core-LifecycleScripts/start-inhost.sh
           inputs:
             process:
-              args: [NJ]
+              args: [NJ-taskCaching]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -77,7 +77,7 @@ node_templates:
           implementation: scripts/container.sh
           inputs:
             process:
-              args: [NJ, get_property: [importFile1, block_Url]]
+              args: [NJ-taskCaching, get_property: [importFile1, block_Url]]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -94,7 +94,7 @@ node_templates:
           implementation: scripts/java-install2.sh
           inputs:
             process:
-              args: [container1, NJ, '7']
+              args: [container1, NJ-taskCaching, '7']
     relationships:
       - type: cloudify.relationships.contained_in
         target: container1
@@ -119,12 +119,12 @@ node_templates:
           implementation: scripts/get-input.sh
           inputs:
             process:
-             args: [NJ, container1, { get_input: input-dir }, { get_input: input-file1 }]
+             args: [NJ-taskCaching, container1, { get_input: input-dir }, { get_input: input-file1 }]
         start: 
           implementation: Caching-Corescripts/task-deploy.sh
           inputs:
             process:
-             args: [NJ, container1, { get_input: input-file1 }]
+             args: [NJ-taskCaching, container1, { get_input: input-file1 }]
     relationships:
       - type: cloudify.relationships.contained_in
         target: container1
@@ -141,7 +141,7 @@ node_templates:
           implementation: scripts/container.sh
           inputs:
             process:
-              args: [NJ, get_property: [importFile2, block_Url]]
+              args: [NJ-taskCaching, get_property: [importFile2, block_Url]]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -158,7 +158,7 @@ node_templates:
           implementation: scripts/java-install2.sh
           inputs:
             process:
-              args: [container2, NJ, '7']
+              args: [container2, NJ-taskCaching, '7']
     relationships:
       - type: cloudify.relationships.contained_in
         target: container2
@@ -183,12 +183,12 @@ node_templates:
           implementation: scripts/get-input.sh
           inputs:
             process:
-             args: [NJ, container2, { get_input: input-dir }, { get_input: input-file2 }]
+             args: [NJ-taskCaching, container2, { get_input: input-dir }, { get_input: input-file2 }]
         start: 
           implementation: Caching-Corescripts/task-deploy.sh
           inputs:
             process:
-             args: [NJ, container2, { get_input: input-file2 }]
+             args: [NJ-taskCaching, container2, { get_input: input-file2 }]
     relationships:
       - type: cloudify.relationships.contained_in
         target: container2
@@ -206,7 +206,7 @@ node_templates:
           implementation: scripts/container.sh
           inputs:
             process:
-              args: [NJ, get_property: [FileJoin, block_Url]]
+              args: [NJ-taskCaching, get_property: [FileJoin, block_Url]]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -223,7 +223,7 @@ node_templates:
           implementation: scripts/java-install2.sh
           inputs:
             process:
-              args: [container3, NJ, '7']
+              args: [container3, NJ-taskCaching, '7']
     relationships:
       - type: cloudify.relationships.contained_in
         target: container3
@@ -249,7 +249,7 @@ node_templates:
               implementation: Core-LifecycleScripts/datacopy.sh
               inputs:
                 process:
-                  args: [importFile1/output-1, FileJoin/file-1, NJ, container3]
+                  args: [importFile1/output-1, FileJoin/file-1, NJ-taskCaching, container3]
       - type: block_link
         target: importFile2
         source_interfaces:
@@ -258,7 +258,7 @@ node_templates:
               implementation: Core-LifecycleScripts/datacopy.sh
               inputs:
                 process:
-                  args: [importFile2/output-1, FileJoin/file-2, NJ, container3]
+                  args: [importFile2/output-1, FileJoin/file-2, NJ-taskCaching, container3]
       - type: cloudify.relationships.depends_on
         target: Java2
     interfaces:
@@ -277,7 +277,7 @@ node_templates:
           implementation: Caching-Corescripts/task-deploy.sh
           inputs:
             process:
-              args: [NJ, container3]
+              args: [NJ-taskCaching, container3]
 
   container4:
     type: docker_container
@@ -290,7 +290,7 @@ node_templates:
           implementation: scripts/container.sh
           inputs:
             process:
-              args: [NJ, get_property: [FilterDupl, block_Url]]
+              args: [NJ-taskCaching, get_property: [FilterDupl, block_Url]]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -307,7 +307,7 @@ node_templates:
           implementation: scripts/java-install2.sh
           inputs:
             process:
-              args: [container4, NJ, '7']
+              args: [container4, NJ-taskCaching, '7']
     relationships:
       - type: cloudify.relationships.contained_in
         target: container4
@@ -319,7 +319,7 @@ node_templates:
       block_name: filterduplicates1.jar
       block_category: File Management
       service_type: block
-      block_Url: https://github.com/WorkflowCenter-Repositories/Filter-Duplicate-Task/raw/v1.0/filterduplicates1.jar
+      block_Url: 'https://github.com/WorkflowCenter-Repositories/Filter-Duplicate-Task/raw/v1.0/filterduplicates1.jar'
     relationships:
       - type: cloudify.relationships.contained_in
         target: container4
@@ -333,7 +333,7 @@ node_templates:
               implementation: Core-LifecycleScripts/datacopy.sh
               inputs:
                 process:
-                  args: [FileJoin/file-3, FilterDupl/fasta-files, NJ, container4]
+                  args: [FileJoin/file-3, FilterDupl/fasta-files, NJ-taskCaching, container4]
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
@@ -350,7 +350,7 @@ node_templates:
           implementation: Caching-Corescripts/task-deploy.sh
           inputs:
             process:
-              args: [NJ, container4]
+              args: [NJ-taskCaching, container4]
 
   container5:
     type: docker_container
@@ -363,7 +363,7 @@ node_templates:
           implementation: scripts/container.sh
           inputs:
             process:
-              args: [NJ, get_property: [ClustalW, block_Url]]
+              args: [NJ-taskCaching, get_property: [ClustalW, block_Url]]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -380,7 +380,7 @@ node_templates:
           implementation: scripts/java-install2.sh
           inputs:
             process:
-              args: [container5, NJ, '7']
+              args: [container5, NJ-taskCaching, '7']
     relationships:
       - type: cloudify.relationships.contained_in
         target: container5
@@ -428,7 +428,7 @@ node_templates:
               implementation: Core-LifecycleScripts/datacopy.sh
               inputs:
                 process:
-                  args: [FilterDupl/filtered-fasta-files, ClustalW/input-sequences, NJ, container5]        
+                  args: [FilterDupl/filtered-fasta-files, ClustalW/input-sequences, NJ-taskCaching, container5]        
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
@@ -445,12 +445,12 @@ node_templates:
           implementation: Caching-Corescripts/task-deploy.sh
           inputs:
             process:
-              args: [NJ, container5,  get_property: [ClustalW_Lib, lib_path]]
+              args: [NJ-taskCaching, container5,  get_property: [ClustalW_Lib, lib_path]]
 
   container6:
     type: docker_container
     properties:
-      #image_name: dtdwd/mega-nj1
+      #image_name: dtdwd/mega-NJ-taskCaching1
       container_ID: container6
     interfaces:
       cloudify.interfaces.lifecycle:
@@ -458,7 +458,7 @@ node_templates:
           implementation: scripts/container.sh
           inputs:
             process:
-              args: [NJ, get_property: [Mega-NJ, block_Url]]
+              args: [NJ-taskCaching, get_property: [Mega-NJ, block_Url]]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -475,7 +475,7 @@ node_templates:
           implementation: scripts/java-install2.sh
           inputs:
             process:
-              args: [container6, NJ, '7']
+              args: [container6, NJ-taskCaching, '7']
     relationships:
       - type: cloudify.relationships.contained_in
         target: container6
@@ -521,7 +521,7 @@ node_templates:
     type: mega-nj
     properties:
       block_description: I don't know
-      block_name: mega-nj1.jar
+      block_name: mega-NJ1.jar
       block_category: File Management
       service_type: block 
       test_of_phylogeny: Bootstrap method
@@ -548,7 +548,7 @@ node_templates:
               implementation: Core-LifecycleScripts/datacopy.sh
               inputs:
                 process:
-                  args: [ClustalW/aligned-sequences, Mega-NJ/input-data, NJ, container6]        
+                  args: [ClustalW/aligned-sequences, Mega-NJ/input-data, NJ-taskCaching, container6]        
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
@@ -565,7 +565,7 @@ node_templates:
           implementation: scripts/special-deploy.sh
           inputs:
             process:
-              args: [NJ, container6, 'Mega-CC']
+              args: [NJ-taskCaching, container6, 'Mega-CC']
 
   container7:
     type: docker_container
@@ -578,7 +578,7 @@ node_templates:
           implementation: scripts/container.sh
           inputs:
             process:
-              args: [NJ, get_property: [ExportFiles3, block_Url]]
+              args: [NJ-taskCaching, get_property: [ExportFiles3, block_Url]]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -595,7 +595,7 @@ node_templates:
           implementation: scripts/java-install2.sh
           inputs:
             process:
-              args: [container7, NJ, '7']
+              args: [container7, NJ-taskCaching, '7']
     relationships:
       - type: cloudify.relationships.contained_in
         target: container7
@@ -619,7 +619,7 @@ node_templates:
               implementation: Core-LifecycleScripts/datacopy.sh
               inputs:
                 process:
-                  args: [Mega-NJ/analysis-output, ExportFiles1/file-list, NJ, container7]
+                  args: [Mega-NJ/analysis-output, ExportFiles1/file-list, NJ-taskCaching, container7]
       - type: cloudify.relationships.depends_on
         target: Java6
     interfaces:
@@ -638,7 +638,7 @@ node_templates:
           implementation: Caching-Corescripts/task-deploy.sh
           inputs:
             process:
-             args: [NJ, container7]
+             args: [NJ-taskCaching, container7]
 
   container8:
     type: docker_container
@@ -650,7 +650,7 @@ node_templates:
           implementation: scripts/container.sh
           inputs:
             process:
-              args: [NJ, get_property: [ExportFiles2, block_Url]]
+              args: [NJ-taskCaching, get_property: [ExportFiles2, block_Url]]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -667,7 +667,7 @@ node_templates:
           implementation: scripts/java-install2.sh
           inputs:
             process:
-              args: [container8, NJ, '7']
+              args: [container8, NJ-taskCaching, '7']
     relationships:
       - type: cloudify.relationships.contained_in
         target: container8
@@ -691,7 +691,7 @@ node_templates:
               implementation: Core-LifecycleScripts/datacopy.sh
               inputs:
                 process:
-                  args: [Mega-NJ/consensus-output, ExportFiles2/file-list, NJ, container8]
+                  args: [Mega-NJ/consensus-output, ExportFiles2/file-list, NJ-taskCaching, container8]
       - type: cloudify.relationships.depends_on
         target: Java7
     interfaces:
@@ -705,7 +705,7 @@ node_templates:
           implementation: Caching-Corescripts/task-deploy.sh
           inputs:
             process:
-             args: [NJ, container8]
+             args: [NJ-taskCaching, container8]
 
   container9:
     type: docker_container
@@ -717,7 +717,7 @@ node_templates:
           implementation: scripts/container.sh
           inputs:
             process:
-              args: [NJ, get_property: [ExportFiles3, block_Url]]
+              args: [NJ-taskCaching, get_property: [ExportFiles3, block_Url]]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -734,7 +734,7 @@ node_templates:
           implementation: scripts/java-install2.sh
           inputs:
             process:
-              args: [container9, NJ, '7']
+              args: [container9, NJ-taskCaching, '7']
     relationships:
       - type: cloudify.relationships.contained_in
         target: container9
@@ -758,7 +758,7 @@ node_templates:
               implementation: Core-LifecycleScripts/datacopy.sh
               inputs:
                 process:
-                  args: [Mega-NJ/summary-info, ExportFiles3/file-list, NJ, container9]
+                  args: [Mega-NJ/summary-info, ExportFiles3/file-list, NJ-taskCaching, container9]
       - type: cloudify.relationships.depends_on
         target: Java8
     interfaces:
@@ -772,7 +772,7 @@ node_templates:
           implementation: Caching-Corescripts/task-deploy.sh
           inputs:
             process:
-             args: [NJ, container9]
+             args: [NJ-taskCaching, container9]
 
   container10:
     type: docker_container
@@ -785,7 +785,7 @@ node_templates:
           implementation: scripts/container.sh
           inputs:
             process:
-              args: [NJ, get_property: [CSV_export1, block_Url]]
+              args: [NJ-taskCaching, get_property: [CSV_export1, block_Url]]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -802,7 +802,7 @@ node_templates:
           implementation: scripts/java-install2.sh
           inputs:
             process:
-              args: [container10, NJ, '7']
+              args: [container10, NJ-taskCaching, '7']
     relationships:
       - type: cloudify.relationships.contained_in
         target: container10
@@ -827,7 +827,7 @@ node_templates:
               implementation: Core-LifecycleScripts/datacopy.sh
               inputs:
                 process:
-                  args: [FilterDupl/sequence-map, CSV_export1/input-data, NJ, container10, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
+                  args: [FilterDupl/sequence-map, CSV_export1/input-data, NJ-taskCaching, container10, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
       - type: cloudify.relationships.depends_on
         target: Java9
     interfaces:
@@ -841,7 +841,7 @@ node_templates:
           implementation: Caching-Corescripts/task-deploy.sh
           inputs:
             process:
-             args: [NJ, container10]
+             args: [NJ-taskCaching, container10]
 
   container11:
     type: docker_container
@@ -853,7 +853,7 @@ node_templates:
           implementation: scripts/container.sh
           inputs:
             process:
-              args: [NJ, get_property: [CSV_export2, block_Url]]
+              args: [NJ-taskCaching, get_property: [CSV_export2, block_Url]]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -870,7 +870,7 @@ node_templates:
           implementation: scripts/java-install2.sh
           inputs:
             process:
-              args: [container11, NJ, '7']
+              args: [container11, NJ-taskCaching, '7']
     relationships:
       - type: cloudify.relationships.contained_in
         target: container11
@@ -895,7 +895,7 @@ node_templates:
               implementation: Core-LifecycleScripts/datacopy.sh
               inputs:
                 process:
-                  args: [FilterDupl/sequence-map, CSV_export2/input-data, NJ, container11]
+                  args: [FilterDupl/sequence-map, CSV_export2/input-data, NJ-taskCaching, container11]
       - type: cloudify.relationships.depends_on
         target: Java10
     interfaces:
@@ -909,14 +909,14 @@ node_templates:
           implementation: Caching-Corescripts/task-deploy.sh
           inputs:
             process:
-             args: [NJ, container11]
+             args: [NJ-taskCaching, container11]
 
   finalBlock:
     type: cloudify.nodes.ApplicationModule
     interfaces:
       cloudify.interfaces.lifecycle:
         configure:
-          implementation: scripts/containers-clean.sh
+          implementation: Core-LifecycleScripts/containers-clean.sh
           inputs:
             process:
               args: [container7, container8, container9, container10, container11]
@@ -924,7 +924,7 @@ node_templates:
           implementation: Core-LifecycleScripts/final-inhost.sh
           inputs:
             process:
-              args: [NJ]
+              args: [NJ-taskCaching]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host

@@ -33,8 +33,8 @@ if [[ $create_image = "True" ]]; then
    fi
 
    ctx logger info "start local caching dtdwd/$image"
-   ./Caching-Corescripts/caching-policy.sh $image > /dev/null 2>&1 & 
-   ./Caching-Corescripts/caching-public.sh $image > /dev/null 2>&1 &
+   #./Caching-Corescripts/caching-policy.sh $image > /dev/null 2>&1 & 
+   #./Caching-Corescripts/caching-public.sh $image > /dev/null 2>&1 &
 fi
 # End timestamp
 ENDTIME=`date +%s.%N`

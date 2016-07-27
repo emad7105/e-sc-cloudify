@@ -26,7 +26,7 @@ inputs:
   docker-image: 
       description: > 
         Docker image to be used for container building
-      default: 'ubuntu:14.04'
+      default: 'dtdwd/nj-depend-nowget'
 
   create_image:
       description: > 
@@ -61,7 +61,7 @@ node_templates:
           implementation: Core-LifecycleScripts/start-inhost.sh
           inputs:
             process:
-              args: [NJ-1container]
+              args: [NJ-1container-taskcache]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -73,10 +73,10 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: Caching-Corescripts/container-WF.sh
+          implementation: scripts/container-WF.sh
           inputs:
             process:
-              args: [NJ-1container]
+              args: [NJ-1container-taskcache]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -90,10 +90,10 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: Caching-Corescripts/java-install2.sh
+          implementation: scripts/java-install2.sh
           inputs:
             process:
-              args: [container1,NJ-1container, '7']
+              args: [container1,NJ-1container-taskcache, '7']
     relationships:
       - type: cloudify.relationships.contained_in
         target: container1
@@ -113,18 +113,17 @@ node_templates:
           implementation: Caching-Corescripts/task-download-single.sh
           inputs:
             process:
-             args: [NJ-1container, container1, get_property: [importFile1, block_Url]]
+             args: [NJ-1container-taskcache, container1, get_property: [importFile1, block_Url]]
         configure:
           implementation: scripts/get-input.sh
           inputs:
             process:
-             args: [NJ-1container, container1, { get_input: input-dir }, { get_input: input-file1 }]
+             args: [NJ-1container-taskcache, container1, { get_input: input-dir }, { get_input: input-file1 }]
         start: 
-          start: 
           implementation: Caching-Corescripts/task-deploy.sh
           inputs:
             process:
-             args: [NJ-1container, container1, { get_input: input-file1 }]
+             args: [NJ-1container-taskcache, container1, { get_input: input-file1 }]
     relationships:
       - type: cloudify.relationships.contained_in
         target: container1
@@ -146,18 +145,17 @@ node_templates:
           implementation: Caching-Corescripts/task-download-single.sh
           inputs:
             process:
-             args: [NJ-1container, container1, get_property: [importFile2, block_Url]]
+             args: [NJ-1container-taskcache, container1, get_property: [importFile2, block_Url]]
         configure:
           implementation: scripts/get-input.sh
           inputs:
             process:
-             args: [NJ-1container, container1, { get_input: input-dir }, { get_input: input-file2 }]
-        start: 
-          start: 
+             args: [NJ-1container-taskcache, container1, { get_input: input-dir }, { get_input: input-file2 }]
+        start:  
           implementation: Caching-Corescripts/task-deploy.sh
           inputs:
             process:
-             args: [NJ-1container, container1, { get_input: input-file2 }]
+             args: [NJ-1container-taskcache, container1, { get_input: input-file2 }]
     relationships:
       - type: cloudify.relationships.contained_in
         target: container1
@@ -185,7 +183,7 @@ node_templates:
               implementation: Core-LifecycleScripts/datacopy.sh
               inputs:
                 process:
-                  args: [importFile1/output-1, FileJoin/file-1, NJ-1container, container1]
+                  args: [importFile1/output-1, FileJoin/file-1, NJ-1container-taskcache, container1]
       - type: block_link
         target: importFile2
         source_interfaces:
@@ -194,7 +192,7 @@ node_templates:
               implementation: Core-LifecycleScripts/datacopy.sh
               inputs:
                 process:
-                  args: [importFile2/output-1, FileJoin/file-2, NJ-1container, container1]
+                  args: [importFile2/output-1, FileJoin/file-2, NJ-1container-taskcache, container1]
       - type: cloudify.relationships.depends_on
         target: Java
     interfaces:
@@ -203,12 +201,12 @@ node_templates:
           implementation: Caching-Corescripts/task-download-single.sh
           inputs:
             process:
-             args: [NJ-1container, container1, get_property: [FileJoin, block_Url]]
+             args: [NJ-1container-taskcache, container1, get_property: [FileJoin, block_Url]]
         start:
           implementation: Caching-Corescripts/task-deploy.sh
           inputs:
             process:
-              args: [NJ, container1]
+              args: [NJ-1container-taskcache, container1]
 
   FilterDupl:
     type: filterDupl
@@ -231,19 +229,19 @@ node_templates:
               implementation: Core-LifecycleScripts/datacopy.sh
               inputs:
                 process:
-                  args: [FileJoin/file-3, FilterDupl/fasta-files, NJ-1container, container1]
+                  args: [FileJoin/file-3, FilterDupl/fasta-files, NJ-1container-taskcache, container1]
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
           implementation: Caching-Corescripts/task-download-single.sh
           inputs:
             process:
-             args: [NJ-1container, container1, get_property: [FilterDupl, block_Url]]
+             args: [NJ-1container-taskcache, container1, get_property: [FilterDupl, block_Url]]
         start:
           implementation: Caching-Corescripts/task-deploy.sh
           inputs:
             process:
-              args: [NJ, container1]
+              args: [NJ-1container-taskcache, container1]
 
   ClustalW_Lib:
     type: clustalw_lib
@@ -288,19 +286,19 @@ node_templates:
               implementation: Core-LifecycleScripts/datacopy.sh
               inputs:
                 process:
-                  args: [FilterDupl/filtered-fasta-files, ClustalW/input-sequences, NJ-1container, container1]        
+                  args: [FilterDupl/filtered-fasta-files, ClustalW/input-sequences, NJ-1container-taskcache, container1]        
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
           implementation: Caching-Corescripts/task-download-single.sh
           inputs:
             process:
-             args: [NJ-1container, container1, get_property: [ClustalW, block_Url]]
+             args: [NJ-1container-taskcache, container1, get_property: [ClustalW, block_Url]]
         start:
           implementation: Caching-Corescripts/task-deploy.sh
           inputs:
             process:
-              args: [NJ-1container, container1,  get_property: [ClustalW_Lib, lib_path]]
+              args: [NJ-1container-taskcache, container1,  get_property: [ClustalW_Lib, lib_path]]
 
   Wine:
     type: spec_library
@@ -368,19 +366,19 @@ node_templates:
               implementation: Core-LifecycleScripts/datacopy.sh
               inputs:
                 process:
-                  args: [ClustalW/aligned-sequences, Mega-NJ/input-data, NJ-1container, container1]        
+                  args: [ClustalW/aligned-sequences, Mega-NJ/input-data, NJ-1container-taskcache, container1]        
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
           implementation: Caching-Corescripts/task-download-single.sh
           inputs:
             process:
-             args: [NJ-1container, container1, get_property: [Mega-NJ, block_Url]]
+             args: [NJ-1container-taskcache, container1, get_property: [Mega-NJ, block_Url]]
         start:
           implementation: scripts/special-deploy.sh
           inputs:
             process:
-              args: [NJ-1container, container1, 'Mega-CC']
+              args: [NJ-1container-taskcache, container1, 'Mega-CC']
 
   ExportFiles1:
     type: exportfiles
@@ -401,7 +399,7 @@ node_templates:
               implementation: Core-LifecycleScripts/datacopy.sh
               inputs:
                 process:
-                  args: [Mega-NJ/analysis-output, ExportFiles1/file-list, NJ-1container, container1]
+                  args: [Mega-NJ/analysis-output, ExportFiles1/file-list, NJ-1container-taskcache, container1]
       - type: cloudify.relationships.depends_on
         target: Java
     interfaces:
@@ -410,12 +408,12 @@ node_templates:
           implementation: Caching-Corescripts/task-download-single.sh
           inputs:
             process:
-             args: [NJ-1container, container1, get_property: [ExportFiles1, block_Url]]
+             args: [NJ-1container-taskcache, container1, get_property: [ExportFiles1, block_Url]]
         start: 
           implementation: Caching-Corescripts/task-deploy.sh
           inputs:
             process:
-             args: [NJ-1container, container1]
+             args: [NJ-1container-taskcache, container1]
 
   ExportFiles2:
     type: exportfiles
@@ -436,7 +434,7 @@ node_templates:
               implementation: Core-LifecycleScripts/datacopy.sh
               inputs:
                 process:
-                  args: [Mega-NJ/consensus-output, ExportFiles2/file-list, NJ-1container, container1]
+                  args: [Mega-NJ/consensus-output, ExportFiles2/file-list, NJ-1container-taskcache, container1]
       - type: cloudify.relationships.depends_on
         target: Java
     interfaces:
@@ -445,12 +443,12 @@ node_templates:
           implementation: Caching-Corescripts/task-download-single.sh
           inputs:
             process:
-             args: [NJ-1container, container1, get_property: [ExportFiles2, block_Url]]
+             args: [NJ-1container-taskcache, container1, get_property: [ExportFiles2, block_Url]]
         start: 
           implementation: Caching-Corescripts/task-deploy.sh
           inputs:
             process:
-             args: [NJ-1container, container1]
+             args: [NJ-1container-taskcache, container1]
 
   ExportFiles3:
     type: exportfiles
@@ -471,7 +469,7 @@ node_templates:
               implementation: Core-LifecycleScripts/datacopy.sh
               inputs:
                 process:
-                  args: [Mega-NJ/summary-info, ExportFiles3/file-list, NJ-1container, container1]
+                  args: [Mega-NJ/summary-info, ExportFiles3/file-list, NJ-1container-taskcache, container1]
       - type: cloudify.relationships.depends_on
         target: Java
     interfaces:
@@ -480,12 +478,12 @@ node_templates:
           implementation: Caching-Corescripts/task-download-single.sh
           inputs:
             process:
-             args: [NJ-1container, container1, get_property: [ExportFiles3, block_Url]]
+             args: [NJ-1container-taskcache, container1, get_property: [ExportFiles3, block_Url]]
         start: 
           implementation: Caching-Corescripts/task-deploy.sh
           inputs:
             process:
-             args: [NJ-1container, container1]
+             args: [NJ-1container-taskcache, container1]
 
   CSV_export1:
     type: csvexport
@@ -507,7 +505,7 @@ node_templates:
               implementation: Core-LifecycleScripts/datacopy.sh
               inputs:
                 process:
-                  args: [FilterDupl/sequence-map, CSV_export1/input-data, NJ-1container, container1, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
+                  args: [FilterDupl/sequence-map, CSV_export1/input-data, NJ-1container-taskcache, container1, 'https://github.com/rawaqasha/eSc-blocks/raw/master/BlockLinkRelation.jar']
       - type: cloudify.relationships.depends_on
         target: Java
     interfaces:
@@ -516,12 +514,12 @@ node_templates:
           implementation: Caching-Corescripts/task-download-single.sh
           inputs:
             process:
-             args: [NJ-1container, container1, get_property: [CSV_export1, block_Url]]
+             args: [NJ-1container-taskcache, container1, get_property: [CSV_export1, block_Url]]
         start: 
           implementation: Caching-Corescripts/task-deploy.sh
           inputs:
             process:
-             args: [NJ-1container, container1]
+             args: [NJ-1container-taskcache, container1]
 
   CSV_export2:
     type: csvexport
@@ -543,7 +541,7 @@ node_templates:
               implementation: Core-LifecycleScripts/datacopy.sh
               inputs:
                 process:
-                  args: [FilterDupl/sequence-map, CSV_export2/input-data, NJ-1container, container1]
+                  args: [FilterDupl/sequence-map, CSV_export2/input-data, NJ-1container-taskcache, container1]
       - type: cloudify.relationships.depends_on
         target: Java
     interfaces:
@@ -552,12 +550,12 @@ node_templates:
           implementation: Caching-Corescripts/task-download-single.sh
           inputs:
             process:
-             args: [NJ-1container, container1, get_property: [CSV_export2, block_Url]]
+             args: [NJ-1container-taskcache, container1, get_property: [CSV_export2, block_Url]]
         start: 
           implementation: Caching-Corescripts/task-deploy.sh
           inputs:
             process:
-             args: [NJ-1container, container1]
+             args: [NJ-1container-taskcache, container1]
 
   finalBlock:
     type: cloudify.nodes.ApplicationModule
@@ -567,7 +565,7 @@ node_templates:
           implementation: Caching-Corescripts/image_create.sh
           inputs:
             process:
-             args: [container1, { get_input: create_image }]
+             args: [container1, { get_input: create_image }, NJ-1container-taskcache]
         configure:
           implementation: Core-LifecycleScripts/containers-clean.sh
           inputs:
@@ -577,7 +575,7 @@ node_templates:
           implementation: Core-LifecycleScripts/final-inhost.sh
           inputs:
             process:
-              args: [NJ-1container]
+              args: [NJ-1container-taskcache]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
