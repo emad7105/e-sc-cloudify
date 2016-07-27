@@ -532,7 +532,7 @@ node_templates:
       gamma_parameter: 1
       gaps/missing_data_treatment: 'Complete deletion'       
       site_coverage_cutoff(%): 95
-      block_Url: https://github.com/WorkflowCenter-Repositories/Mega-NJ-Task/raw/v1.0/mega-nj1.jar
+      block_Url: https://github.com/WorkflowCenter-Repositories/Mega-NJ-Task/raw/v1.0/mega-NJ1.jar
     relationships:
       - type: cloudify.relationships.contained_in
         target: container6

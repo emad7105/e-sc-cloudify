@@ -25,3 +25,4 @@ ENDTIME=`date +%s.%N`
 # crudely by taking first 3 decimal places
 TIMEDIFF=`echo "$ENDTIME - $STARTTIME" | bc | awk -F"." '{print $1"."substr($2,1,3)}'`
 echo "install java for $CONTAINER_ID: $TIMEDIFF" | sed 's/[ \t]/, /g' >> ~/list.csv   
+

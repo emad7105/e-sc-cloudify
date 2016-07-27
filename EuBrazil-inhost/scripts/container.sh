@@ -18,7 +18,9 @@ ENDTIME=`date +%s.%N`
 # Convert nanoseconds to milliseconds
 # crudely by taking first 3 decimal places
 TIMEDIFF=`echo "$ENDTIME - $STARTTIME" | bc | awk -F"." '{print $1"."substr($2,1,3)}'`
+
 echo "downloading ${IMAGE_NAME} image : $TIMEDIFF" | sed 's/[ \t]/, /g' >> ~/list.csv 
+
 
 # Start Timestamp
 STARTTIME=`date +%s.%N`
@@ -31,4 +33,6 @@ ENDTIME=`date +%s.%N`
 # Convert nanoseconds to milliseconds
 # crudely by taking first 3 decimal places
 TIMEDIFF=`echo "$ENDTIME - $STARTTIME" | bc | awk -F"." '{print $1"."substr($2,1,3)}'`
+
 echo "creating the container $CONTAINER_NAME: $TIMEDIFF" | sed 's/[ \t]/, /g' >> ~/list.csv 
+
