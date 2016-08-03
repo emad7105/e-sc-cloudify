@@ -8,12 +8,12 @@ set -e
 #ctx logger info "start caching $task"
 if ! ssh cache@192.168.56.103 stat DTDWD/$task.tar.gz \> /dev/null 2\>\&1   #check if it isn't exist in cache
             then
-         #    ctx logger info "local caching"
+         echo "local caching dtdwd/$task" > ~/caching.txt
              if [[ ! -f $task.tar.gz ]]; then
                  sudo docker save dtdwd/$task | gzip > $task.tar.gz         #compress the image
               fi
 	      Image_size=$(stat -c %s $task.tar.gz)                #get tar file size
-              echo "Size of new image is $Image_size"
+              echo "Size of new image is $Image_size" >> ~/caching.txt
 
               size=$(ssh cache@192.168.56.103 du -s DTDWD)         #get cache folder size (image repo.)
 	      array=( $size )
@@ -21,7 +21,7 @@ if ! ssh cache@192.168.56.103 stat DTDWD/$task.tar.gz \> /dev/null 2\>\&1   #che
       	      echo "Cache Size is $cache"
 
               let total=$cache+$Image_size/1000                     #sum of cache and image size
-              echo "total is $total"
+              echo "total is $total" 
 
 	      while [ $total -ge 3000000 ]; do                      #check if the sum exceed max cache size
 

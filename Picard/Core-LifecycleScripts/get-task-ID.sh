@@ -7,6 +7,7 @@ task=${repo_Url##*/}
 item=$(echo ${var##*/})   #get the item after raw e.g: "zip-PW-release"
 
 if [[ ! -f .RPQ/$task.txt ]]; then
+ echo '$repo_Url.git' > .RPQ/$task.txt 2>&1
  git ls-remote --refs $repo_Url.git > .RPQ/$task.txt 2>&1
 fi
 ref=$(grep -n $item .RPQ/$task.txt)

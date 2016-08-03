@@ -12,8 +12,14 @@ BLOCK_URL=$3
    source $PWD/Core-LifecycleScripts/get-task-ID.sh
    var=$(func $BLOCK_URL)
    task=${var,,}
-
-
+   
+   set +e
+     f=$(grep $task .RPQ/block.txt)
+   set -e
+   #ctx logger info "$flag"
+   if [[ -z $f ]]; then
+     echo $task >> .RPQ/block.txt
+   fi
 ctx logger info "Dowload ${task} on ${CONTAINER_ID}"
 # Start Timestamp
 STARTTIME=`date +%s.%N`
@@ -40,11 +46,8 @@ ENDTIME=`date +%s.%N`
 # Convert nanoseconds to milliseconds
 # crudely by taking first 3 decimal places
 TIMEDIFF=`echo "$ENDTIME - $STARTTIME" | bc | awk -F"." '{print $1"."substr($2,1,3)}'`
-<<<<<<< HEAD
 echo "download ${block} to ${CONTAINER_ID}: $TIMEDIFF" | sed 's/[ \t]/, /g' >> ~/list.csv   
-=======
-echo "download ${block} to ${CONTAINER_ID}: $TIMEDIFF" | sed 's/[ \t]/ /g' >> ~/list.csv   
->>>>>>> d790e44c10a2d0bdfd21828e439689c1312061bd
+
  
 
 # Start Timestamp
@@ -68,11 +71,12 @@ if [[ $create_image = "True" ]]; then
       ctx logger info "Creating dtdwd/$image"
       sudo docker commit -m "new ${image} image" -a "rawa" ${CONTAINER_ID} dtdwd/$image
    fi
-   
-       ctx logger info "start local caching"
-      #./Caching-Corescripts/caching-policy.sh $image > log.out 2> log.err < /dev/null 2>&1 & 
-      #./Caching-Corescripts/caching-public.sh $image > /dev/null 2>&1 &    
      
+     if [[ -z $f ]]; then
+       ctx logger info "start local caching"
+      ./Caching-Corescripts/caching-policy.sh $image > /dev/null 2>&1 & 
+      #./Caching-Corescripts/caching-public.sh $image > /dev/null 2>&1 &    
+     fi
 fi
  # End timestamp
 ENDTIME=`date +%s.%N`
@@ -80,8 +84,6 @@ ENDTIME=`date +%s.%N`
 # Convert nanoseconds to milliseconds
 # crudely by taking first 3 decimal places
 TIMEDIFF=`echo "$ENDTIME - $STARTTIME" | bc | awk -F"." '{print $1"."substr($2,1,3)}'`
-<<<<<<< HEAD
+
 echo "creating image dtdwd/$image : $TIMEDIFF" | sed 's/[ \t]/, /g' >> ~/list.csv  
-=======
-echo "creating image dtdwd/$image : $TIMEDIFF" | sed 's/[ \t]/ /g' >> ~/list.csv  
->>>>>>> d790e44c10a2d0bdfd21828e439689c1312061bd
+

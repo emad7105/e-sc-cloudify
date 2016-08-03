@@ -8,7 +8,7 @@ set -e
 #ctx logger info "start caching $task"
 if ! ssh cache@192.168.56.103 stat DTDWD/$task.tar.gz \> /dev/null 2\>\&1   #check if it isn't exist in cache
             then
-         #    ctx logger info "local caching"
+             echo "local caching $task" > ~/caching.txt
              if [[ ! -f $task.tar.gz ]]; then
                  sudo docker save dtdwd/$task | gzip > $task.tar.gz         #compress the image
               fi
@@ -18,7 +18,7 @@ if ! ssh cache@192.168.56.103 stat DTDWD/$task.tar.gz \> /dev/null 2\>\&1   #che
               size=$(ssh cache@192.168.56.103 du -s DTDWD)         #get cache folder size (image repo.)
 	      array=( $size )
               cache=$(echo $size | awk -F' ' '{print $1}')
-      	      echo "Cache Size is $cache"
+      	      echo "Cache Size is $cache" >> ~/caching.txt
 
               let total=$cache+$Image_size/1000                     #sum of cache and image size
               echo "total is $total"
@@ -32,7 +32,7 @@ if ! ssh cache@192.168.56.103 stat DTDWD/$task.tar.gz \> /dev/null 2\>\&1   #che
 		   
                    dock=$(sudo docker search dtdwd/$image)        #search for the selected image in cache rep.
                    found=`echo $dock | grep -c dtdwd/$image`
-                   echo "found is $found"
+                   echo "found is $found" >> ~/caching.txt
                    if [[ $found = 0 ]]; then  
                        ssh cache@192.168.56.103 sudo docker rmi dtdwd/$image
                    fi

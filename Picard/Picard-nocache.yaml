@@ -66,7 +66,7 @@ node_templates:
           implementation: scripts/container.sh
           inputs:
             process:
-              args: [Picard-nocache, get_property: [importDir, block_Url]]
+              args: [Picard-nocache, get_property: [ImportDir, block_Url]]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -159,7 +159,7 @@ node_templates:
       block_name: Pick-Files.jar
       block_category: File Management
       service_type: block
-      block_Url:
+      block_Url: 'https://github.com/WorkflowCenter-Repositories/PickFile-Task/raw/v1.0/Pick-Files.jar'
       FileNameOrIndex: Probe.PFC_0030_MSt_GAGTGG.sorted.bam
       PickByIndex: 'false'
     interfaces:
@@ -227,7 +227,7 @@ node_templates:
         target: container3
 
   Picard-CleanSAM:
-    type: Picard-CleanSAM
+    type: picard-CleanSAM
     properties:
       block_description: To be ..
       block_name: Picard--CleanSAM.jar
@@ -301,7 +301,7 @@ node_templates:
         target: container4
 
   Picard-Mark:
-    type: Picard-MarkDuplicates
+    type: picard-MarkDuplicates
     properties:
       block_description: I don't know
       block_name: Picard-nocache-Mark.jar
@@ -376,8 +376,8 @@ node_templates:
       - type: cloudify.relationships.contained_in
         target: container5
 
-  Picard-nocache-Add:
-    type: Picard-ADDOrReplaceRG
+  Picard-Add:
+    type: picard-ADDOrReplaceRG
     properties:
       block_description: I don't know
       block_name: Picard-Add.jar

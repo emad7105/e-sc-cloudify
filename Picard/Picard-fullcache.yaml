@@ -1,4 +1,4 @@
-#eSc Picard workflow with 8 real block def. deployed on 8 containers
+#eSc Picard-fullcache workflow with 8 real block def. deployed on 8 containers
 
 tosca_definitions_version: cloudify_dsl_1_0
 
@@ -51,7 +51,7 @@ node_templates:
           implementation: Core-LifecycleScripts/start-inhost.sh
           inputs:
             process:
-              args: [Picard]
+              args: [Picard-fullcache]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -63,10 +63,10 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: scripts/container.sh
+          implementation: Caching-Corescripts/container.sh
           inputs:
             process:
-              args: [Picard, get_property: [importDir, block_Url]]
+              args: [Picard-fullcache, get_property: [ImportDir, block_Url]]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -80,10 +80,10 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: scripts/java-install2.sh
+          implementation: Caching-Corescripts/java-install2.sh
           inputs:
             process:
-              args: [container1]
+              args: [container1, Picard-fullcache, '7']
     relationships:
       - type: cloudify.relationships.contained_in
         target: container1
@@ -100,7 +100,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create: 
-          implementation: scripts/task-download-multi.sh
+          implementation: Caching-Corescripts/task-download-multi.sh
           inputs:
             process:
              args: [{ get_input: create_image }, container1, 'https://github.com/WorkflowCenter-Repositories/ImportDir-Task/raw/v1.0/importdir1.jar']
@@ -108,12 +108,12 @@ node_templates:
           implementation: scripts/get-Dir.sh
           inputs:
             process:
-             args: [Picard, { get_input: input-dir }]
+             args: [Picard-fullcache, { get_input: input-dir }]
         start: 
           implementation: Caching-Corescripts/task-deploy.sh
           inputs:
             process:
-             args: [Picard, container1, { get_input: input-dir }]
+             args: [Picard-fullcache, container1, { get_input: input-dir }]
     relationships:
       - type: cloudify.relationships.contained_in
         target: container1
@@ -127,10 +127,10 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:        
         start:
-          implementation: scripts/container.sh
+          implementation: Caching-Corescripts/container.sh
           inputs:
             process:
-              args: [Picard, get_property: [PickFiles, block_Url]]
+              args: [Picard-fullcache, get_property: [PickFiles, block_Url]]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -144,10 +144,10 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: scripts/java-install2.sh
+          implementation: Caching-Corescripts/java-install2.sh
           inputs:
             process:
-              args: [container2]
+              args: [container2, Picard-fullcache, '7']
     relationships:
       - type: cloudify.relationships.contained_in
         target: container2
@@ -159,13 +159,13 @@ node_templates:
       block_name: Pick-Files.jar
       block_category: File Management
       service_type: block
-      block_Url:
+      block_Url: 'https://github.com/WorkflowCenter-Repositories/PickFile-Task/raw/v1.0/Pick-Files.jar'
       FileNameOrIndex: Probe.PFC_0030_MSt_GAGTGG.sorted.bam
       PickByIndex: 'false'
     interfaces:
       cloudify.interfaces.lifecycle:
         create: 
-          implementation: scripts/task-download-multi.sh
+          implementation: Caching-Corescripts/task-download-multi.sh
           inputs:
             process:
              args: [{ get_input: create_image }, container2, 'https://github.com/WorkflowCenter-Repositories/PickFile-Task/raw/v1.0/Pick-Files.jar']
@@ -178,7 +178,7 @@ node_templates:
           implementation: Caching-Corescripts/task-deploy.sh
           inputs:
             process:
-             args: [Picard, container2]
+             args: [Picard-fullcache, container2]
     relationships:
       - type: block_link
         target: ImportDir
@@ -188,7 +188,7 @@ node_templates:
               implementation: Core-LifecycleScripts/datacopy.sh
               inputs:
                 process:
-                  args: [ImportDir/imported-files, PickFiles/input-files, Picard, container2]
+                  args: [ImportDir/imported-files, PickFiles/input-files, Picard-fullcache, container2]
       - type: cloudify.relationships.contained_in
         target: container2
       - type: cloudify.relationships.depends_on
@@ -201,10 +201,10 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         start:
-          implementation: scripts/container.sh
+          implementation: Caching-Corescripts/container.sh
           inputs:
             process:
-              args: [Picard, get_property: [PicardCleanSAM, block_Url]]
+              args: [Picard-fullcache, get_property: [Picard-CleanSAM, block_Url]]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -218,15 +218,15 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: scripts/java-install2.sh
+          implementation: Caching-Corescripts/java-install2.sh
           inputs:
             process:
-              args: [container3]
+              args: [container3, Picard-fullcache, '7']
     relationships:
       - type: cloudify.relationships.contained_in
         target: container3
 
-  PicardCleanSAM:
+  Picard-CleanSAM:
     type: picard-CleanSAM
     properties:
       block_description: To be ..
@@ -247,13 +247,13 @@ node_templates:
               implementation: Core-LifecycleScripts/datacopy.sh
               inputs:
                 process:
-                  args: [PickFiles/selected-files, PicardCleanSAM/input-SAM_BAM-files, Picard, container3]
+                  args: [PickFiles/selected-files, Picard-CleanSAM/input-SAM_BAM-files, Picard-fullcache, container3]
       - type: cloudify.relationships.depends_on
         target: Java2
     interfaces:
       cloudify.interfaces.lifecycle:
         create: 
-          implementation: scripts/task-download-multi.sh
+          implementation: Caching-Corescripts/task-download-multi.sh
           inputs:
             process:
              args: [{ get_input: create_image }, container3, 'https://github.com/WorkflowCenter-Repositories/Picard-Clean-Task/raw/v1.0/Picard-CleanSAM.jar']
@@ -266,7 +266,7 @@ node_templates:
           implementation: Caching-Corescripts/task-deploy.sh
           inputs:
             process:
-             args: [Picard, container3]
+             args: [Picard-fullcache, container3]
 
   container4:
     type: docker_container
@@ -275,15 +275,15 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         start:
-          implementation: scripts/container.sh
+          implementation: Caching-Corescripts/container.sh
           inputs:
             process:
-              args: [Picard, get_property: [Picard-Mark, block_Url]]
+              args: [Picard-fullcache, get_property: [Picard-Mark, block_Url]]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
       - type: cloudify.relationships.depends_on
-        target: PicardCleanSAM
+        target: Picard-CleanSAM
 
   Java3:
     type: spec_library
@@ -292,10 +292,10 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: scripts/java-install2.sh
+          implementation: Caching-Corescripts/java-install2.sh
           inputs:
             process:
-              args: [container4]
+              args: [container4, Picard-fullcache, '7']
     relationships:
       - type: cloudify.relationships.contained_in
         target: container4
@@ -304,7 +304,7 @@ node_templates:
     type: picard-MarkDuplicates
     properties:
       block_description: I don't know
-      block_name: Picard-Mark.jar
+      block_name: Picard-fullcache-Mark.jar
       block_category: File Management
       service_type: block
       block_Url: 'https://github.com/WorkflowCenter-Repositories/Picard-Mark-Task/raw/v1.0/Picard-Mark.jar'
@@ -318,18 +318,18 @@ node_templates:
       - type: cloudify.relationships.depends_on
         target: Java3
       - type: block_link
-        target: PicardCleanSAM
+        target: Picard-CleanSAM
         source_interfaces:
           cloudify.interfaces.relationship_lifecycle:
             preconfigure:
               implementation: Core-LifecycleScripts/datacopy.sh
               inputs:
                 process:
-                  args: [PicardCleanSAM/cleaned-SAM_BAM-files, Picard-Mark/input-SAM_BAM-files, Picard, container4]
+                  args: [Picard-CleanSAM/cleaned-SAM_BAM-files, Picard-Mark/input-SAM_BAM-files, Picard-fullcache, container4]
     interfaces:
       cloudify.interfaces.lifecycle:
         create: 
-          implementation: scripts/task-download-multi.sh
+          implementation: Caching-Corescripts/task-download-multi.sh
           inputs:
             process:
              args: [{ get_input: create_image }, container4, 'https://github.com/WorkflowCenter-Repositories/Picard-Mark-Task/raw/v1.0/Picard-Mark.jar']
@@ -342,7 +342,7 @@ node_templates:
           implementation: Caching-Corescripts/task-deploy.sh
           inputs:
             process:
-              args: [Picard, container4]
+              args: [Picard-fullcache, container4]
 
   container5:
     type: docker_container
@@ -351,10 +351,10 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         start:
-          implementation: scripts/container.sh
+          implementation: Caching-Corescripts/container.sh
           inputs:
             process:
-              args: [Picard, get_property: [Picard-Add, block_Url]]
+              args: [Picard-fullcache, get_property: [Picard-Add, block_Url]]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -368,10 +368,10 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: scripts/java-install2.sh
+          implementation: Caching-Corescripts/java-install2.sh
           inputs:
             process:
-              args: [container5]
+              args: [container5, Picard-fullcache, '7']
     relationships:
       - type: cloudify.relationships.contained_in
         target: container5
@@ -407,11 +407,11 @@ node_templates:
               implementation: Core-LifecycleScripts/datacopy.sh
               inputs:
                 process:
-                  args: [Picard-Mark/marked-SAM_BAM-file, Picard-Add/input-SAM_BAM-files, Picard, container5]        
+                  args: [Picard-Mark/marked-SAM_BAM-file, Picard-Add/input-SAM_BAM-files, Picard-fullcache, container5]        
     interfaces:
       cloudify.interfaces.lifecycle:
         create: 
-          implementation: scripts/task-download-multi.sh
+          implementation: Caching-Corescripts/task-download-multi.sh
           inputs:
             process:
              args: [{ get_input: create_image }, container5, 'https://github.com/WorkflowCenter-Repositories/Picard-Add-Task/raw/v1.0/Picard-Add.jar']
@@ -424,7 +424,7 @@ node_templates:
           implementation: Caching-Corescripts/task-deploy.sh
           inputs:
             process:
-              args: [Picard, container5]
+              args: [Picard-fullcache, container5]
 
   container6:
     type: docker_container
@@ -433,10 +433,10 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         start:
-          implementation: scripts/container.sh
+          implementation: Caching-Corescripts/container.sh
           inputs:
             process:
-              args: [Picard, get_property: [SAMTools, block_Url]]
+              args: [Picard-fullcache, get_property: [SAMTools, block_Url]]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -450,10 +450,10 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: scripts/java-install2.sh
+          implementation: Caching-Corescripts/java-install2.sh
           inputs:
             process:
-              args: [container6]
+              args: [container6, Picard-fullcache, '7']
     relationships:
       - type: cloudify.relationships.contained_in
         target: container6
@@ -498,11 +498,11 @@ node_templates:
               implementation: Core-LifecycleScripts/datacopy.sh
               inputs:
                 process:
-                  args: [Picard-Add/output-SAM_BAM-files, SAMTools/input-BAM-files, Picard, container6]        
+                  args: [Picard-Add/output-SAM_BAM-files, SAMTools/input-BAM-files, Picard-fullcache, container6]        
     interfaces:
       cloudify.interfaces.lifecycle:
         create: 
-          implementation: scripts/task-download-multi.sh
+          implementation: Caching-Corescripts/task-download-multi.sh
           inputs:
             process:
              args: [{ get_input: create_image }, container6, 'https://github.com/WorkflowCenter-Repositories/SAMTools-Task/raw/v1.0/samtools1.jar']
@@ -510,7 +510,7 @@ node_templates:
           implementation: Caching-Corescripts/task-deploy.sh
           inputs:
             process:
-              args: [Picard, container6]
+              args: [Picard-fullcache, container6]
 
   container7:
     type: docker_container
@@ -519,10 +519,10 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         start:
-          implementation: scripts/container.sh
+          implementation: Caching-Corescripts/container.sh
           inputs:
             process:
-              args: [Picard, get_property: [ExportFiles1, block_Url]]
+              args: [Picard-fullcache, get_property: [ExportFiles1, block_Url]]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -536,10 +536,10 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: scripts/java-install2.sh
+          implementation: Caching-Corescripts/java-install2.sh
           inputs:
             process:
-              args: [container7]
+              args: [container7, Picard-fullcache, '7']
     relationships:
       - type: cloudify.relationships.contained_in
         target: container7
@@ -563,13 +563,13 @@ node_templates:
               implementation: Core-LifecycleScripts/datacopy.sh
               inputs:
                 process:
-                  args: [SAMTools/index-BAI-files, ExportFiles1/file-list, Picard, container7]
+                  args: [SAMTools/index-BAI-files, ExportFiles1/file-list, Picard-fullcache, container7]
       - type: cloudify.relationships.depends_on
         target: Java6
     interfaces:
       cloudify.interfaces.lifecycle:
         create: 
-          implementation: scripts/task-download-multi.sh
+          implementation: Caching-Corescripts/task-download-multi.sh
           inputs:
             process:
              args: [{ get_input: create_image }, container7, 'https://github.com/WorkflowCenter-Repositories/ExportFiles-Task/raw/v1.0/exportfiles1.jar']
@@ -582,7 +582,7 @@ node_templates:
           implementation: Caching-Corescripts/task-deploy.sh
           inputs:
             process:
-             args: [Picard, container7]
+             args: [Picard-fullcache, container7]
 
   container8:
     type: docker_container
@@ -591,10 +591,10 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         start:
-          implementation: scripts/container.sh
+          implementation: Caching-Corescripts/container.sh
           inputs:
             process:
-              args: [Picard, get_property: [ExportFiles2, block_Url]]
+              args: [Picard-fullcache, get_property: [ExportFiles2, block_Url]]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host
@@ -608,10 +608,10 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: scripts/java-install2.sh
+          implementation: Caching-Corescripts/java-install2.sh
           inputs:
             process:
-              args: [container8]
+              args: [container8, Picard-fullcache, '7']
     relationships:
       - type: cloudify.relationships.contained_in
         target: container8
@@ -635,13 +635,13 @@ node_templates:
               implementation: Core-LifecycleScripts/datacopy.sh
               inputs:
                 process:
-                  args: [Picard-Add/output-SAM_BAM-files, ExportFiles2/file-list, Picard, container8]
+                  args: [Picard-Add/output-SAM_BAM-files, ExportFiles2/file-list, Picard-fullcache, container8]
       - type: cloudify.relationships.depends_on
         target: Java7
     interfaces:
       cloudify.interfaces.lifecycle:
         create: 
-          implementation: scripts/task-download-multi.sh
+          implementation: Caching-Corescripts/task-download-multi.sh
           inputs:
             process:
              args: [{ get_input: create_image }, container8, 'https://github.com/WorkflowCenter-Repositories/ExportFiles-Task/raw/v1.0/exportfiles1.jar']
@@ -649,7 +649,7 @@ node_templates:
           implementation: Caching-Corescripts/task-deploy.sh
           inputs:
             process:
-             args: [Picard, container8]
+             args: [Picard-fullcache, container8]
 
   finalBlock:
     type: cloudify.nodes.ApplicationModule
@@ -664,7 +664,7 @@ node_templates:
           implementation: Core-LifecycleScripts/final-inhost.sh
           inputs:
             process:
-              args: [Picard]
+              args: [Picard-fullcache]
     relationships:
       - type: cloudify.relationships.contained_in
         target: host

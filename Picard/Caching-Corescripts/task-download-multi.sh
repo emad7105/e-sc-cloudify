@@ -66,7 +66,7 @@ if [[ $create_image = "True" ]]; then
    fi
    
        ctx logger info "start local caching"
-      #./Caching-Corescripts/caching-policy.sh $image > log.out 2> log.err < /dev/null 2>&1 & 
+      ./Caching-Corescripts/caching-policy.sh $image > log.out 2> log.err < /dev/null 2>&1 & 
       #./Caching-Corescripts/caching-public.sh $image > /dev/null 2>&1 &    
      
 fi
