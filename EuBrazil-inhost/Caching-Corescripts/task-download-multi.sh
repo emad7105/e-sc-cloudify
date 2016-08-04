@@ -13,13 +13,7 @@ BLOCK_URL=$3
    var=$(func $BLOCK_URL)
    task=${var,,}
    
-   set +e
-     f=$(grep $task .RPQ/block.txt)
-   set -e
-   #ctx logger info "$flag"
-   if [[ -z $f ]]; then
-     echo $task >> .RPQ/block.txt
-   fi
+  
 ctx logger info "Dowload ${task} on ${CONTAINER_ID}"
 # Start Timestamp
 STARTTIME=`date +%s.%N`
@@ -61,6 +55,9 @@ if [[ $create_image = "True" ]]; then
    b=$(echo $container | cut -d ' ' -f2)                 #get base image
    base=${b//['/:']/-}
 
+   set +e
+       # f=$(ssh cache@192.168.56.103 "cat DTDWD/tasks.txt" | grep $task)
+   set -e
 
    if echo "$b" | grep -q "$task"; then
       image=${b#*/}
@@ -68,15 +65,20 @@ if [[ $create_image = "True" ]]; then
       
    else
       image=$base'_'$task
-      ctx logger info "Creating dtdwd/$image"
-      sudo docker commit -m "new ${image} image" -a "rawa" ${CONTAINER_ID} dtdwd/$image
+   
+     # if [[ -z $f ]]; then
+         ctx logger info "Creating dtdwd/$image"
+         sudo docker commit -m "new ${image} image" -a "rawa" ${CONTAINER_ID} dtdwd/$image
+     # fi
    fi
      
-     if [[ -z $f ]]; then
+  # if [[ -z $f ]]; then
+     #  echo $task | ssh cache@192.168.56.103 "cat >> DTDWD/tasks.txt"
+   
        ctx logger info "start local caching"
-      ./Caching-Corescripts/caching-policy.sh $image > /dev/null 2>&1 & 
-      #./Caching-Corescripts/caching-public.sh $image > /dev/null 2>&1 &    
-     fi
+      #./Caching-Corescripts/caching-policy.sh $image > /dev/null 2>&1 & 
+      ./Caching-Corescripts/caching-public.sh $image > /dev/null 2>&1 &    
+   #  fi
 fi
  # End timestamp
 ENDTIME=`date +%s.%N`

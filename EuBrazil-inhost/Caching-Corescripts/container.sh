@@ -29,9 +29,14 @@ if [[ "$(docker images -q dtdwd/${task_image} 2> /dev/null)" != "" ]]; then
  ctx logger info "local task image"
  Image=dtdwd/${task_image}
 else 
-   ssh cache@192.168.56.103 test -f "DTDWD/${task_image}.tar.gz" && flag=1
+   set +e
+   connect=$(ssh -o BatchMode=yes -o ConnectTimeout=1 cache@192.168.56.103 echo ok 2>&1)
+   set -e
+    ctx logger info "$connect"
+   if [[ $connect == "ok" ]]; then
+    ssh cache@192.168.56.103 test -f "DTDWD/${task_image}.tar.gz" && flag=1
 
-   if [[  $flag = 1  ]]; then
+    if [[  $flag = 1  ]]; then
       ctx logger info "cached task image"
       set +e           
           # Start Timestamp
@@ -57,6 +62,7 @@ else
           rm ${task_image}.tar.gz
       set -e    
       Image=dtdwd/${task_image}
+    fi
   else
       dock=$(sudo docker search dtdwd/${task_image})     #task image from public hub
       set +e
