@@ -1,0 +1,2 @@
+5472f6a399762bf0a0a5add3eddaac176dfed58a	refs/heads/master
+22e0502d9c6e0e4ea0987f3768bd15c73e6cd9f1	refs/tags/v1.0

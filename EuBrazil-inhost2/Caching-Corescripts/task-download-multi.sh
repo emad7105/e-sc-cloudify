@@ -56,7 +56,7 @@ if [[ $create_image = "True" ]]; then
    base=${b//['/:']/-}
 
    set +e
-        #f=$(ssh cache@192.168.56.103 "cat DTDWD/tasks.txt" | grep $task)
+      #  f=$(ssh cache@192.168.56.103 "cat DTDWD/tasks.txt" | grep $task)
    set -e
 
    if echo "$b" | grep -q "$task"; then
@@ -65,23 +65,22 @@ if [[ $create_image = "True" ]]; then
       
    else
       image=$base'_'$task
-   
       if ! grep -Fxq "$image" ~/.TDWF/images.txt
       then
          echo $image >> ~/.TDWF/images.txt
          ctx logger info "Creating dtdwd/$image"
          sudo docker commit -m "new ${image} image" -a "rawa" ${CONTAINER_ID} dtdwd/$image
       fi
-  fi
+   fi
 
      
-   #if [[ -z $f ]]; then
-      # echo $task | ssh cache@192.168.56.103 "cat >> DTDWD/tasks.txt"
+  # if [[ -z $f ]]; then
+    #   echo $task | ssh cache@192.168.56.103 "cat >> DTDWD/tasks.txt"
    
        ctx logger info "start local caching"
       #./Caching-Corescripts/caching-policy.sh $image > /dev/null 2>&1 & 
       #./Caching-Corescripts/caching-public.sh $image > /dev/null 2>&1 &    
-   #  fi
+   # fi
 fi
  # End timestamp
 ENDTIME=`date +%s.%N`

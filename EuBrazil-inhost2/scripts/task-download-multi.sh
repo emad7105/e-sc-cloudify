@@ -12,8 +12,8 @@ BLOCK_URL=$3
    source $PWD/Core-LifecycleScripts/get-task-ID.sh
    var=$(func $BLOCK_URL)
    task=${var,,}
-   
-  
+
+
 ctx logger info "Dowload ${task} on ${CONTAINER_ID}"
 # Start Timestamp
 STARTTIME=`date +%s.%N`
@@ -21,16 +21,19 @@ STARTTIME=`date +%s.%N`
 #-----------------------------------------#
 #----------- download the task -----------#
 ctx logger info "download ${block} block"
-flag=0
-sudo docker exec -it ${CONTAINER_ID} [ ! -f tasks/$task.jar ] && flag=1
 
-if [[ $flag = 1 ]]; then
-[ ! -f ~/.TDWF/$task.jar ] && wget -O ~/.TDWF/$task.jar  ${BLOCK_URL}
+set +e
+  wget=$(sudo docker exec -it ${CONTAINER_ID} which wget)
+set -e
+
+if [[ -z $wget ]]; then
+   sudo docker exec -it ${CONTAINER_ID} apt-get update
+   sudo docker exec -it ${CONTAINER_ID} apt-get -y install wget
+fi
 
 sudo docker exec -it ${CONTAINER_ID} [ ! -d tasks ] && sudo docker exec -it ${CONTAINER_ID} mkdir tasks
+sudo docker exec -it ${CONTAINER_ID} [ ! -f tasks/$task.jar ] && sudo docker exec -it ${CONTAINER_ID} wget -O tasks/$task.jar  ${BLOCK_URL}
 
-cat ~/.TDWF/$task.jar | sudo docker exec -i ${CONTAINER_ID} sh -c 'cat > tasks/'$task.jar
-fi
 #----------- download the task -----------#
 #-----------------------------------------#
 
@@ -40,6 +43,7 @@ ENDTIME=`date +%s.%N`
 # Convert nanoseconds to milliseconds
 # crudely by taking first 3 decimal places
 TIMEDIFF=`echo "$ENDTIME - $STARTTIME" | bc | awk -F"." '{print $1"."substr($2,1,3)}'`
+
 echo "download ${block} to ${CONTAINER_ID}: $TIMEDIFF" | sed 's/[ \t]/, /g' >> ~/list.csv   
 
  
@@ -55,9 +59,6 @@ if [[ $create_image = "True" ]]; then
    b=$(echo $container | cut -d ' ' -f2)                 #get base image
    base=${b//['/:']/-}
 
-   set +e
-        #f=$(ssh cache@192.168.56.103 "cat DTDWD/tasks.txt" | grep $task)
-   set -e
 
    if echo "$b" | grep -q "$task"; then
       image=${b#*/}
@@ -65,23 +66,12 @@ if [[ $create_image = "True" ]]; then
       
    else
       image=$base'_'$task
+      ctx logger info "Creating dtdwd/$image"
+      sudo docker commit -m "new ${image} image" -a "rawa" ${CONTAINER_ID} dtdwd/$image
+   fi
    
-      if ! grep -Fxq "$image" ~/.TDWF/images.txt
-      then
-         echo $image >> ~/.TDWF/images.txt
-         ctx logger info "Creating dtdwd/$image"
-         sudo docker commit -m "new ${image} image" -a "rawa" ${CONTAINER_ID} dtdwd/$image
-      fi
-  fi
-
+         
      
-   #if [[ -z $f ]]; then
-      # echo $task | ssh cache@192.168.56.103 "cat >> DTDWD/tasks.txt"
-   
-       ctx logger info "start local caching"
-      #./Caching-Corescripts/caching-policy.sh $image > /dev/null 2>&1 & 
-      #./Caching-Corescripts/caching-public.sh $image > /dev/null 2>&1 &    
-   #  fi
 fi
  # End timestamp
 ENDTIME=`date +%s.%N`
