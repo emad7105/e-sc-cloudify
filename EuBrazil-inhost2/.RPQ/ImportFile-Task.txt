@@ -1,3 +1,0 @@
-7c8fb2dd819d05474ad267ae409a6ab30ee6f8b4	refs/heads/master
-7c8fb2dd819d05474ad267ae409a6ab30ee6f8b4	refs/heads/release
-1f122276096ea8df14d7074422e7a9d49b895db1	refs/tags/v1.0

@@ -10,8 +10,8 @@ set +e
  found=`echo $dock | grep -w dtdwd/$task`
 set -e
 echo "found is $found"
-if [[ $found != 1 ]]; then 
-   echo "start pushing"                                                   
+if [[ -z $found ]]; then 
+   #echo "start pushing"                                                   
    sudo docker push dtdwd/$task    
 fi
 

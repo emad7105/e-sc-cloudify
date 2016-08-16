@@ -25,7 +25,20 @@ flag=0
 sudo docker exec -it ${CONTAINER_ID} [ ! -f tasks/$task.jar ] && flag=1
 
 if [[ $flag = 1 ]]; then
-[ ! -f ~/.TDWF/$task.jar ] && wget -O ~/.TDWF/$task.jar  ${BLOCK_URL}
+  if grep -Fxq "$task" ~/.TDWF/tasks.txt
+   then
+     size=0
+     size2=$(stat --printf=%s ~/.TDWF/$task.jar)
+     while [[ $size != $size2 || $size2 == 0 ]]
+     do
+      sleep 3
+      size=$size2
+      size2=$(stat --printf=%s ~/.TDWF/$task.jar)
+     done
+  else
+   echo $task >> ~/.TDWF/tasks.txt
+   [ ! -f ~/.TDWF/$task.jar ] && wget -O ~/.TDWF/$task.jar  ${BLOCK_URL}
+  fi
 
 sudo docker exec -it ${CONTAINER_ID} [ ! -d tasks ] && sudo docker exec -it ${CONTAINER_ID} mkdir tasks
 
@@ -77,7 +90,7 @@ if [[ $create_image = "True" ]]; then
   # if [[ -z $f ]]; then
     #   echo $task | ssh cache@192.168.56.103 "cat >> DTDWD/tasks.txt"
    
-       ctx logger info "start local caching"
+      # ctx logger info "start local caching"
       #./Caching-Corescripts/caching-policy.sh $image > /dev/null 2>&1 & 
       #./Caching-Corescripts/caching-public.sh $image > /dev/null 2>&1 &    
    # fi

@@ -35,18 +35,18 @@ else
    # ctx logger info "$connect"
    #if [[ $connect == "ok" ]]; then
    
-    ssh cache@192.168.56.103 test -f "DTDWD/${task_image}.tar.gz" && flag=1
+    #ssh cache@192.168.56.103 test -f "DTDWD/${task_image}.tar.gz" && flag=1
 
-    if [[  $flag = 1  ]]; then
-      ctx logger info "cached task image"
-      set +e           
-       scp -P 22 cache@192.168.56.103:DTDWD/${task_image}.tar.gz ${task_image}.tar.gz
-       zcat --fast ${task_image}.tar.gz | docker load
-       rm ${task_image}.tar.gz
-      set -e    
-      Image=dtdwd/${task_image} 
+    #if [[  $flag = 1  ]]; then
+     # ctx logger info "cached task image"
+     # set +e           
+      # scp -P 22 cache@192.168.56.103:DTDWD/${task_image}.tar.gz ${task_image}.tar.gz
+       #zcat --fast ${task_image}.tar.gz | docker load
+      # rm ${task_image}.tar.gz
+      #set -e    
+      #Image=dtdwd/${task_image} 
       
-   else
+   #else
       dock=$(sudo docker search dtdwd/${task_image})     #task image from public hub
       set +e
         found=`echo $dock | grep -c dtdwd/${task_image}`                   
@@ -61,7 +61,7 @@ else
          sudo docker pull ubuntu:14.04 &>/dev/null
          Image=ubuntu:14.04       
       fi
-  fi
+  #fi
 fi
 #----------- pull the image --------------#
 #-----------------------------------------#

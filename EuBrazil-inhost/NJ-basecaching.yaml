@@ -507,7 +507,7 @@ node_templates:
     interfaces:
       cloudify.interfaces.lifecycle:
         create:
-          implementation: Caching-Corescripts/Lib-install.sh
+          implementation: Core-LifecycleScripts/Lib-install.sh
           inputs:
             process:
               args: [container6, 'https://github.com/rawaqasha/Libs/raw/master/Mega-CC.tar.gz']
